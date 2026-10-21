@@ -1,11 +1,6 @@
 import { apiFetch } from "../api/client.js";
-import { clearToken, getToken, saveToken, sessionFromToken, isTokenExpired } from "./tokenStorage.js";
+import { claimsFromToken, clearToken, getToken, saveToken, sessionFromToken, isTokenExpired } from "./tokenStorage.js";
 
-/**
- * POST /api/Auth/register-tenant
- * Backend DTO: OrganizationName, AdminFullName, AdminEmail, AdminPhoneNumber, AdminPassword
- * Note: register token return nahi karta - user ko login karna padta hai.
- */
 export async function registerUser({ name, email, organisation, phone, password }) {
     const res = await apiFetch("/api/Auth/register-tenant", {
         method: "POST",
@@ -29,7 +24,6 @@ export async function registerUser({ name, email, organisation, phone, password 
     return { ok: true, data: res.data };
 }
 
-/** POST /api/Auth/login -> { token } -> JWT storage mein save. */
 export async function loginUser({ email, password, remember }) {
     const res = await apiFetch("/api/Auth/login", {
         method: "POST",
@@ -54,29 +48,53 @@ export async function loginUser({ email, password, remember }) {
     return { ok: true };
 }
 
-/** Current user (JWT claims se) ya null agar logged-out / token expired. */
 export function getSession() {
     const token = getToken();
     return token ? sessionFromToken(token) : null;
 }
 
-/** Admin check - JWT role claim string ya array, dono handle karta hai (case-insensitive). */
+const NAME_CLAIMS = [
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+    "unique_name",
+    "name",
+    "given_name",
+    "fullName",
+    "AdminFullName",
+];
+
+export function getProfile() {
+    const token = getToken();
+    if (!token) return null;
+    const session = sessionFromToken(token);
+    if (!session) return null;
+    const claims = claimsFromToken(token);
+    const claimName = NAME_CLAIMS.map((k) => claims[k]).find((v) => typeof v === "string" && v.trim());
+    const fallback = (session.email || "Admin").split("@")[0];
+    const name = claimName || fallback.charAt(0).toUpperCase() + fallback.slice(1);
+    return {
+        ...session,
+        name,
+        initials: name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
+        issuedAt: claims.iat ? new Date(claims.iat * 1000) : null,
+        claims,
+    };
+}
+
 export function isAdmin(session = getSession()) {
     const roles = [].concat(session?.role ?? []);
     return roles.some((r) => /admin/i.test(String(r)));
 }
 
-/**
- * Public Register button/page band. Sirf admin-registration ka hidden route (/admin/register) chalta hai.
- * Production mein poori tarah band karne ke liye .env mein: VITE_ENABLE_ADMIN_REGISTER=false
- */
+export function homePath(session = getSession()) {
+    return isAdmin(session) ? "/dashboard" : "/user";
+}
+
 export const ADMIN_REGISTER_ENABLED = import.meta.env.VITE_ENABLE_ADMIN_REGISTER !== "false";
 
 export function isAuthenticated() {
     return !!getToken();
 }
 
-/** Pehle local token clear (instant logout), phir best-effort server call. */
 export async function logout() {
     const token = getToken();
     clearToken();
