@@ -5,10 +5,6 @@ import { getSession, isAdmin, logout } from "../auth/authStore.js";
 
 const LINKS_BEFORE = [{ label: "Home", href: "/" }];
 
-// Sirf admin ko dikhe
-const ADMIN_LINKS = [{ label: "Dashboard", href: "/dashboard" }];
-
-// Sabko dikhe
 const COMMON_LINKS = [
     { label: "Consent", href: "/consent" },
     { label: "User Rights", href: "/rights" },
@@ -25,15 +21,18 @@ export default function Navbar() {
         ready: false,
     });
 
+    const [profileOpen, setProfileOpen] = useState(false);
+    const profileRef = useRef(null);
     const itemRefs = useRef({});
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Route change pe Navbar re-render hota hai, to session har baar fresh read hota hai.
     const session = getSession();
     const initial = (session?.email || "?").charAt(0).toUpperCase();
     const admin = isAdmin(session);
-    const LINKS = [...LINKS_BEFORE, ...(admin ? ADMIN_LINKS : []), ...COMMON_LINKS];
+    const LINKS = session
+        ? (admin ? [...LINKS_BEFORE, ...COMMON_LINKS] : [...LINKS_BEFORE, { label: "My Tasks", href: "/my-tasks" }, { label: "My Security Reports", href: "/my-security-reports" }])
+        : [...LINKS_BEFORE, ...COMMON_LINKS];
 
     const onLogout = async () => {
         setOpen(false);
@@ -41,7 +40,6 @@ export default function Navbar() {
         navigate("/login", { replace: true });
     };
 
-    // Current route
     const active = location.pathname;
 
     useEffect(() => {
@@ -60,7 +58,6 @@ export default function Navbar() {
         };
     }, []);
 
-    // Position the animated active indicator
     const moveTo = (href) => {
         const el = itemRefs.current[href];
 
@@ -88,10 +85,22 @@ export default function Navbar() {
         };
     }, [active]);
 
-    // Close mobile menu after navigation
     useEffect(() => {
         setOpen(false);
+        setProfileOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        if (!profileOpen) return;
+        const onDown = (e) => profileRef.current && !profileRef.current.contains(e.target) && setProfileOpen(false);
+        const onKey = (e) => e.key === "Escape" && setProfileOpen(false);
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => {
+            document.removeEventListener("mousedown", onDown);
+            document.removeEventListener("keydown", onKey);
+        };
+    }, [profileOpen]);
 
     return (
         <header
@@ -104,7 +113,7 @@ export default function Navbar() {
                 className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
                 aria-label="Primary"
             >
-                {/* Logo */}
+
                 <Link
                     to="/"
                     className="flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
@@ -130,7 +139,6 @@ export default function Navbar() {
                     </span>
                 </Link>
 
-                {/* Desktop navigation */}
                 <ul
                     onMouseLeave={() => moveTo(active)}
                     className="relative hidden h-16 items-center lg:flex"
@@ -161,7 +169,6 @@ export default function Navbar() {
                         </li>
                     ))}
 
-                    {/* Animated underline */}
                     <span
                         aria-hidden="true"
                         className={`absolute -bottom-px h-0.5 bg-[#22D3EE] transition-all duration-300 ease-out ${bar.ready ? "opacity-100" : "opacity-0"
@@ -173,26 +180,67 @@ export default function Navbar() {
                     />
                 </ul>
 
-                {/* Desktop auth buttons */}
                 <div className="hidden items-center gap-2 lg:flex">
                     {session ? (
                         <>
-                            <div className="flex items-center gap-2.5 pr-2">
-                                <span
-                                    aria-hidden="true"
-                                    className="grid h-9 w-9 place-items-center rounded-full bg-[#0F766E] text-sm font-semibold text-white"
-                                >
-                                    {initial}
-                                </span>
-                                <div className="leading-tight">
-                                    <p className="max-w-[170px] truncate text-sm font-medium text-white">{session.email}</p>
-                                    <p className="flex items-center gap-1.5 text-xs text-[#CBD5E1]">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" aria-hidden="true" />
-                                        Signed in{session.role ? ` · ${session.role}` : ""}
-                                    </p>
-                                </div>
+                            <div ref={profileRef} className="relative">
+                                {(() => {
+                                    const body = (
+                                        <>
+                                            <span
+                                                aria-hidden="true"
+                                                className="grid h-9 w-9 place-items-center rounded-full bg-[#0F766E] text-sm font-semibold text-white"
+                                            >
+                                                {initial}
+                                            </span>
+                                            <div className="text-left leading-tight">
+                                                <p className="max-w-[170px] truncate text-sm font-medium text-white">{session.email}</p>
+                                                <p className="flex items-center gap-1.5 text-xs text-[#CBD5E1]">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" aria-hidden="true" />
+                                                    Signed in{session.role ? ` · ${session.role}` : ""}
+                                                </p>
+                                            </div>
+                                        </>
+                                    );
+                                    return admin ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setProfileOpen((v) => !v)}
+                                            aria-haspopup="menu"
+                                            aria-expanded={profileOpen}
+                                            className="flex items-center gap-2.5 rounded-xl py-1 pl-1 pr-2 transition-colors hover:bg-[#111C2E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
+                                        >
+                                            {body}
+                                            <svg viewBox="0 0 24 24" className={`h-4 w-4 text-[#CBD5E1] transition-transform ${profileOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                <path d="M6 9l6 6 6-6" />
+                                            </svg>
+                                        </button>
+                                    ) : (
+                                        <div className="flex items-center gap-2.5 pr-2">{body}</div>
+                                    );
+                                })()}
+
+                                {admin && profileOpen && (
+                                    <div
+                                        role="menu"
+                                        className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-[#263449] bg-[#111C2E] p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.45)]"
+                                    >
+                                        <Link
+                                            role="menuitem"
+                                            to="/dashboard"
+                                            className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#0F766E]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
+                                        >
+                                            <svg viewBox="0 0 24 24" className="h-4 w-4 text-[#22D3EE]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                                <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+                                            </svg>
+                                            Dashboard
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
+                            {!admin && <Link to="/my-tasks" className="rounded-xl border border-[#263449] px-3.5 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:bg-[#111C2E]">My Tasks</Link>}
+                            {!admin && <Link to="/my-security-reports" className="rounded-xl border border-[#263449] px-3.5 py-2 text-sm font-semibold text-cyan-200 transition-colors hover:bg-[#111C2E]">My Reports</Link>}
                             <button
                                 type="button"
                                 onClick={onLogout}
@@ -213,7 +261,6 @@ export default function Navbar() {
                     )}
                 </div>
 
-                {/* Mobile menu toggle */}
                 <button
                     type="button"
                     onClick={() => setOpen((previous) => !previous)}
@@ -238,7 +285,6 @@ export default function Navbar() {
                 </button>
             </nav>
 
-            {/* Mobile dropdown */}
             <div
                 className={`grid transition-all duration-300 lg:hidden ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                     }`}
@@ -268,6 +314,15 @@ export default function Navbar() {
                                     <span className="h-1.5 w-1.5 rounded-full bg-[#16A34A]" aria-hidden="true" />
                                     <span className="truncate">Signed in as {session.email}</span>
                                 </p>
+                                {!admin && <Link to="/my-security-reports" className="block rounded-lg bg-[#111C2E] py-2.5 text-center text-sm font-semibold text-cyan-200">My Security Reports</Link>}
+                                {admin && (
+                                    <Link
+                                        to="/dashboard"
+                                        className="block rounded-lg bg-[#0F766E] py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-[#115E59]"
+                                    >
+                                        Dashboard
+                                    </Link>
+                                )}
                                 <button
                                     type="button"
                                     onClick={onLogout}
