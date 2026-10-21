@@ -1,6 +1,5 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 
-// Dev: "" (Vite proxy). Production: VITE_API_BASE_URL set karo.
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const TIMEOUT_MS = 15000;
 
@@ -17,16 +16,11 @@ function extractError(data, status) {
     }
     if (status === 401) return "Your session has expired. Please sign in again.";
     if (status === 403) return "You do not have permission to do this.";
+    if (status === 404) return "This API endpoint was not found on the backend. Rebuild and restart the backend, then try again.";
     if (status >= 500) return "Server error. Please try again in a moment.";
     return "Something went wrong. Please try again.";
 }
 
-/**
- * apiFetch(path, { method, body, auth })
- *  - auth: true (default) -> Authorization: Bearer <jwt> lagata hai (agar token hai)
- *  - auth: false          -> public endpoints (login / register)
- * Hamesha { ok, status, data, error } return karta hai, kabhi throw nahi karta.
- */
 export async function apiFetch(path, { method = "GET", body, auth = true, token } = {}) {
     const headers = { Accept: "application/json" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -55,7 +49,6 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
 
         if (res.ok) return { ok: true, status: res.status, data, error: null };
 
-        // Protected endpoint pe 401 = token invalid/expired -> session saaf karke login pe bhejo.
         if (res.status === 401 && jwt) {
             clearToken();
             if (!window.location.pathname.startsWith("/login")) {
