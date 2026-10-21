@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+@keyframes pg-pop {
+  0% { opacity: 0; transform: translateX(16px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.pg-pop {
+  animation: pg-pop 0.25s ease-out both;
+}
+
+.pg-card {
+  transition: translate 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.pg-card:hover {
+  translate: 0 -3px;
+  border-color: #0F766E;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-pop { animation: none; }
+  .pg-card, .pg-card:hover { transition: none; translate: none; }
+}
