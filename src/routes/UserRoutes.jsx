@@ -1,0 +1,25 @@
+import { Navigate, Route } from "react-router-dom";
+import ProtectedRoute from "../auth/ProtectedRoute.jsx";
+import UserLayout from "../layouts/UserLayout.jsx";
+import MySecurityReports from "../pages/user/MySecurityReports.jsx";
+import MyTasks from "../pages/user/MyTasks.jsx";
+import UserDashboard from "../pages/user/UserDashboard.jsx";
+
+// Employee dashboard: everything under /user, employees only.
+export default function userRoutes() {
+    return (
+        <Route
+            path="/user"
+            element={
+                <ProtectedRoute role="user">
+                    <UserLayout />
+                </ProtectedRoute>
+            }
+        >
+            <Route index element={<UserDashboard />} />
+            <Route path="tasks" element={<MyTasks />} />
+            <Route path="reports" element={<MySecurityReports />} />
+            <Route path="*" element={<Navigate to="/user" replace />} />
+        </Route>
+    );
+}
