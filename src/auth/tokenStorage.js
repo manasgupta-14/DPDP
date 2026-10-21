@@ -1,6 +1,4 @@
-// JWT ko store / read / validate karne ka single source of truth.
-// remember = true  -> localStorage   (browser band hone ke baad bhi login rahe)
-// remember = false -> sessionStorage (tab band hote hi logout)
+
 
 const TOKEN_KEY = "pg_auth_token";
 const CLAIM = {
@@ -26,7 +24,6 @@ export function decodeJwt(token) {
     }
 }
 
-// 5 second ka buffer: token expire hone se pehle hi use invalid maano.
 export function isTokenExpired(token) {
     const payload = decodeJwt(token);
     if (!payload || !payload.exp) return true;
@@ -43,11 +40,10 @@ export function clearToken() {
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
     } catch {
-        /* storage blocked - ignore */
+        return;
     }
 }
 
-// Valid (non-expired) token hi return hota hai. Expired ho to storage saaf kar deta hai.
 export function getToken() {
     try {
         const token = sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY);
@@ -72,4 +68,8 @@ export function sessionFromToken(token) {
         organizationId: p.OrganizationId ?? p.organizationId ?? null,
         expiresAt: p.exp ? new Date(p.exp * 1000) : null,
     };
+}
+
+export function claimsFromToken(token) {
+    return decodeJwt(token) || {};
 }
