@@ -1,15 +1,14 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { isAdmin, isAuthenticated } from "./authStore.js";
+import { homePath, isAdmin, isAuthenticated } from "./authStore.js";
 
-// Login ke bina protected page khule to /login pe bhejo (aur wapas aane ka path yaad rakho).
-// adminOnly: logged-in lekin non-admin user ko home pe bhej deta hai.
-export default function ProtectedRoute({ children, adminOnly = false }) {
+// role: "any" (default) | "admin" | "user".
+// Admins and employees each get their own dashboard, so the wrong one redirects to the right home.
+export default function ProtectedRoute({ children, role = "any" }) {
     const location = useLocation();
     if (!isAuthenticated()) {
         return <Navigate to="/login" replace state={{ from: location.pathname }} />;
     }
-    if (adminOnly && !isAdmin()) {
-        return <Navigate to="/" replace />;
-    }
+    if (role === "admin" && !isAdmin()) return <Navigate to={homePath()} replace />;
+    if (role === "user" && isAdmin()) return <Navigate to={homePath()} replace />;
     return children;
 }
