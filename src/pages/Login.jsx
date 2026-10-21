@@ -41,13 +41,13 @@ export default function Login() {
             setFormError(result.error);
             return;
         }
-        // Admin -> dashboard, normal user -> home (unhe dashboard milta hi nahi)
-        const fallback = isAdmin(getSession()) ? "/dashboard" : "/";
+
+        const fallback = isAdmin(getSession()) ? "/dashboard" : "/my-tasks";
         const target = location.state?.from && (location.state.from !== "/dashboard" || fallback === "/dashboard") ? location.state.from : fallback;
         navigate(target, { replace: true, state: { justLoggedIn: true } });
     };
 
-    if (isAuthenticated() && !loading) return <Navigate to={isAdmin() ? "/dashboard" : "/"} replace />;
+    if (isAuthenticated() && !loading) return <Navigate to={isAdmin() ? "/dashboard" : "/my-tasks"} replace />;
 
     return (
         <AuthLayout
