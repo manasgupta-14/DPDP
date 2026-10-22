@@ -1,5 +1,5 @@
 import { getProfile } from "../auth/authStore.js";
-import { ADMIN_NAV } from "../config/navigation.js";
+import { ADMIN_SECTIONS } from "../config/navigation.js";
 import { NOTIFICATIONS } from "../data/dashboardMock.js";
 import DashboardShell from "./DashboardShell.jsx";
 
@@ -8,7 +8,8 @@ export default function AdminLayout() {
     const profile = getProfile();
     return (
         <DashboardShell
-            nav={ADMIN_NAV}
+            sections={ADMIN_SECTIONS}
+            subtitle="DPDP Act 2023 · Admin console"
             roleLabel="Admin"
             profileLink="/dashboard/admin"
             profileLabel="Admin profile"
