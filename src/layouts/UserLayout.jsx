@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMyPendingCampaigns } from "../api/campaign.js";
 import { getProfile } from "../auth/authStore.js";
-import { USER_NAV } from "../config/navigation.js";
+import { USER_SECTIONS } from "../config/navigation.js";
 import { TASKS_CHANGED, formatDay } from "../utils/campaign.js";
 import DashboardShell from "./DashboardShell.jsx";
 
@@ -37,7 +37,8 @@ export default function UserLayout() {
     return (
         <DashboardShell
             key={profile?.email}
-            nav={USER_NAV}
+            sections={USER_SECTIONS}
+            subtitle="DPDP Act 2023 · Employee"
             roleLabel="Employee"
             search={false}
             footer="Your responses are recorded for your organisation's DPDP compliance."
