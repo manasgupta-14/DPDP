@@ -23,3 +23,8 @@
   .pg-pop { animation: none; }
   .pg-card, .pg-card:hover { transition: none; translate: none; }
 }
+
+.pg-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #263449 transparent;
+}
