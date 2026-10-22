@@ -1,39 +1,51 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
-import { addEmployee } from "../../api/users.js";
+import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
-
-const storeKey = (orgId) => `pg_demo_users_${orgId || "default"}`;
-
-function loadUsers(orgId) {
-    try {
-        return JSON.parse(localStorage.getItem(storeKey(orgId))) || [];
-    } catch {
-        return [];
-    }
-}
-
-function persistUsers(orgId, users) {
-    try {
-        localStorage.setItem(storeKey(orgId), JSON.stringify(users));
-    } catch {
-        return;
-    }
-}
 
 const EMPTY = { name: "", email: "", phone: "", password: "" };
 const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40";
 
 export default function AddUsers() {
-    const { query, profile } = useOutletContext();
-    const orgId = profile?.organizationId;
-    const [users, setUsers] = useState(() => loadUsers(orgId));
+    const { query } = useOutletContext();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [listError, setListError] = useState("");
+    const [busyId, setBusyId] = useState(null);
     const [form, setForm] = useState(EMPTY);
     const [errors, setErrors] = useState({});
     const [notice, setNotice] = useState("");
     const [apiError, setApiError] = useState("");
     const [saving, setSaving] = useState(false);
+
+    const load = useCallback(async () => {
+        const res = await getOrganizationUsers();
+        if (res.ok) {
+            setUsers([...res.data].sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0)));
+            setListError("");
+        } else {
+            setListError(res.error);
+        }
+        setLoading(false);
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        getOrganizationUsers().then((res) => {
+            if (!active) return;
+            if (res.ok) {
+                setUsers([...res.data].sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0)));
+                setListError("");
+            } else {
+                setListError(res.error);
+            }
+            setLoading(false);
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
 
     const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -45,7 +57,7 @@ export default function AddUsers() {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = "Enter a valid email address.";
         if (!/^[0-9+\-\s]{7,15}$/.test(form.phone.trim())) next.phone = "Enter a valid phone number.";
         if (form.password.length < 8) next.password = "Password must be at least 8 characters.";
-        if (users.some((u) => u.email === form.email.trim().toLowerCase())) next.email = "You already added this email.";
+        if (users.some((u) => u.email.toLowerCase() === form.email.trim().toLowerCase())) next.email = "This email is already registered.";
         setErrors(next);
         if (Object.keys(next).length) return;
 
@@ -57,28 +69,25 @@ export default function AddUsers() {
             return;
         }
 
-        const user = {
-            id: crypto.randomUUID(),
-            name: form.name.trim(),
-            email: form.email.trim().toLowerCase(),
-            phone: form.phone.trim(),
-            addedAt: new Date().toISOString(),
-        };
-        const updated = [user, ...users];
-        setUsers(updated);
-        persistUsers(orgId, updated);
         setForm(EMPTY);
-        setNotice(`${user.name} has been added.`);
+        setNotice(`${form.name.trim()} has been added.`);
         setTimeout(() => setNotice(""), 4000);
+        load();
     };
 
-    const remove = (id) => {
-        const updated = users.filter((u) => u.id !== id);
-        setUsers(updated);
-        persistUsers(orgId, updated);
+    const toggle = async (u) => {
+        setBusyId(u.id);
+        setListError("");
+        const res = await toggleUserStatus(u.id);
+        setBusyId(null);
+        if (!res.ok) {
+            setListError(res.error);
+            return;
+        }
+        load();
     };
 
-    const shown = users.filter((u) => !query || `${u.name} ${u.email} ${u.phone}`.toLowerCase().includes(query));
+    const shown = users.filter((u) => !query || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(String(query).toLowerCase()));
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
@@ -133,23 +142,28 @@ export default function AddUsers() {
                 <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-semibold">Added from this browser</h2>
-                            <p className="text-xs text-[#64748B]">Server se user list abhi available nahi hai.</p>
+                            <h2 className="text-lg font-semibold">People in your organisation</h2>
+                            <p className="text-xs text-[#64748B]">Live from the server. Deactivate an employee to block their login.</p>
                         </div>
                         <span className="rounded-full bg-[#CCFBF1] px-2.5 py-1 text-xs font-semibold text-[#0F766E]">{users.length} total</span>
                     </div>
 
-                    {shown.length === 0 ? (
-                        <p className="py-12 text-center text-sm text-[#64748B]">{users.length ? "No users match your search." : "No users added yet. Use the form to add the first one."}</p>
+                    {listError && <p role="alert" className="mt-4 rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{listError}</p>}
+
+                    {loading ? (
+                        <p className="py-12 text-center text-sm text-[#64748B]">Loading users...</p>
+                    ) : shown.length === 0 ? (
+                        <p className="py-12 text-center text-sm text-[#64748B]">{users.length ? "No users match your search." : "No users yet. Use the form to add the first one."}</p>
                     ) : (
                         <div className="mt-4 overflow-x-auto">
-                            <table className="w-full min-w-[480px] text-left text-sm">
+                            <table className="w-full min-w-[560px] text-left text-sm">
                                 <thead>
                                     <tr className="border-b border-[#E2E8F0] text-xs uppercase tracking-wide text-[#64748B]">
                                         <th className="py-2 pr-3 font-semibold">Name</th>
-                                        <th className="py-2 pr-3 font-semibold">Phone</th>
+                                        <th className="py-2 pr-3 font-semibold">Role</th>
                                         <th className="py-2 pr-3 font-semibold">Added</th>
-                                        <th className="py-2"><span className="sr-only">Remove</span></th>
+                                        <th className="py-2 pr-3 font-semibold">Status</th>
+                                        <th className="py-2"><span className="sr-only">Action</span></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -157,14 +171,19 @@ export default function AddUsers() {
                                         <tr key={u.id} className="border-b border-[#E2E8F0] last:border-0">
                                             <td className="py-3 pr-3">
                                                 <p className="font-medium">{u.name}</p>
-                                                <p className="text-xs text-[#64748B]">{u.email}</p>
+                                                <p className="text-xs text-[#64748B]">{u.email}{u.phone ? ` · ${u.phone}` : ""}</p>
                                             </td>
-                                            <td className="py-3 pr-3 text-[#475569]">{u.phone}</td>
-                                            <td className="py-3 pr-3 text-[#475569]">{new Date(u.addedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}</td>
+                                            <td className="py-3 pr-3 text-[#475569]">{u.role}</td>
+                                            <td className="py-3 pr-3 text-[#475569]">{u.createdAt ? new Date(u.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" }) : "-"}</td>
+                                            <td className="py-3 pr-3">
+                                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${u.active ? "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]"}`}>{u.active ? "Active" : "Disabled"}</span>
+                                            </td>
                                             <td className="py-3 text-right">
-                                                <button type="button" onClick={() => remove(u.id)} aria-label={`Remove ${u.name}`} className="grid h-8 w-8 place-items-center rounded-lg text-[#64748B] transition hover:bg-[#FEF2F2] hover:text-[#DC2626]">
-                                                    <Icon name="trash" className="h-4 w-4" />
-                                                </button>
+                                                {u.role !== "Admin" && (
+                                                    <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
+                                                        {busyId === u.id ? "Saving..." : u.active ? "Deactivate" : "Activate"}
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}
