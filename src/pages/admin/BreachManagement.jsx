@@ -5,7 +5,7 @@ import IncidentTable from "../../components/admin/breach/IncidentTable.jsx";
 import SummaryCards from "../../components/admin/breach/SummaryCards.jsx";
 import TriageDrawer from "../../components/admin/breach/TriageDrawer.jsx";
 import { ghostBtn } from "../../components/shared/ui.js";
-import { sameText, statusList, timeOf } from "../../utils/breach.js";
+import { isFinished, sameText, severityRank, statusList, timeOf } from "../../utils/breach.js";
 
 const DEFAULT_FILTERS = { search: "", status: "All", severity: "All", sort: "newest" };
 
@@ -64,13 +64,25 @@ export default function BreachManagement() {
         const q = filters.search.trim().toLowerCase();
         const filtered = incidents.filter((i) => {
             if (filters.status !== "All" && !sameText(i.status, filters.status)) return false;
-            if (filters.severity === "Unset" ? i.severity : filters.severity !== "All" && !sameText(i.severity, filters.severity)) return false;
+            if (filters.severity === "Unset" && i.severity) return false;
+            if (filters.severity !== "All" && filters.severity !== "Unset" && !sameText(i.severity, filters.severity)) return false;
             if (!q) return true;
             return `${i.title} ${nameOf(i.reportedBy, i.reportedById, "")}`.toLowerCase().includes(q);
         });
-        const dir = filters.sort === "oldest" ? 1 : -1;
-        return filtered.sort((a, b) => dir * (timeOf(a.reportedAt) - timeOf(b.reportedAt)));
+        const newest = (a, b) => timeOf(b.reportedAt) - timeOf(a.reportedAt);
+        const order =
+            filters.sort === "oldest" ? (a, b) => -newest(a, b)
+            : filters.sort === "severity" ? (a, b) => severityRank(b.severity) - severityRank(a.severity) || newest(a, b)
+            : newest;
+        return filtered.sort(order);
     }, [incidents, filters, nameOf]);
+
+    const waiting = incidents.filter((i) => !i.severity && !isFinished(i.status)).length;
+    const headline = incidents.length === 0
+        ? "No incidents have been reported yet."
+        : waiting > 0
+            ? `${waiting} open ${waiting === 1 ? "incident is" : "incidents are"} waiting for a severity.`
+            : "Every open incident has a severity.";
 
     const selected = incidents.find((i) => i.id === selectedId) || null;
     const drawerIncident = selected && {
@@ -80,18 +92,14 @@ export default function BreachManagement() {
 
     return (
         <div className="space-y-6">
-            <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#111C2E] to-[#0B1220] p-6 text-white sm:p-8">
-                <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-56 w-56 rounded-full bg-[#22D3EE]/15 blur-[70px]" />
-                <div className="relative flex flex-wrap items-end justify-between gap-4">
-                    <div className="max-w-2xl">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#22D3EE]">Security operations</p>
-                        <h1 className="mt-2 text-3xl font-bold tracking-tight">Incident Command Desk</h1>
-                        <p className="mt-2 text-[15px] leading-relaxed text-[#CBD5E1]">Review reported incidents, set severity, record mitigation and track each case to closure.</p>
-                    </div>
-                    <button type="button" onClick={reload} disabled={loading} className={`${ghostBtn} border-white/20 bg-transparent text-white hover:border-[#22D3EE] hover:text-[#22D3EE]`}>
-                        {loading ? "Loading..." : "Refresh"}
-                    </button>
+            <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#0B1220] px-6 py-6 text-white sm:px-8">
+                <div className="max-w-2xl">
+                    <h1 className="text-3xl font-bold tracking-tight">Incident command desk</h1>
+                    <p className="mt-2 text-[15px] leading-relaxed text-[#CBD5E1]">{headline}</p>
                 </div>
+                <button type="button" onClick={reload} disabled={loading} className={`${ghostBtn} cursor-pointer border-blue-800 bg-transparent text-blue-600 hover:border-blue-800 hover:bg-blue-800 hover:text-white`}>
+                    {loading ? "Refreshing..." : "Refresh"}
+                </button>
             </header>
 
             {error && (
@@ -104,13 +112,18 @@ export default function BreachManagement() {
                 <p className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center text-sm text-[#475569]">Loading incidents...</p>
             ) : (
                 <>
-                    <SummaryCards incidents={incidents} activeStatus={filters.status} onSelect={(status) => setFilters((f) => ({ ...f, status }))} />
+                    <SummaryCards
+                        incidents={incidents}
+                        activeStatus={filters.status}
+                        severityFilter={filters.severity}
+                        onStatus={(status) => setFilters((f) => ({ ...f, status }))}
+                        onNeedsSeverity={() => setFilters((f) => ({ ...f, severity: f.severity === "Unset" ? "All" : "Unset" }))}
+                    />
                     <IncidentTable
                         rows={rows}
                         total={incidents.length}
                         filters={filters}
                         onFilters={setFilters}
-                        statuses={statuses}
                         nameOf={nameOf}
                         onOpen={(i) => setSelectedId(i.id)}
                     />
