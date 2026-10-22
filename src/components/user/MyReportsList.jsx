@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { formatDate, isFinished } from "../../utils/breach.js";
 import Alert from "../shared/Alert.jsx";
-import { StatusBadge } from "../shared/Badge.jsx";
+import { SeverityBadge, StatusBadge } from "../shared/Badge.jsx";
 import { ghostBtn, panel } from "../shared/ui.js";
 
 const PREVIEW = 180;
@@ -18,6 +18,10 @@ function ReportCard({ report }) {
                 <h3 className="min-w-0 break-words font-semibold text-[#0F172A]">{report.title}</h3>
                 <StatusBadge status={report.status} />
             </div>
+            <p className="mt-2 flex items-center gap-2 text-xs text-[#475569]">
+                <span className="font-semibold">Severity (set by security team):</span>
+                {report.severity ? <SeverityBadge severity={report.severity} /> : <span className="italic">Pending review</span>}
+            </p>
             <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-[#475569]">{text}</p>
             {long && (
                 <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-xs font-semibold text-[#0F766E] hover:text-[#115E59]">
@@ -44,7 +48,7 @@ export default function MyReportsList({ reports, loading, refreshing, error, not
             <div className="flex items-start justify-between gap-3">
                 <div>
                     <h2 id="my-reports-title" className="text-lg font-semibold text-[#0F172A]">My reported incidents</h2>
-                    <p className="mt-1 text-sm text-[#475569]">Read-only. Only you can see these reports in this view.</p>
+                    <p className="mt-1 text-sm text-[#475569]">Read-only. Severity and status are set by the security team, you cannot change them.</p>
                 </div>
                 <button type="button" onClick={onRefresh} disabled={loading || refreshing} className={`${ghostBtn} px-3 py-2 text-xs`}>
                     {refreshing ? "Refreshing..." : "Refresh"}
