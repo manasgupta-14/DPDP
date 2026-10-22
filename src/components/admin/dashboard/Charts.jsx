@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 // Categorical slots in fixed order (identity never cycles; bar charts fold extras into "Other").
-export const SERIES = ["#2A78D6", "#EB6834", "#1BAF7A", "#EDA100", "#E87BA4", "#008300", "#6250D6", "#E34948"];
+export const SERIES = ["#38BDF8", "#34D399", "#FB7185", "#FBBF24", "#818CF8", "#0F766E", "#A78BFA", "#F97316"];
 const INK = "#0F172A";
 const MUTED = "#64748B";
 const GRID = "#E2E8F0";
@@ -130,7 +130,7 @@ export function LineChart({ labels, series }) {
                         <path d={`${curve(series[0].values.map((v, i) => ({ x: X(i), y: Y(v) })))}L${X(n - 1)},${Y(0)}L${X(0)},${Y(0)}Z`} fill="url(#pg-area)" />
                     )}
                     {series.map((s, si) => (
-                        <path key={s.name} d={curve(s.values.map((v, i) => ({ x: X(i), y: Y(v) })))} fill="none" stroke={SERIES[si]} strokeWidth="2" strokeLinecap="round" />
+                        <path key={s.name} d={curve(s.values.map((v, i) => ({ x: X(i), y: Y(v) })))} fill="none" stroke={SERIES[si]} strokeWidth="2.25" strokeLinecap="round" />
                     ))}
                     {n === 1 && series.map((s, si) => <circle key={s.name} cx={X(0)} cy={Y(s.values[0])} r="4" fill={SERIES[si]} />)}
                     {hover !== null && (
@@ -167,7 +167,7 @@ export function BarChart({ bars, unit }) {
     const h = HEIGHT - m.t - m.b;
     const { step, top } = scaleFor(Math.max(0, ...bars.map((b) => b.value)));
     const band = w / bars.length;
-    const bw = Math.min(56, band * 0.62);
+    const bw = Math.min(64, band * 0.6);
     const Y = (v) => m.t + h - (v / top) * h;
     const ticks = Array.from({ length: Math.round(top / step) + 1 }, (_, i) => i * step);
     const clip = Math.max(4, Math.floor(band / 7));
@@ -185,7 +185,7 @@ export function BarChart({ bars, unit }) {
                     const x = m.l + band * i + (band - bw) / 2;
                     const y = Y(b.value);
                     const bh = m.t + h - y;
-                    const r = Math.min(4, bw / 2, bh);
+                    const r = Math.min(6, bw / 2, bh);
                     return (
                         <g key={b.label}>
                             {hover === i && <rect x={m.l + band * i} y={m.t} width={band} height={h} fill="#F1F5F9" />}
