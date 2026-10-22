@@ -2,13 +2,17 @@ import { Navigate, useLocation } from "react-router-dom";
 import Icon from "../../components/shared/Icon.jsx";
 import { ADMIN_NAV } from "../../config/navigation.js";
 import { MODULE_INFO } from "../../data/dashboardMock.js";
+import AuditTrail from "./AuditTrail.jsx";
 import BreachManagement from "./BreachManagement.jsx";
 import DataInventory from "./DataInventory.jsx";
+import PrivacyRequests from "./PrivacyRequests.jsx";
 
 export default function ModulePage() {
     const slug = useLocation().pathname.split("/").pop();
     if (slug === "breach") return <BreachManagement />;
     if (slug === "inventory") return <DataInventory />;
+    if (slug === "audit") return <AuditTrail />;
+    if (slug === "rights") return <PrivacyRequests />;
     const info = MODULE_INFO[slug];
     if (!info) return <Navigate to="/dashboard" replace />;
     const icon = ADMIN_NAV.find((n) => n.to.endsWith(`/${slug}`))?.icon || "grid";
