@@ -16,49 +16,63 @@ function useClickAway(ref, onAway) {
     }, [ref, onAway]);
 }
 
-function Sidebar({ nav, footer, onNavigate }) {
+function Sidebar({ sections, footer, profile, subtitle, onNavigate }) {
     return (
         <div className="flex h-full flex-col border-r border-[#263449] bg-[#0B1220] text-white">
-            <Link to="/" onClick={onNavigate} className="flex items-center gap-2.5 px-6 py-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
-                <Icon name="shield" className="h-7 w-7 text-[#22D3EE]" />
-                <span className="text-xl font-semibold tracking-tight">PrivyGuard</span>
+            <Link to="/" onClick={onNavigate} className="flex items-center gap-3 border-b border-[#263449] px-5 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                <Icon name="shield" className="h-7 w-7 shrink-0 text-[#22D3EE]" />
+                <span className="min-w-0 leading-tight">
+                    <span className="block text-lg font-semibold tracking-tight">PrivyGuard</span>
+                    <span className="block truncate text-xs text-[#94A3B8]">{subtitle}</span>
+                </span>
             </Link>
 
-            <nav aria-label="Primary" className="flex-1 space-y-1 overflow-y-auto px-4 pb-4">
-                {nav.map((item) => (
-                    <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={item.end}
-                        onClick={onNavigate}
-                        className={({ isActive }) =>
-                            `group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[15px] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${
-                                isActive
-                                    ? "bg-[#0F766E] text-white shadow-[0_6px_18px_rgba(15,118,110,0.4)]"
-                                    : "text-[#CBD5E1] hover:bg-[#111C2E] hover:text-white"
-                            }`
-                        }
-                    >
-                        <Icon name={item.icon} className="h-5 w-5 shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                        {item.highlight && (
-                            <span className="ml-auto rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#67E8F9] ring-1 ring-[#22D3EE]/30">
-                                New
-                            </span>
-                        )}
-                    </NavLink>
+            <nav aria-label="Primary" className="pg-scroll flex-1 overflow-y-auto px-3 py-4">
+                {sections.map((section) => (
+                    <div key={section.label} className="mb-5 last:mb-0">
+                        <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#64748B]">{section.label}</p>
+                        <div className="space-y-0.5">
+                            {section.items.map((item) => (
+                                <NavLink
+                                    key={item.to}
+                                    to={item.to}
+                                    end={item.end}
+                                    onClick={onNavigate}
+                                    className={({ isActive }) =>
+                                        `flex items-center gap-2 rounded-lg px-3 py-2 text-[14.5px] font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${
+                                            isActive
+                                                ? "bg-[#0F766E] text-white"
+                                                : "text-[#CBD5E1] hover:bg-[#111C2E] hover:text-white"
+                                        }`
+                                    }
+                                >
+                                    <span className="truncate">{item.label}</span>
+                                    {item.highlight && (
+                                        <span className="ml-auto rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#67E8F9] ring-1 ring-[#22D3EE]/30">
+                                            New
+                                        </span>
+                                    )}
+                                    {item.badge > 0 && (
+                                        <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#DC2626]/90 px-1.5 text-[11px] font-bold text-white">{item.badge}</span>
+                                    )}
+                                </NavLink>
+                            ))}
+                        </div>
+                    </div>
                 ))}
             </nav>
 
-            <div className="m-4 rounded-xl border border-[#263449] bg-[#111C2E] p-4 text-xs leading-relaxed text-[#CBD5E1]">
-                {footer}
+            <div className="border-t border-[#263449] px-5 py-4 text-xs leading-relaxed text-[#94A3B8]">
+                <p className="truncate text-[#CBD5E1]">Signed in as {profile?.name || "Admin"}</p>
+                <p className="mt-1.5">{footer}</p>
             </div>
         </div>
     );
 }
 
 export default function DashboardShell({
-    nav,
+    sections,
+    subtitle = "DPDP Act, 2023",
     roleLabel,
     profileLink,
     profileLabel = "Profile",
@@ -77,6 +91,8 @@ export default function DashboardShell({
     const [bellOpen, setBellOpen] = useState(false);
     const menuRef = useRef(null);
     const bellRef = useRef(null);
+    const searchRef = useRef(null);
+    const pageLabel = sections.flatMap((x) => x.items).find((i) => (i.end ? location.pathname === i.to : location.pathname.startsWith(i.to)))?.label;
 
     useClickAway(menuRef, () => setMenu(false));
     useClickAway(bellRef, () => setBellOpen(false));
@@ -84,6 +100,17 @@ export default function DashboardShell({
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [location.pathname]);
+
+    useEffect(() => {
+        const onKey = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && searchRef.current) {
+                e.preventDefault();
+                searchRef.current.focus();
+            }
+        };
+        document.addEventListener("keydown", onKey);
+        return () => document.removeEventListener("keydown", onKey);
+    }, []);
 
     const onLogout = async () => {
         await logout();
@@ -100,14 +127,14 @@ export default function DashboardShell({
       `}</style>
 
             <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:block">
-                <Sidebar nav={nav} footer={footer} />
+                <Sidebar sections={sections} footer={footer} profile={profile} subtitle={subtitle} />
             </aside>
 
             {drawer && (
                 <div className="fixed inset-0 z-40 lg:hidden">
                     <button type="button" aria-label="Close menu" onClick={() => setDrawer(false)} className="absolute inset-0 bg-[#0B1220]/60" />
                     <aside className="absolute inset-y-0 left-0 w-72 max-w-[85%]">
-                        <Sidebar nav={nav} footer={footer} onNavigate={() => setDrawer(false)} />
+                        <Sidebar sections={sections} footer={footer} profile={profile} subtitle={subtitle} onNavigate={() => setDrawer(false)} />
                     </aside>
                 </div>
             )}
@@ -124,25 +151,33 @@ export default function DashboardShell({
                         <Icon name="menu" className="h-5 w-5" />
                     </button>
 
-                    {search ? (
-                    <label className="relative min-w-0 flex-1 sm:max-w-md">
-                        <span className="sr-only">Search records</span>
-                        <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#64748B]" />
-                        <input
-                            type="search"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search records"
-                            className="h-11 w-full rounded-xl border border-[#E2E8F0] bg-white pl-10 pr-3 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40"
-                        />
-                    </label>
-                    ) : (
-                        <div className="flex-1" />
+                    <nav aria-label="Breadcrumb" className="hidden min-w-0 items-center gap-1.5 text-xs text-[#64748B] md:flex">
+                        <span className="truncate">{roleLabel}</span>
+                        <span aria-hidden="true">/</span>
+                        <span className="truncate font-semibold text-[#0F172A]">{pageLabel || "Dashboard"}</span>
+                    </nav>
+
+                    <div className="flex-1" />
+
+                    {search && (
+                        <label className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
+                            <span className="sr-only">Search records</span>
+                            <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-[#64748B]" />
+                            <input
+                                ref={searchRef}
+                                type="search"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search records"
+                                className="h-10 w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] pl-10 pr-12 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:border-[#0F766E] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40"
+                            />
+                            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-[#E2E8F0] bg-white px-1.5 py-0.5 text-[10px] font-semibold text-[#64748B] sm:block">Ctrl K</kbd>
+                        </label>
                     )}
 
                     {mockBadge && <span className="hidden rounded-full bg-[#D97706]/15 px-3 py-1 text-[11px] font-bold tracking-wide text-[#B45309] sm:inline">MOCK DATA</span>}
 
-                    <div ref={bellRef} className="relative ml-auto sm:ml-0">
+                    <div ref={bellRef} className="relative">
                         <button
                             type="button"
                             onClick={() => setBellOpen((v) => !v)}
