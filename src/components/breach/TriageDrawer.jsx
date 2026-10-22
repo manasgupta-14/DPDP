@@ -78,7 +78,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
             severity: form.severity,
             estimatedAffectedRecords: Number(form.estimatedAffectedRecords),
             mitigationSteps: form.mitigationSteps.trim(),
-        });
+        }, incident);
         setSaving(false);
         setConfirming(false);
         if (!res.ok) {
@@ -107,7 +107,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
         setAssigning(true);
         setApiError("");
         setSuccess("");
-        const res = await assignIncident(incident.id);
+        const res = await assignIncident(incident.id, incident);
         setAssigning(false);
         if (!res.ok) {
             setApiError(res.error);
