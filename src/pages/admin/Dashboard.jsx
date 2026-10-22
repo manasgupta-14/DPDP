@@ -11,10 +11,13 @@ const card = "rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgb
 
 function Kpi({ item, delay }) {
     return (
-        <div className={`${card} p-5`} style={rise(delay)}>
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${item.tint}`}>
-                <Icon name={item.icon} className="h-5 w-5" />
-            </span>
+        <div className={`${card} pg-card p-5`} style={rise(delay)}>
+            <div className="flex items-start justify-between">
+                <span className={`grid h-10 w-10 place-items-center rounded-full ${item.tint}`}>
+                    <Icon name={item.icon} className="h-5 w-5" />
+                </span>
+                <Icon name="arrow" className="h-4 w-4 text-[#CBD5E1]" />
+            </div>
             <p className="mt-4 text-3xl font-bold tracking-tight text-[#0F172A]">{item.display}</p>
             <p className="mt-1 text-sm font-medium text-[#334155]">{item.label}</p>
             {item.group && <p className="mt-0.5 text-xs text-[#64748B]">{item.group}</p>}
@@ -28,7 +31,7 @@ function ChartCard({ chart, delay }) {
             ? { head: ["Category", chart.unit], rows: chart.bars.map((b) => [b.label, b.value]) }
             : { head: ["Period", ...chart.series.map((s) => s.name)], rows: chart.labels.map((l, i) => [l, ...chart.series.map((s) => s.values[i])]) };
     return (
-        <section className={`${card} min-w-0 p-5 sm:p-6`} style={rise(delay)} aria-label={chart.title}>
+        <section className={`${card} pg-card min-w-0 p-5 sm:p-6`} style={rise(delay)} aria-label={chart.title}>
             <h2 className="text-base font-semibold text-[#0F172A]">{chart.title}</h2>
             <p className="mt-0.5 text-xs text-[#64748B]">{chart.type === "bar" ? chart.unit : "Trend over time"}</p>
             <div className="mt-4">{chart.type === "bar" ? <BarChart bars={chart.bars} unit={chart.unit} /> : <LineChart labels={chart.labels} series={chart.series} />}</div>
@@ -108,12 +111,13 @@ export default function Dashboard() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
                     {d?.score && (
-                        <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] px-3 py-2 text-xs font-semibold text-[#334155]">
+                        <span className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white px-3 py-2.5 text-xs font-semibold text-[#334155]">
                             <Icon name="shield" className="h-4 w-4 text-[#0F766E]" />
                             {d.score.value} / 100 compliance score
                         </span>
                     )}
                     <button type="button" onClick={refresh} disabled={state.loading || refreshing} className="inline-flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] disabled:opacity-60">
+                        <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                         {refreshing ? "Refreshing..." : "Refresh"}
                     </button>
                     <button type="button" onClick={() => d && download(d)} disabled={!d || nothing} className="inline-flex items-center gap-2 rounded-xl bg-[#0F172A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E293B] disabled:opacity-50">
