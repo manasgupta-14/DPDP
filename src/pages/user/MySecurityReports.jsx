@@ -5,7 +5,7 @@ import MyReportsList from "../../components/user/MyReportsList.jsx";
 import { timeOf } from "../../utils/breach.js";
 
 const FALLBACK_NOTICE =
-    "Live status tracking is not available on the server yet, so this list shows reports you submitted from this browser. Status stays Open here until the security team's updates are exposed to employees.";
+    "The server only lets admins list incidents, so this list shows reports you submitted from this browser. Severity and status updates from the security team show here only when they are made from this same browser.";
 
 export default function MySecurityReports() {
     const [reports, setReports] = useState([]);
