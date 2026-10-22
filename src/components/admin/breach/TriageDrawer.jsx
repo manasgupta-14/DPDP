@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { assignIncident, updateIncident } from "../../../api/breach.js";
-import { BASE_STATUSES, SEVERITIES, formatDate, isFinished, sameText } from "../../../utils/breach.js";
+import { BASE_STATUSES, SEVERITIES, formatDate, isFinished, sameText, severityColor } from "../../../utils/breach.js";
 import Alert from "../../shared/Alert.jsx";
 import { SeverityBadge, StatusBadge } from "../../shared/Badge.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
@@ -67,6 +67,13 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
         setSuccess("");
     };
 
+    const pickSeverity = (value) => {
+        setForm((f) => ({ ...f, severity: value }));
+        setErrors((er) => ({ ...er, severity: undefined }));
+        setConfirming(false);
+        setSuccess("");
+    };
+
     const statusOptions = [...new Set([...BASE_STATUSES, ...statuses, incident.status])];
     const closing = isFinished(form.status) && !sameText(form.status, incident.status);
 
@@ -78,7 +85,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
             severity: form.severity,
             estimatedAffectedRecords: Number(form.estimatedAffectedRecords),
             mitigationSteps: form.mitigationSteps.trim(),
-        });
+        }, incident);
         setSaving(false);
         setConfirming(false);
         if (!res.ok) {
@@ -107,7 +114,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
         setAssigning(true);
         setApiError("");
         setSuccess("");
-        const res = await assignIncident(incident.id);
+        const res = await assignIncident(incident.id, incident);
         setAssigning(false);
         if (!res.ok) {
             setApiError(res.error);
@@ -125,7 +132,6 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
             <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="pg-pop absolute inset-y-0 right-0 flex w-full max-w-xl flex-col bg-white shadow-2xl">
                 <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] p-5">
                     <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-[#0F766E]">Investigation workspace</p>
                         <h2 id="triage-title" className="mt-1 break-words text-xl font-bold text-[#0F172A]">{incident.title}</h2>
                         <div className="mt-2 flex flex-wrap gap-2">
                             <StatusBadge status={incident.status} />
@@ -144,7 +150,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                             <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-[#475569]">
                                 <div><dt className="font-semibold">Reported by</dt><dd className="mt-0.5 text-[#0F172A]">{incident.reporterLabel}</dd></div>
                                 <div><dt className="font-semibold">Assigned to</dt><dd className="mt-0.5 text-[#0F172A]">{assigneeName}</dd></div>
-                                <div><dt className="font-semibold">Incident date</dt><dd className="mt-0.5 text-[#0F172A]">{formatDate(incident.incidentDate)}</dd></div>
+                                <div><dt className="font-semibold">Discovered</dt><dd className="mt-0.5 text-[#0F172A]">{formatDate(incident.discoveryDate)}</dd></div>
                                 <div><dt className="font-semibold">Reported</dt><dd className="mt-0.5 text-[#0F172A]">{formatDate(incident.reportedAt)}</dd></div>
                             </dl>
                             <button type="button" onClick={onAssign} disabled={busy} className={`${ghostBtn} mt-4 w-full py-2 text-xs`}>
@@ -152,28 +158,42 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                             </button>
                         </section>
 
+                        <fieldset>
+                            <legend className="text-sm font-medium text-[#334155]">Severity</legend>
+                            <div role="radiogroup" aria-label="Severity" className="mt-1.5 grid grid-cols-4 gap-1.5">
+                                {SEVERITIES.map((s) => {
+                                    const on = sameText(form.severity, s);
+                                    return (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            role="radio"
+                                            aria-checked={on}
+                                            onClick={() => pickSeverity(s)}
+                                            style={on ? { background: severityColor(s) } : undefined}
+                                            className={`rounded-xl border px-2 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${on ? "border-transparent text-white" : "border-[#E2E8F0] bg-white text-[#334155] hover:border-[#0F766E]/50"}`}
+                                        >
+                                            {s}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <span className="mt-1 block text-xs text-[#DC2626]">{errors.severity}</span>
+                        </fieldset>
+
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <label className="block text-sm font-medium text-[#334155]">
-                                Severity
-                                <select value={form.severity} onChange={set("severity")} aria-invalid={!!errors.severity} className={field}>
-                                    <option value="" disabled>Select severity</option>
-                                    {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                                <span className="mt-1 block text-xs text-[#DC2626]">{errors.severity}</span>
-                            </label>
                             <label className="block text-sm font-medium text-[#334155]">
                                 Status
                                 <select value={form.status} onChange={set("status")} className={field}>
                                     {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </label>
+                            <label className="block text-sm font-medium text-[#334155]">
+                                Estimated affected records
+                                <input type="number" inputMode="numeric" min="0" step="1" value={form.estimatedAffectedRecords} onChange={set("estimatedAffectedRecords")} aria-invalid={!!errors.estimatedAffectedRecords} className={field} />
+                                <span className="mt-1 block text-xs text-[#DC2626]">{errors.estimatedAffectedRecords}</span>
+                            </label>
                         </div>
-
-                        <label className="block text-sm font-medium text-[#334155]">
-                            Estimated affected records
-                            <input type="number" inputMode="numeric" min="0" step="1" value={form.estimatedAffectedRecords} onChange={set("estimatedAffectedRecords")} aria-invalid={!!errors.estimatedAffectedRecords} className={field} />
-                            <span className="mt-1 block text-xs text-[#DC2626]">{errors.estimatedAffectedRecords}</span>
-                        </label>
 
                         <label className="block text-sm font-medium text-[#334155]">
                             Mitigation steps
