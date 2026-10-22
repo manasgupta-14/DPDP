@@ -19,3 +19,36 @@ export function addLocalReport(email, report) {
         /* storage unavailable: ignore */
     }
 }
+
+// Triage updates (severity, status, resolution) made by the security team are mirrored here
+// so an employee can SEE them read-only. Only works in the same browser until the backend
+// exposes a "my reports" endpoint. Matched by title + description, since local reports have no server id.
+const triageKey = "pg:triage-overlay";
+const fingerprint = (r) => `${String(r?.title ?? "").trim().toLowerCase()}|${String(r?.description ?? "").trim().toLowerCase()}`;
+
+function readTriage() {
+    try {
+        const map = JSON.parse(localStorage.getItem(triageKey) || "{}");
+        return map && typeof map === "object" ? map : {};
+    } catch {
+        return {};
+    }
+}
+
+export function saveTriage(incident, patch) {
+    if (!incident) return;
+    try {
+        const map = readTriage();
+        const k = fingerprint(incident);
+        const clean = Object.fromEntries(Object.entries(patch).filter(([, v]) => v !== undefined && v !== null && v !== ""));
+        map[k] = { ...map[k], ...clean };
+        localStorage.setItem(triageKey, JSON.stringify(map));
+    } catch {
+        /* storage unavailable: ignore */
+    }
+}
+
+export function applyTriage(report) {
+    const t = readTriage()[fingerprint(report)];
+    return t ? { ...report, ...t } : report;
+}
