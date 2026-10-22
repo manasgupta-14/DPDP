@@ -25,9 +25,9 @@ const PHASES = [
 ];
 
 const PROGRESS = [
-    { label: "Consent records", value: 72 },
-    { label: "Rights requests closed", value: 58 },
-    { label: "Breach checklist", value: 85 },
+    { label: "Consent management", value: 72 },
+    { label: "Privacy rights requests completed", value: 58 },
+    { label: "Breach response checklist", value: 85 },
 ];
 
 function Icon({ name, className = "h-5 w-5" }) {
@@ -68,7 +68,7 @@ function ProgressRow({ label, value, delay }) {
     const v = useCountUp(value, delay);
     return (
         <div>
-            <div className="mb-1.5 flex items-center justify-between text-xs">
+            <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
                 <span className="text-[#CBD5E1]">{label}</span>
                 <span className="font-semibold tabular-nums text-white">{v}%</span>
             </div>
@@ -139,11 +139,11 @@ export default function Hero() {
                         </span>
 
                         <h1 style={rise(1)} className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.5rem]">
-                            Data protection compliance, organised in one workspace
+                            Data privacy compliance, organised in one workspace
                         </h1>
 
                         <p style={rise(2)} className="mt-6 max-w-xl text-base leading-relaxed text-[#CBD5E1] sm:text-lg">
-                            PrivyGuard turns DPDP obligations into trackable work: consent records, user rights requests, breach handling and audit history, all in one place.
+                            PrivyGuard helps organisations manage privacy obligations, consent records, user rights requests, breach reporting and audit history, all in one place.
                         </p>
 
                         <div style={rise(3)} className="mt-9 flex flex-wrap items-center gap-3">
@@ -152,7 +152,7 @@ export default function Hero() {
                                     to="/dashboard"
                                     className="group inline-flex items-center gap-2 rounded-lg bg-[#0F766E] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#0F766E]/30 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#115E59] hover:shadow-[#22D3EE]/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1220]"
                                 >
-                                    Open admin dashboard
+                                    Open privacy dashboard
                                     <Icon name="arrow" className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                 </Link>
                             ) : (
@@ -167,7 +167,7 @@ export default function Hero() {
                         </div>
 
                         <div style={rise(4)} className="mt-12 max-w-md">
-                            <p className="text-xs font-medium text-[#CBD5E1]/70">Phased commencement</p>
+                            <p className="text-xs font-medium text-[#CBD5E1]/70">DPDP compliance milestones</p>
                             <div className="relative mt-4">
                                 <div className="absolute left-0 right-0 top-[5px] h-px origin-left bg-gradient-to-r from-[#22D3EE] via-[#0F766E] to-[#263449] animate-[pg-draw_1.6s_ease-out_.9s_both]" />
                                 <ul className="relative flex justify-between">
@@ -210,7 +210,7 @@ export default function Hero() {
                         <div className="absolute bottom-0 right-0 w-[268px] animate-[pg-float_7s_ease-in-out_infinite] sm:-right-2 sm:w-[286px]">
                             <div className="rounded-xl border border-[#263449] bg-[#111C2E]/90 p-4 shadow-2xl shadow-black/50 backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-[#0F766E]">
                                 <div className="mb-3.5 flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-white">Task progress</span>
+                                    <span className="text-sm font-semibold text-white">Compliance progress</span>
                                     <span className="rounded-md border border-[#D97706]/40 bg-[#D97706]/10 px-2 py-0.5 text-[10px] font-medium text-[#D97706]">Sample data</span>
                                 </div>
                                 <div className="space-y-3.5">
@@ -227,7 +227,7 @@ export default function Hero() {
                                     <Icon name="check" className="h-4 w-4" />
                                 </span>
                                 <span className="text-xs leading-tight">
-                                    <span className="block font-semibold text-white">Audit entry recorded</span>
+                                    <span className="block font-semibold text-white">Privacy activity recorded</span>
                                     <span className="text-[#CBD5E1]/70">Sample event</span>
                                 </span>
                             </div>
