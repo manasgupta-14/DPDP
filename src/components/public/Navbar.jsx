@@ -85,10 +85,12 @@ export default function Navbar() {
         };
     }, [active]);
 
-    useEffect(() => {
+    const [lastPath, setLastPath] = useState(location.pathname);
+    if (lastPath !== location.pathname) {
+        setLastPath(location.pathname);
         setOpen(false);
         setProfileOpen(false);
-    }, [location.pathname]);
+    }
 
     useEffect(() => {
         if (!profileOpen) return;
