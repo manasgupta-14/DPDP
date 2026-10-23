@@ -1,6 +1,7 @@
 import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import AuthLayout, { Field, PasswordInput, SubmitButton, inputClass } from "../../components/public/Authui.jsx";
+import AuthLayout, { Field, PasswordInput, SubmitButton } from "../../components/public/Authui.jsx";
+import { inputClass } from "../../components/public/authStyles.js";
 import { getSession, homePath, isAuthenticated, loginUser } from "../../auth/authStore.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,7 +45,7 @@ export default function Login() {
 
         const fallback = homePath(getSession());
         const from = location.state?.from;
-        const allowedFrom = from && (fallback === "/dashboard" ? from.startsWith("/dashboard") || !from.startsWith("/user") : from.startsWith("/user") || !from.startsWith("/dashboard"));
+        const allowedFrom = from && (from.startsWith(fallback) || !/^\/(dashboard|dpo|user)(\/|$)/.test(from));
         const target = allowedFrom ? from : fallback;
         navigate(target, { replace: true, state: { justLoggedIn: true } });
     };
