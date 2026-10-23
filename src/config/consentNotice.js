@@ -1,0 +1,38 @@
+export const NOTICE_VERSION = "1.0";
+
+export const NOTICE_TEXT = {
+    en: {
+        label: "English",
+        title: "Your privacy choices",
+        intro: "Your organisation would like your permission to use your personal data (such as your name, email address and phone number) for the purposes below. Each purpose is separate and optional. Choosing \"Don't allow\" will not stop you from using this dashboard.",
+        purposes: "Purposes",
+        allow: "Allow",
+        deny: "Don't allow",
+        retention: (days) => `Kept for ${days} days`,
+        how: "If you don't allow a purpose, your data will not be used for it. You can change your mind at any time from My Consents, and withdrawing is as easy as giving consent.",
+        rights: "You can also ask to access, correct or erase your data, or raise a grievance, from Privacy settings. If you are not satisfied, you may complain to the Data Protection Board of India.",
+        links: { consents: "Open My Consents", privacy: "Open Privacy settings" },
+        save: "Save my choices",
+        saving: "Saving...",
+        later: "Decide later",
+        pickOne: "Choose Allow or Don't allow for at least one purpose.",
+        version: (v) => `Privacy notice v${v}`,
+    },
+    hi: {
+        label: "हिन्दी",
+        title: "आपकी गोपनीयता के विकल्प",
+        intro: "आपका संगठन नीचे दिए गए उद्देश्यों के लिए आपके व्यक्तिगत डेटा (जैसे नाम, ईमेल पता और फ़ोन नंबर) का उपयोग करने के लिए आपकी अनुमति चाहता है। हर उद्देश्य अलग और वैकल्पिक है। \"अनुमति नहीं\" चुनने से आपका इस डैशबोर्ड का उपयोग बंद नहीं होगा।",
+        purposes: "उद्देश्य",
+        allow: "अनुमति दें",
+        deny: "अनुमति नहीं",
+        retention: (days) => `${days} दिन तक रखा जाएगा`,
+        how: "जिस उद्देश्य की आप अनुमति नहीं देंगे, उसके लिए आपका डेटा इस्तेमाल नहीं किया जाएगा। आप कभी भी My Consents पेज से अपना फ़ैसला बदल सकते हैं, और सहमति वापस लेना उतना ही आसान है जितना सहमति देना।",
+        rights: "आप Privacy settings पेज से अपने डेटा तक पहुँचने, उसे सही कराने या मिटाने का अनुरोध कर सकते हैं, या शिकायत दर्ज कर सकते हैं। संतुष्ट न होने पर आप भारत के डेटा संरक्षण बोर्ड (Data Protection Board of India) में शिकायत कर सकते हैं।",
+        links: { consents: "My Consents खोलें", privacy: "Privacy settings खोलें" },
+        save: "मेरे विकल्प सहेजें",
+        saving: "सहेजा जा रहा है...",
+        later: "बाद में तय करूँगा",
+        pickOne: "कम से कम एक उद्देश्य के लिए \"अनुमति दें\" या \"अनुमति नहीं\" चुनें।",
+        version: (v) => `गोपनीयता सूचना v${v}`,
+    },
+};
