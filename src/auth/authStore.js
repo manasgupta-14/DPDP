@@ -85,8 +85,16 @@ export function isAdmin(session = getSession()) {
     return roles.some((r) => /admin/i.test(String(r)));
 }
 
+export function isDpo(session = getSession()) {
+    const roles = [].concat(session?.role ?? []);
+    return roles.some((r) => /^dpo$|data\s*protection\s*officer/i.test(String(r).trim()));
+}
+
+// Admin -> /dashboard, Data Protection Officer -> /dpo, everyone else -> /user.
 export function homePath(session = getSession()) {
-    return isAdmin(session) ? "/dashboard" : "/user";
+    if (isAdmin(session)) return "/dashboard";
+    if (isDpo(session)) return "/dpo";
+    return "/user";
 }
 
 export const ADMIN_REGISTER_ENABLED = import.meta.env.VITE_ENABLE_ADMIN_REGISTER !== "false";
