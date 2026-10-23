@@ -5,6 +5,8 @@
 // It reads the shape instead of hard-coding field names, so adding a field to the backend DTO
 // shows up on the dashboard without a frontend change.
 
+import { toDate } from "./audit.js";
+
 const ID_KEY = /(^id$|Id$|ID$|_id$)/;
 const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-/i;
 const PCT_KEY = /percent|pct|rate|coverage|ratio/i;
@@ -35,7 +37,7 @@ export function formatValue(metric) {
 
 export function formatLabel(value) {
     if (looksDate(value)) {
-        return new Date(value).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+        return toDate(value).toLocaleDateString(undefined, { day: "numeric", month: "short" });
     }
     return humanize(value);
 }
@@ -104,7 +106,7 @@ function classify(arr) {
             title: arr.label,
             items: rows.slice(0, 8).map((r) => ({
                 title: String(r[titleKey]),
-                meta: [otherKey && r[otherKey], dateKey && (looksDate(r[dateKey]) ? new Date(r[dateKey]).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : r[dateKey])].filter(Boolean).join(" · "),
+                meta: [otherKey && r[otherKey], dateKey && (looksDate(r[dateKey]) ? toDate(r[dateKey]).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : r[dateKey])].filter(Boolean).join(" · "),
             })),
         };
     }
