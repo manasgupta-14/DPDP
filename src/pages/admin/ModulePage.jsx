@@ -4,12 +4,14 @@ import { ADMIN_NAV } from "../../config/navigation.js";
 import { MODULE_INFO } from "../../data/dashboardMock.js";
 import AuditTrail from "./AuditTrail.jsx";
 import BreachManagement from "./BreachManagement.jsx";
+import ConsentManagement from "./ConsentManagement.jsx";
 import DataInventory from "./DataInventory.jsx";
 import PrivacyRequests from "./PrivacyRequests.jsx";
 
 export default function ModulePage() {
     const slug = useLocation().pathname.split("/").pop();
     if (slug === "breach") return <BreachManagement />;
+    if (slug === "consent") return <ConsentManagement />;
     if (slug === "inventory") return <DataInventory />;
     if (slug === "audit") return <AuditTrail />;
     if (slug === "rights") return <PrivacyRequests />;
