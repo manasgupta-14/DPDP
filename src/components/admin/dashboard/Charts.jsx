@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-// Categorical slots in fixed order (identity never cycles; bar charts fold extras into "Other").
-export const SERIES = ["#38BDF8", "#34D399", "#FB7185", "#FBBF24", "#818CF8", "#0F766E", "#A78BFA", "#F97316"];
-const INK = "#0F172A";
+const SERIES = ["#38BDF8", "#34D399", "#FB7185", "#FBBF24", "#818CF8", "#0F766E", "#A78BFA", "#F97316"];
 const MUTED = "#64748B";
 const GRID = "#E2E8F0";
 const HEIGHT = 240;
