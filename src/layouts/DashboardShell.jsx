@@ -47,11 +47,6 @@ function Sidebar({ sections, footer, profile, subtitle, onNavigate }) {
                                     }
                                 >
                                     <span className="truncate">{item.label}</span>
-                                    {item.highlight && (
-                                        <span className="ml-auto rounded-full bg-[#22D3EE]/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#67E8F9] ring-1 ring-[#22D3EE]/30">
-                                            New
-                                        </span>
-                                    )}
                                     {item.badge > 0 && (
                                         <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#DC2626]/90 px-1.5 text-[11px] font-bold text-white">{item.badge}</span>
                                     )}
