@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
 import Alert from "../../components/shared/Alert.jsx";
+import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { timeOf } from "../../utils/breach.js";
 import {
@@ -40,7 +41,7 @@ function validate(f) {
     return e;
 }
 
-function CreateForm({ onCreated }) {
+function CreateForm({ onCreated, onDone }) {
     const [form, setForm] = useState(EMPTY);
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
@@ -89,11 +90,12 @@ function CreateForm({ onCreated }) {
         setForm(EMPTY());
         setSuccess("Campaign created and set live for the selected audience.");
         onCreated?.();
+        onDone?.();
     };
 
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
-            <h2 className="text-lg font-semibold">Create new campaign</h2>
+            <h2 className="pr-8 text-lg font-semibold">Create new campaign</h2>
             <p className="mt-1 text-sm text-[#475569]">Choose who sees it and when it runs. Users respond from their My Tasks page.</p>
 
             <div className="mt-5 space-y-4">
@@ -246,7 +248,7 @@ function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, selecte
             {loading ? (
                 <p className="px-5 py-6 text-sm text-[#475569]">Loading campaigns...</p>
             ) : campaigns.length === 0 && !error ? (
-                <p className="px-5 py-6 text-sm text-[#475569]">No campaigns yet. Create the first one using the form.</p>
+                <p className="px-5 py-6 text-sm text-[#475569]">No campaigns yet. Use "Create new campaign" to add the first one.</p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[680px] text-left text-sm">
@@ -284,6 +286,7 @@ export default function Campaigns() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [selected, setSelected] = useState(null);
+    const [creating, setCreating] = useState(false);
 
     const load = useCallback(async () => {
         setError("");
@@ -306,17 +309,20 @@ export default function Campaigns() {
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-                <p className="mt-1 text-sm text-[#475569]">Create consent and awareness campaigns, then track how users respond.</p>
-            </div>
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
-                <CreateForm onCreated={load} />
-                <div className="space-y-6">
-                    <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} selectedId={selected?.id} />
-                    {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
+                    <p className="mt-1 text-sm text-[#475569]">Create consent and awareness campaigns, then track how users respond.</p>
                 </div>
+                <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>+ Create new campaign</button>
             </div>
+            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} selectedId={selected?.id} />
+            {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
+            {creating && (
+                <Modal title="Create new campaign" onClose={() => setCreating(false)}>
+                    <CreateForm onCreated={load} onDone={() => setCreating(false)} />
+                </Modal>
+            )}
         </div>
     );
 }
