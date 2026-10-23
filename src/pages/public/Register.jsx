@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import AuthLayout, { Field, PasswordInput, SubmitButton, inputClass } from "../../components/public/Authui.jsx";
+import AuthLayout, { Field, PasswordInput, SubmitButton } from "../../components/public/Authui.jsx";
+import { inputClass } from "../../components/public/authStyles.js";
 import { registerUser } from "../../auth/authStore.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
