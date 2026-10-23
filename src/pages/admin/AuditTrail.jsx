@@ -185,11 +185,11 @@ export default function AuditTrail() {
                 </div>
             </div>
 
-            <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section aria-label="Summary" className={`grid gap-4 sm:grid-cols-2 ${counts.delete > 0 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
                 <Stat label="Total events" value={counts.total} tone="text-[#0F172A]" />
                 <Stat label="Created" value={counts.create} tone="text-[#16A34A]" />
                 <Stat label="Updated" value={counts.update} tone="text-[#D97706]" />
-                <Stat label="Deleted" value={counts.delete} tone="text-[#DC2626]" />
+                {counts.delete > 0 && <Stat label="Deleted" value={counts.delete} tone="text-[#DC2626]" />}
             </section>
 
             <div className={`${panel} overflow-hidden`}>
