@@ -39,12 +39,10 @@ function Icon({ name, className = "h-5 w-5" }) {
 }
 
 function useCountUp(target, delay = 700, duration = 1500) {
+    const [reduced] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
     const [value, setValue] = useState(0);
     useEffect(() => {
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            setValue(target);
-            return undefined;
-        }
+        if (reduced) return undefined;
         let raf;
         let start;
         const timer = setTimeout(() => {
@@ -60,8 +58,8 @@ function useCountUp(target, delay = 700, duration = 1500) {
             clearTimeout(timer);
             cancelAnimationFrame(raf);
         };
-    }, [target, delay, duration]);
-    return value;
+    }, [target, delay, duration, reduced]);
+    return reduced ? target : value;
 }
 
 function ProgressRow({ label, value, delay }) {
