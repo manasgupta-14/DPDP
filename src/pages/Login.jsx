@@ -1,6 +1,7 @@
 import { Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
-import AuthLayout, { Field, PasswordInput, SubmitButton, inputClass } from "../components/Authui.jsx";
+import AuthLayout, { Field, PasswordInput, SubmitButton } from "../components/Authui.jsx";
+import { inputClass } from "../components/authStyles.js";
 import { getSession, isAdmin, isAuthenticated, loginUser } from "../auth/authStore.js";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
