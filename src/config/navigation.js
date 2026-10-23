@@ -12,7 +12,7 @@ export const ADMIN_SECTIONS = [
         items: [
             { to: "/dashboard/consent", label: "Consent management", icon: "consent" },
             { to: "/dashboard/notice", label: "Privacy notice builder", icon: "notice" },
-            { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks", highlight: true },
+            { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks" },
             { to: "/dashboard/inventory", label: "Data inventory", icon: "inventory" },
         ],
     },
@@ -24,6 +24,7 @@ export const ADMIN_SECTIONS = [
         label: "Governance",
         items: [
             { to: "/dashboard/breach", label: "Breach management", icon: "shield" },
+            { to: "/dashboard/dpia", label: "DPIA", icon: "scale" },
             { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist" },
             { to: "/dashboard/audit", label: "Audit trail", icon: "audit" },
         ],
@@ -31,7 +32,7 @@ export const ADMIN_SECTIONS = [
     {
         label: "Administration",
         items: [
-            { to: "/dashboard/add-users", label: "Add Users", icon: "adduser", highlight: true },
+            { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
         ],
     },
@@ -46,6 +47,7 @@ export const USER_SECTIONS = [
         label: "My work",
         items: [
             { to: "/user/tasks", label: "My Tasks", icon: "tasks" },
+            { to: "/user/consent", label: "My Consents", icon: "consent" },
             { to: "/user/reports", label: "My Security Reports", icon: "shield" },
         ],
     },
@@ -55,8 +57,16 @@ export const USER_SECTIONS = [
     },
 ];
 
+export const DPO_SECTIONS = [
+    {
+        label: "Data Protection Officer",
+        items: [{ to: "/dpo/dpia", label: "DPIA reviews", icon: "scale" }],
+    },
+];
+
 export const ADMIN_NAV = ADMIN_SECTIONS.flatMap((s) => s.items);
 export const USER_NAV = USER_SECTIONS.flatMap((s) => s.items);
 
 export const ADMIN_HOME = "/dashboard";
 export const USER_HOME = "/user";
+export const DPO_HOME = "/dpo";
