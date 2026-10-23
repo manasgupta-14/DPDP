@@ -1,4 +1,4 @@
-# Admin side - API list (sab commented out hain)
+# Admin side - API list (sab chalu hain)
 
 | # | File | Function | Endpoint | Method |
 |---|------|----------|----------|--------|
@@ -14,7 +14,14 @@
 | 10 | src/pages/admin/Campaigns.jsx | getCampaignStats() | /api/Campaign/{id}/stats | GET |
 | 11 | src/pages/admin/AddUsers.jsx | addEmployee() | /api/User/add-employee | POST |
 
-Search karne ke liye: `[API COMMENTED OUT]`
+Note: ye saari calls ab live hain (code mein koi "[API COMMENTED OUT]" nahi bacha). login/register (auth) aur user-side ki APIs is list mein nahi hain.
 
-GET wali calls ki jagah empty data, aur POST/PATCH ki jagah error "API is commented out (disabled)." return hota hai taaki UI crash na ho.
-Note: login/register (auth) aur user-side ki APIs ko touch nahi kiya.
+## DPIA module (Admin + DPO)
+
+| # | File | Function | Endpoint | Method |
+|---|------|----------|----------|--------|
+| 12 | src/pages/dpia/DpiaList.jsx, src/layouts/DpoLayout.jsx | getAllDpia() | /api/Dpia/all | GET |
+| 13 | src/pages/dpia/DpiaDetail.jsx, DpiaForm.jsx (revise) | getDpia() | /api/Dpia/{id} | GET |
+| 14 | src/pages/dpia/DpiaForm.jsx | createDpia() | /api/Dpia/create | POST |
+| 15 | src/pages/dpia/DpiaDetail.jsx | reviewDpia() | /api/Dpia/{id}/review | PUT |
+| 16 | src/api/permissions.js | getMyPermissions() | /api/roles/my-permissions | GET |
