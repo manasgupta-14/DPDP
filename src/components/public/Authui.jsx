@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { inputClass } from "./authStyles.js";
 
 const ICONS = {
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z M9 12l2 2 4-4",
@@ -15,13 +16,6 @@ export function Icon({ name, className = "h-5 w-5" }) {
             <path d={ICONS[name]} />
         </svg>
     );
-}
-
-export function inputClass(error) {
-    return `w-full rounded-lg border bg-white px-3.5 py-2.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] transition focus:outline-none focus:ring-2 ${error
-            ? "border-[#DC2626] focus:ring-[#DC2626]/25"
-            : "border-[#E2E8F0] hover:border-[#CBD5E1] focus:border-[#0F766E] focus:ring-[#22D3EE]/40"
-        }`;
 }
 
 export function Field({ id, label, error, hint, children }) {
