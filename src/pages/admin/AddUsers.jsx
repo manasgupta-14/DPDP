@@ -3,6 +3,8 @@ import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
+import Modal from "../../components/shared/Modal.jsx";
+import { toDate } from "../../utils/audit.js";
 
 const EMPTY = { name: "", email: "", phone: "", password: "" };
 const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40";
@@ -18,11 +20,12 @@ export default function AddUsers() {
     const [notice, setNotice] = useState("");
     const [apiError, setApiError] = useState("");
     const [saving, setSaving] = useState(false);
+    const [adding, setAdding] = useState(false);
 
     const load = useCallback(async () => {
         const res = await getOrganizationUsers();
         if (res.ok) {
-            setUsers([...res.data].sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0)));
+            setUsers([...res.data].sort((x, y) => (toDate(y.createdAt)?.getTime() ?? 0) - (toDate(x.createdAt)?.getTime() ?? 0)));
             setListError("");
         } else {
             setListError(res.error);
@@ -35,7 +38,7 @@ export default function AddUsers() {
         getOrganizationUsers().then((res) => {
             if (!active) return;
             if (res.ok) {
-                setUsers([...res.data].sort((x, y) => new Date(y.createdAt || 0) - new Date(x.createdAt || 0)));
+                setUsers([...res.data].sort((x, y) => (toDate(y.createdAt)?.getTime() ?? 0) - (toDate(x.createdAt)?.getTime() ?? 0)));
                 setListError("");
             } else {
                 setListError(res.error);
@@ -70,6 +73,7 @@ export default function AddUsers() {
         }
 
         setForm(EMPTY);
+        setAdding(false);
         setNotice(`${form.name.trim()} has been added.`);
         setTimeout(() => setNotice(""), 4000);
         load();
@@ -93,19 +97,28 @@ export default function AddUsers() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Add Users</h1>
-                    <p className="mt-1.5 text-[15px] text-[#475569]">Add an employee to your organisation&apos;s PrivyGuard workspace.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+                    <p className="mt-1.5 text-[15px] text-[#475569]">Add employees to your organisation&apos;s PrivyGuard workspace and manage their access.</p>
                 </div>
-                {ADMIN_REGISTER_ENABLED && (
-                    <Link to="/admin/register" className="inline-flex items-center gap-2 rounded-xl border border-[#0F766E]/30 bg-white px-4 py-2.5 text-sm font-semibold text-[#0F766E] transition hover:bg-[#CCFBF1]">
-                        <Icon name="adduser" className="h-4 w-4" /> Register new admin
-                    </Link>
-                )}
+                <div className="flex flex-wrap items-center gap-2.5">
+                    {ADMIN_REGISTER_ENABLED && (
+                        <Link to="/admin/register" className="inline-flex items-center gap-2 rounded-xl border border-[#0F766E]/30 bg-white px-4 py-2.5 text-sm font-semibold text-[#0F766E] transition hover:bg-[#CCFBF1]">
+                            <Icon name="adduser" className="h-4 w-4" /> Register new admin
+                        </Link>
+                    )}
+                    <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-[#0F766E] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#115E59] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                        <Icon name="adduser" className="h-4 w-4" /> Add user
+                    </button>
+                </div>
             </header>
 
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,420px)_1fr]">
+            {notice && <p role="status" className="rounded-xl border border-[#16A34A]/30 bg-[#16A34A]/10 px-4 py-3 text-sm font-medium text-[#15803D]">{notice}</p>}
+
+            <div>
+                {adding && (
+                <Modal title="New user" onClose={() => setAdding(false)}>
                 <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-6">
-                    <h2 className="text-lg font-semibold">New user</h2>
+                    <h2 className="pr-8 text-lg font-semibold">New user</h2>
 
                     <label className="block text-sm font-medium text-[#334155]">
                         Full name
@@ -136,8 +149,9 @@ export default function AddUsers() {
                     <button type="submit" disabled={saving} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0F766E] text-sm font-semibold text-white transition hover:bg-[#115E59] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
                         <Icon name="adduser" className="h-4 w-4" /> {saving ? "Adding..." : "Add user"}
                     </button>
-                    {notice && <p role="status" className="text-center text-sm font-medium text-[#15803D]">{notice}</p>}
                 </form>
+                </Modal>
+                )}
 
                 <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
                     <div className="flex items-center justify-between">
@@ -174,7 +188,7 @@ export default function AddUsers() {
                                                 <p className="text-xs text-[#64748B]">{u.email}{u.phone ? ` · ${u.phone}` : ""}</p>
                                             </td>
                                             <td className="py-3 pr-3 text-[#475569]">{u.role}</td>
-                                            <td className="py-3 pr-3 text-[#475569]">{u.createdAt ? new Date(u.createdAt).toLocaleDateString(undefined, { dateStyle: "medium" }) : "-"}</td>
+                                            <td className="py-3 pr-3 text-[#475569]">{toDate(u.createdAt)?.toLocaleDateString(undefined, { dateStyle: "medium" }) ?? "-"}</td>
                                             <td className="py-3 pr-3">
                                                 <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${u.active ? "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]"}`}>{u.active ? "Active" : "Disabled"}</span>
                                             </td>
