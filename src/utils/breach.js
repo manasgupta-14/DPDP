@@ -1,3 +1,6 @@
+import { toDate } from "./audit.js";
+// toDate treats API timestamps without a timezone as UTC (the backend stores UTC but sends no "Z").
+
 const pick = (obj, keys) => {
     for (const k of keys) {
         const v = obj?.[k] ?? obj?.[k.charAt(0).toUpperCase() + k.slice(1)];
@@ -66,13 +69,13 @@ export function severityTone(severity) {
 
 export function formatDate(value) {
     if (!value) return "-";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+    const d = toDate(value);
+    return d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-";
 }
 
 export const timeOf = (value) => {
-    const t = value ? new Date(value).getTime() : 0;
-    return Number.isNaN(t) ? 0 : t;
+    const d = toDate(value);
+    return d ? d.getTime() : 0;
 };
 
 export function nowLocalInput() {
