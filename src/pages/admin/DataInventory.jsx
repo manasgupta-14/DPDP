@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { createDataInventory, getDataInventory } from "../../api/dataInventory.js";
 import Alert from "../../components/shared/Alert.jsx";
+import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 
@@ -18,7 +19,7 @@ function validate(f) {
     return e;
 }
 
-function AddForm({ onCreated }) {
+function AddForm({ onCreated, onDone }) {
     const [form, setForm] = useState(EMPTY);
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
@@ -54,6 +55,7 @@ function AddForm({ onCreated }) {
         setForm(EMPTY);
         setSuccess("Data inventory item added. You can now use it in a consent campaign.");
         onCreated?.();
+        onDone?.();
     };
 
     const text = (k, label, props = {}) => (
@@ -66,7 +68,7 @@ function AddForm({ onCreated }) {
 
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
-            <h2 className="text-lg font-semibold">Add data point</h2>
+            <h2 className="pr-8 text-lg font-semibold">Add data point</h2>
             <p className="mt-1 text-sm text-[#475569]">Record what personal data you hold and why. Consent campaigns link to these.</p>
             <div className="mt-5 space-y-4">
                 {text("name", "Name", { maxLength: 150, placeholder: "e.g. Email address" })}
@@ -93,6 +95,7 @@ export default function DataInventory() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [adding, setAdding] = useState(false);
 
     const load = useCallback(async () => {
         setError("");
@@ -115,12 +118,14 @@ export default function DataInventory() {
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Data inventory</h1>
-                <p className="mt-1 text-sm text-[#475569]">Where personal data lives and why it is processed.</p>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Data inventory</h1>
+                    <p className="mt-1 text-sm text-[#475569]">Where personal data lives and why it is processed.</p>
+                </div>
+                <button type="button" onClick={() => setAdding(true)} className={primaryBtn}>+ Add data point</button>
             </div>
-            <div className="grid gap-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-                <AddForm onCreated={load} />
+            <div>
                 <div className={`${panel} overflow-hidden`}>
                     <div className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-4">
                         <h2 className="text-lg font-semibold">Recorded data ({items.length})</h2>
@@ -130,7 +135,7 @@ export default function DataInventory() {
                     {loading ? (
                         <p className="px-5 py-6 text-sm text-[#475569]">Loading data inventory...</p>
                     ) : items.length === 0 && !error ? (
-                        <p className="px-5 py-6 text-sm text-[#475569]">Nothing recorded yet. Add your first data point.</p>
+                        <p className="px-5 py-6 text-sm text-[#475569]">Nothing recorded yet. Use "Add data point" to add the first one.</p>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[620px] text-left text-sm">
@@ -152,6 +157,11 @@ export default function DataInventory() {
                     )}
                 </div>
             </div>
+            {adding && (
+                <Modal title="Add data point" onClose={() => setAdding(false)}>
+                    <AddForm onCreated={load} onDone={() => setAdding(false)} />
+                </Modal>
+            )}
         </div>
     );
 }
