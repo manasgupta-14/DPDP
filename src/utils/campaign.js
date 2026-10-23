@@ -1,3 +1,5 @@
+import { toDate } from "./audit.js";
+
 const pick = (obj, keys) => {
     for (const k of keys) {
         const v = obj?.[k] ?? obj?.[k.charAt(0).toUpperCase() + k.slice(1)];
@@ -76,8 +78,8 @@ export function normalizeStats(s) {
 
 export function formatDay(value) {
     if (!value) return "-";
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleDateString(undefined, { dateStyle: "medium" });
+    const d = toDate(value);
+    return d ? d.toLocaleDateString(undefined, { dateStyle: "medium" }) : "-";
 }
 
 const TONE = {
@@ -90,8 +92,8 @@ export function campaignState(c) {
     const status = String(c.status ?? "").toLowerCase();
     if (status && status !== "active") return { label: c.status, tone: TONE.ended };
     const now = Date.now();
-    const start = c.startDate ? new Date(c.startDate).getTime() : null;
-    const end = c.endDate ? new Date(c.endDate).getTime() : null;
+    const start = toDate(c.startDate)?.getTime() ?? null;
+    const end = toDate(c.endDate)?.getTime() ?? null;
     if (start && start > now) return { label: "Scheduled", tone: TONE.scheduled };
     if (end && end < now) return { label: "Ended", tone: TONE.ended };
     return { label: "Active", tone: TONE.active };
