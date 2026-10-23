@@ -5,6 +5,7 @@ import Home from "../pages/public/Home.jsx";
 import Login from "../pages/public/Login.jsx";
 import Register from "../pages/public/Register.jsx";
 import adminRoutes from "./AdminRoutes.jsx";
+import dpoRoutes from "./DpoRoutes.jsx";
 import userRoutes from "./UserRoutes.jsx";
 
 export default function AppRoutes() {
@@ -19,6 +20,7 @@ export default function AppRoutes() {
 
             {/* Role-based dashboards */}
             {adminRoutes()}
+            {dpoRoutes()}
             {userRoutes()}
 
             {/* Old URLs keep working */}
