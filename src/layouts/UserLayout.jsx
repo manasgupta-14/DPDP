@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getMyPendingCampaigns } from "../api/campaign.js";
 import { getProfile } from "../auth/authStore.js";
 import { USER_SECTIONS } from "../config/navigation.js";
+import ConsentGate from "../components/user/ConsentGate.jsx";
 import { TASKS_CHANGED, formatDay } from "../utils/campaign.js";
 import DashboardShell from "./DashboardShell.jsx";
 
@@ -35,6 +36,7 @@ export default function UserLayout() {
     }));
 
     return (
+        <>
         <DashboardShell
             key={profile?.email}
             sections={USER_SECTIONS}
@@ -44,5 +46,7 @@ export default function UserLayout() {
             footer="Your responses are recorded for your organisation's DPDP compliance."
             bell={{ title: "Pending tasks", items, count: pending.length, emptyText: "You are all caught up." }}
         />
+        <ConsentGate key={profile?.userId} />
+        </>
     );
 }
