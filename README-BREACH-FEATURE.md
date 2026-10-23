@@ -12,7 +12,7 @@
 | Update | `PATCH /api/Breach/{id}/update` body `status, severity, estimatedAffectedRecords, mitigationSteps` | verified from Swagger |
 | Assign | `PATCH /api/Breach/{id}/assign` (no body or query shown in Swagger) | verified path only |
 | Team lookup | `GET /api/User/my-team` | verified path only |
-| My reports | `GET /api/Breach/my-reports` | not in the screenshots, unverified |
+| My reports | `GET /api/Breach/my-reports` | not in the screenshots, unverified. Not in the backend yet (confirmed from the backend code). The frontend uses this browser's local copy; set `VITE_BREACH_MY_REPORTS=true` once the endpoint exists |
 
 ## Assumptions to confirm
 - `organizationId` is taken from the `OrganizationId` JWT claim. `discoveryDate` is set to the submit time.
