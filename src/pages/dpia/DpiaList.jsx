@@ -26,7 +26,6 @@ export default function DpiaList() {
     const [drafts, setDrafts] = useState(() => listDrafts());
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    // A DPO mostly wants what is waiting for them, so start on that filter.
     const [filter, setFilter] = useState(() => (isDpo() && !isAdmin() ? STATUS.PENDING : "All"));
     const [page, setPage] = useState(1);
     const [toDelete, setToDelete] = useState(null);
@@ -49,12 +48,10 @@ export default function DpiaList() {
             else setError(res.error);
             setLoading(false);
         });
-        // Clear the one-time message from history so a refresh does not show it again.
         if (location.state?.flash) navigate(location.pathname, { replace: true, state: null });
         return () => {
             active = false;
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const canCreate = can(PERM.create);

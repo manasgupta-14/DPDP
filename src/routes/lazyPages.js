@@ -1,0 +1,24 @@
+import { lazy } from "react";
+
+export const AdminLayout = lazy(() => import("../layouts/AdminLayout.jsx"));
+export const AddUsers = lazy(() => import("../pages/admin/AddUsers.jsx"));
+export const AdminProfile = lazy(() => import("../pages/admin/AdminProfile.jsx"));
+export const Campaigns = lazy(() => import("../pages/admin/Campaigns.jsx"));
+export const Dashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
+export const RolesPermissions = lazy(() => import("../pages/admin/RolesPermissions.jsx"));
+export const ModulePage = lazy(() => import("../pages/admin/ModulePage.jsx"));
+export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
+export const DpiaDetail = lazy(() => import("../pages/dpia/DpiaDetail.jsx"));
+export const DpiaForm = lazy(() => import("../pages/dpia/DpiaForm.jsx"));
+export const DpiaList = lazy(() => import("../pages/dpia/DpiaList.jsx"));
+export const DpoLayout = lazy(() => import("../layouts/DpoLayout.jsx"));
+export const UserLayout = lazy(() => import("../layouts/UserLayout.jsx"));
+export const MyConsents = lazy(() => import("../pages/user/MyConsents.jsx"));
+export const MySecurityReports = lazy(() => import("../pages/user/MySecurityReports.jsx"));
+export const MyTasks = lazy(() => import("../pages/user/MyTasks.jsx"));
+export const PrivacySettings = lazy(() => import("../pages/user/PrivacySettings.jsx"));
+export const UserDashboard = lazy(() => import("../pages/user/UserDashboard.jsx"));
+export const PublicLayout = lazy(() => import("../layouts/PublicLayout.jsx"));
+export const Home = lazy(() => import("../pages/public/Home.jsx"));
+export const Login = lazy(() => import("../pages/public/Login.jsx"));
+export const Register = lazy(() => import("../pages/public/Register.jsx"));

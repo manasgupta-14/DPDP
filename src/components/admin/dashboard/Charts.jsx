@@ -29,7 +29,6 @@ function scaleFor(max) {
     return { step, top: step * Math.ceil(max / step) };
 }
 
-// Monotone cubic curve: smooth like the reference, never dips below the data.
 function curve(pts) {
     const n = pts.length;
     if (n < 2) return "";
@@ -188,7 +187,7 @@ export function BarChart({ bars, unit }) {
                         <g key={b.label}>
                             {hover === i && <rect x={m.l + band * i} y={m.t} width={band} height={h} fill="#F1F5F9" />}
                             {bh > 0 && (
-                                <path d={`M${x},${y + bh}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${y + bh}Z`} fill={SERIES[i]} />
+                                <path d={`M${x},${y + bh}V${y + r}Q${x},${y} ${x + r},${y}H${x + bw - r}Q${x + bw},${y} ${x + bw},${y + r}V${y + bh}Z`} fill={b.color || SERIES[i]} />
                             )}
                             <text x={x + bw / 2} y={HEIGHT - 8} textAnchor="middle" fontSize="11" fill={MUTED}>
                                 {b.label.length > clip ? `${b.label.slice(0, clip - 1)}…` : b.label}
@@ -199,7 +198,7 @@ export function BarChart({ bars, unit }) {
                 })}
             </svg>
             {hover !== null && (
-                <Tooltip x={m.l + band * hover + band / 2} width={width} title={bars[hover].label} rows={[{ name: unit, value: bars[hover].value, color: SERIES[hover] }]} />
+                <Tooltip x={m.l + band * hover + band / 2} width={width} title={bars[hover].label} rows={[{ name: unit, value: bars[hover].value, color: bars[hover].color || SERIES[hover] }]} />
             )}
         </div>
     );

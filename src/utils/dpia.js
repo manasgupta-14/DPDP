@@ -8,8 +8,6 @@ const pick = (obj, keys) => {
     return null;
 };
 
-/* ---------- status ---------- */
-
 export const STATUS = {
     DRAFT: "Draft",
     PENDING: "Pending Review",
@@ -19,7 +17,6 @@ export const STATUS = {
 };
 export const STATUS_LIST = Object.values(STATUS);
 
-// Backend values: "In Review", "Approved", "Needs Changes" (and "Rejected" once supported).
 export function displayStatus(raw) {
     const s = String(raw ?? "").trim().toLowerCase();
     if (s === "draft") return STATUS.DRAFT;
@@ -40,8 +37,6 @@ export function statusTone(status) {
     }
 }
 
-/* ---------- risk ---------- */
-
 export const RISKS = ["Low", "Medium", "High"];
 export const riskRank = (r) => RISKS.findIndex((x) => x.toLowerCase() === String(r ?? "").toLowerCase());
 
@@ -54,8 +49,6 @@ export function riskTone(risk) {
     }
 }
 
-/* ---------- API records ---------- */
-
 export function normalizeDpia(r) {
     return {
         id: pick(r, ["id", "dpiaId"]),
@@ -64,7 +57,6 @@ export function normalizeDpia(r) {
         purposesCount: Number(pick(r, ["purposesCount"]) ?? 0),
         residualRisk: pick(r, ["residualRisk"]) || "",
         status: pick(r, ["status"]) || "In Review",
-        // The list endpoint does not send these yet; the detail endpoint does.
         createdAt: pick(r, ["createdAt", "createdDate"]),
         createdByUserId: pick(r, ["createdByUserId"]),
         reviewedAt: pick(r, ["reviewedAt"]),
@@ -75,10 +67,6 @@ export function normalizeDpia(r) {
         department: pick(r, ["department"]) || "",
     };
 }
-
-/* ---------- wizard form <-> assessmentDetails ---------- */
-// The API stores one free-text field (assessmentDetails). The wizard's answers are saved there as
-// JSON so nothing is lost and the review screen can show them as proper sections.
 
 const SCHEMA = "privyguard-dpia/1";
 
@@ -115,7 +103,6 @@ export function buildDetails(f) {
     };
 }
 
-// Exactly what POST /api/Dpia/create expects (CreateDpiaDto).
 export function buildPayload(f) {
     return {
         title: f.title.trim(),
@@ -130,14 +117,13 @@ export function decodeDetails(text) {
         const v = JSON.parse(text);
         if (v && v.schema === SCHEMA) return { structured: true, details: v };
     } catch {
-        // plain text written by another client
+        return { structured: false, text: String(text ?? "") };
     }
     return { structured: false, text: String(text ?? "") };
 }
 
 const joinList = (v) => (Array.isArray(v) ? v.join(", ") : String(v ?? ""));
 
-// DPIAs saved by an earlier version stored chip lists; fold them into plain text.
 export function normalizeForm(f) {
     const form = { ...emptyForm(), ...f };
     form.dataTypes = [joinList(f.dataTypes), f.otherDataType || ""].filter(Boolean).join(", ");
@@ -154,8 +140,6 @@ export function formFromRecord(record) {
     if (!decoded.structured) return { ...base, description: decoded.text, revisionOf: record.referenceId };
     return { ...normalizeForm(decoded.details), title: record.title, revisionOf: record.referenceId, confirm: false };
 }
-
-/* ---------- validation (one function per wizard step) ---------- */
 
 export const STEPS = ["Project details", "Data processing", "Risk assessment", "Review & submit"];
 
@@ -185,9 +169,6 @@ export function validateStep(step, f) {
     if (step === 3 && !f.confirm) e.confirm = "Please confirm the information is accurate before submitting.";
     return e;
 }
-
-/* ---------- drafts ----------
-   The backend has no draft status, so drafts live in this browser only, per organisation and user. */
 
 function draftKey() {
     const p = getProfile();

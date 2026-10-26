@@ -1,9 +1,3 @@
-// Turns the JSON from GET /api/Dashboard/summary into what the dashboard draws:
-//   kpis / more   -> number cards          (every numeric field, nested objects included)
-//   charts        -> line (rows with a date/period field) or bar (rows with a name/type field)
-//   lists         -> feeds such as "recent activity" (rows with text but no numbers)
-// It reads the shape instead of hard-coding field names, so adding a field to the backend DTO
-// shows up on the dashboard without a frontend change.
 
 import { toDate } from "./audit.js";
 

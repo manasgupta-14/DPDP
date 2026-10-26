@@ -1,13 +1,7 @@
 import { Navigate, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute.jsx";
-import UserLayout from "../layouts/UserLayout.jsx";
-import MyConsents from "../pages/user/MyConsents.jsx";
-import MySecurityReports from "../pages/user/MySecurityReports.jsx";
-import MyTasks from "../pages/user/MyTasks.jsx";
-import PrivacySettings from "../pages/user/PrivacySettings.jsx";
-import UserDashboard from "../pages/user/UserDashboard.jsx";
+import { MyConsents, MySecurityReports, MyTasks, PrivacySettings, UserDashboard, UserLayout } from "./lazyPages.js";
 
-// Employee dashboard: everything under /user, employees only.
 export default function userRoutes() {
     return (
         <Route

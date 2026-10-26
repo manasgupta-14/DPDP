@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
+import { getRoles } from "../../api/roles.js";
 import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { toDate } from "../../utils/audit.js";
 
-const EMPTY = { name: "", email: "", phone: "", password: "" };
+const EMPTY = { name: "", email: "", phone: "", password: "", roleId: "" };
 const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40";
 
 export default function AddUsers() {
     const { query } = useOutletContext();
     const [users, setUsers] = useState([]);
+    const [roles, setRoles] = useState([]);
+    const [rolesLoading, setRolesLoading] = useState(true);
+    const [rolesError, setRolesError] = useState("");
     const [loading, setLoading] = useState(true);
     const [listError, setListError] = useState("");
     const [busyId, setBusyId] = useState(null);
@@ -50,7 +54,26 @@ export default function AddUsers() {
         };
     }, []);
 
-    const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+    useEffect(() => {
+        let active = true;
+        getRoles().then((res) => {
+            if (!active) return;
+            if (res.ok) {
+                setRoles(res.data);
+                setRolesError("");
+            } else {
+                setRoles([]);
+                setRolesError(res.error || "Could not load roles.");
+            }
+            setRolesLoading(false);
+        });
+        return () => { active = false; };
+    }, []);
+
+    const set = (k) => (e) => {
+        setForm((f) => ({ ...f, [k]: e.target.value }));
+        setErrors((current) => ({ ...current, [k]: undefined }));
+    };
 
     const onSubmit = async (e) => {
         e.preventDefault();
@@ -60,12 +83,14 @@ export default function AddUsers() {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) next.email = "Enter a valid email address.";
         if (!/^[0-9+\-\s]{7,15}$/.test(form.phone.trim())) next.phone = "Enter a valid phone number.";
         if (form.password.length < 8) next.password = "Password must be at least 8 characters.";
+        if (!form.roleId) next.roleId = "Select a role for this user.";
+        if (!roles.length) next.roleId = rolesError || "No roles are available. Create a role first or check the roles API.";
         if (users.some((u) => u.email.toLowerCase() === form.email.trim().toLowerCase())) next.email = "This email is already registered.";
         setErrors(next);
         if (Object.keys(next).length) return;
 
         setSaving(true);
-        const res = await addEmployee({ fullName: form.name, email: form.email, phoneNumber: form.phone, password: form.password });
+        const res = await addEmployee({ fullName: form.name, email: form.email, phoneNumber: form.phone, password: form.password, roleId: form.roleId });
         setSaving(false);
         if (!res.ok) {
             setApiError(res.error);
@@ -144,9 +169,22 @@ export default function AddUsers() {
                         {errors.password && <span className="mt-1 block text-xs text-[#DC2626]">{errors.password}</span>}
                     </label>
 
+                    <label className="block text-sm font-medium text-[#334155]">
+                        Assign role <span className="text-[#DC2626]">*</span>
+                        <select value={form.roleId} onChange={set("roleId")} className={input} disabled={rolesLoading || roles.length === 0}>
+                            <option value="">{rolesLoading ? "Loading roles..." : "Select a role"}</option>
+                            {roles.map((role) => (
+                                <option key={role.id} value={role.id}>{role.name}</option>
+                            ))}
+                        </select>
+                        <span className="mt-1 block text-xs text-[#64748B]">The selected role controls which modules and actions this user can access.</span>
+                        {rolesError && <span role="alert" className="mt-1 block text-xs text-[#B45309]">Could not load roles: {rolesError}</span>}
+                        {errors.roleId && <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleId}</span>}
+                    </label>
+
                     {apiError && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{apiError}</p>}
 
-                    <button type="submit" disabled={saving} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0F766E] text-sm font-semibold text-white transition hover:bg-[#115E59] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
+                    <button type="submit" disabled={saving || rolesLoading || roles.length === 0} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0F766E] text-sm font-semibold text-white transition hover:bg-[#115E59] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
                         <Icon name="adduser" className="h-4 w-4" /> {saving ? "Adding..." : "Add user"}
                     </button>
                 </form>

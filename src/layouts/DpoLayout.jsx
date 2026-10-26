@@ -6,7 +6,6 @@ import { DPO_SECTIONS } from "../config/navigation.js";
 import { STATUS, displayStatus } from "../utils/dpia.js";
 import DashboardShell from "./DashboardShell.jsx";
 
-// Data Protection Officer dashboard: only the DPIA review queue, with a live "waiting for review" bell.
 export default function DpoLayout() {
     const profile = getProfile();
     const [pending, setPending] = useState([]);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getAllIncidents, getMyTeam } from "../../api/breach.js";
 import Alert from "../../components/shared/Alert.jsx";
+import BreachCharts from "../../components/admin/breach/BreachCharts.jsx";
 import IncidentTable from "../../components/admin/breach/IncidentTable.jsx";
 import SummaryCards from "../../components/admin/breach/SummaryCards.jsx";
 import TriageDrawer from "../../components/admin/breach/TriageDrawer.jsx";
@@ -114,11 +115,10 @@ export default function BreachManagement() {
                 <>
                     <SummaryCards
                         incidents={incidents}
-                        activeStatus={filters.status}
                         severityFilter={filters.severity}
-                        onStatus={(status) => setFilters((f) => ({ ...f, status }))}
                         onNeedsSeverity={() => setFilters((f) => ({ ...f, severity: f.severity === "Unset" ? "All" : "Unset" }))}
                     />
+                    <BreachCharts incidents={incidents} />
                     <IncidentTable
                         rows={rows}
                         total={incidents.length}

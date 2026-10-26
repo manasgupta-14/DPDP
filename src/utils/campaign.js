@@ -8,20 +8,16 @@ const pick = (obj, keys) => {
     return null;
 };
 
-// Fired after a user responds so the bell / counters refresh.
 export const TASKS_CHANGED = "pg:tasks-changed";
 
-// Backend ResponseStatus values.
 export const RESPONSE = { allow: "Accepted", deny: "Rejected", read: "Completed" };
 
-// Backend TargetRole values.
 export const AUDIENCES = [
     { value: "NormalUser", label: "Normal users" },
     { value: "Admin", label: "Admins" },
     { value: "All", label: "Everyone" },
 ];
 
-// Backend CampaignType values: "Awareness" or "Consent" (Consent needs a DataInventoryId).
 export const CAMPAIGN_TYPES = [
     { value: "Consent", label: "Consent request (allow / deny)" },
     { value: "Awareness", label: "Awareness notice (mark as read)" },
@@ -29,7 +25,6 @@ export const CAMPAIGN_TYPES = [
 
 export const isConsent = (type) => String(type ?? "").toLowerCase() === "consent";
 
-// Consent -> Allow / Deny. Everything else (Awareness, older types) -> Mark as read.
 export function actionsFor(type) {
     return isConsent(type) ? ["allow", "deny"] : ["read"];
 }
@@ -99,7 +94,6 @@ export function campaignState(c) {
     return { label: "Active", tone: TONE.active };
 }
 
-// "YYYY-MM-DD" (date input) -> ISO string at local start / end of that day.
 export function dayStartISO(day) {
     const [y, m, d] = day.split("-").map(Number);
     return new Date(y, m - 1, d, 0, 0, 0).toISOString();

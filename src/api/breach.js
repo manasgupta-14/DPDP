@@ -28,9 +28,6 @@ const localFallback = () => ({
     fallback: true,
 });
 
-// The backend has no "my reports" endpoint yet, so by default this uses the copy remembered in
-// this browser. Once the backend adds GET /api/Breach/my-reports, set VITE_BREACH_MY_REPORTS=true
-// in .env and the page reads from the server (falling back to local if that call fails).
 const HAS_MY_REPORTS_API = import.meta.env.VITE_BREACH_MY_REPORTS === "true";
 
 export async function getMyReports() {

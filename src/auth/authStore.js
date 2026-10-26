@@ -90,7 +90,6 @@ export function isDpo(session = getSession()) {
     return roles.some((r) => /^dpo$|data\s*protection\s*officer/i.test(String(r).trim()));
 }
 
-// Admin -> /dashboard, Data Protection Officer -> /dpo, everyone else -> /user.
 export function homePath(session = getSession()) {
     if (isAdmin(session)) return "/dashboard";
     if (isDpo(session)) return "/dpo";

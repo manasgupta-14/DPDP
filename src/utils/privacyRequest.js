@@ -50,3 +50,19 @@ export function dueInfo(req) {
 
 export const dateText = (d) => (d ? d.toLocaleDateString(undefined, { dateStyle: "medium" }) : "-");
 export const dateTimeText = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
+
+export const REPLY_TEMPLATES = {
+    Pending: ["Your request has been received and is waiting for review."],
+    "In-Progress": ["We have received your request and started working on it. We will update you once it is complete."],
+    Resolved: [
+        "Your request has been completed. Please contact us if you need anything else.",
+        "A copy of your personal data has been shared with you on your registered email address.",
+    ],
+    Rejected: [
+        "We could not verify your identity, so we are unable to proceed with this request.",
+        "This request cannot be fulfilled because the data must be retained under applicable law.",
+    ],
+};
+
+export const FILTER_CLOSED = "closed";
+export const FILTER_OVERDUE = "overdue";

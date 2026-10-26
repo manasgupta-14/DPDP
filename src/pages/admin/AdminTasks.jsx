@@ -1,6 +1,5 @@
 import TasksBoard from "../../components/user/TasksBoard.jsx";
 
-// Campaigns targeted at "Admin" or "Everyone" also reach admins; this is where they respond.
 export default function AdminTasks() {
     return (
         <div className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>

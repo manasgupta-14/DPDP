@@ -3,7 +3,6 @@ import { ADMIN_SECTIONS } from "../config/navigation.js";
 import { NOTIFICATIONS } from "../data/dashboardMock.js";
 import DashboardShell from "./DashboardShell.jsx";
 
-// Admin dashboard: full compliance sidebar, record search and admin profile.
 export default function AdminLayout() {
     const profile = getProfile();
     return (

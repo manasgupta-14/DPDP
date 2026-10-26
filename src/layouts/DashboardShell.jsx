@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../auth/authStore.js";
 import Icon from "../components/shared/Icon.jsx";
+import PageLoader from "../components/shared/PageLoader.jsx";
 
 function useClickAway(ref, onAway) {
     useEffect(() => {
@@ -242,7 +243,9 @@ export default function DashboardShell({
                 </header>
 
                 <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-8">
-                    <Outlet context={{ query: query.trim().toLowerCase(), profile }} />
+                    <Suspense fallback={<PageLoader />}>
+                        <Outlet context={{ query: query.trim().toLowerCase(), profile }} />
+                    </Suspense>
                 </main>
             </div>
         </div>

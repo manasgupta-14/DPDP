@@ -1,7 +1,7 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
 
-export async function addEmployee({ fullName, email, phoneNumber, password }) {
+export async function addEmployee({ fullName, email, phoneNumber, password, roleId }) {
     const res = await apiFetch("/api/User/add-employee", {
         method: "POST",
         body: {
@@ -9,6 +9,7 @@ export async function addEmployee({ fullName, email, phoneNumber, password }) {
             email: email.trim().toLowerCase(),
             phoneNumber: phoneNumber.trim(),
             password,
+            roleId,
         },
     });
 

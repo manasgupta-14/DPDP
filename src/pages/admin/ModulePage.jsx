@@ -1,20 +1,23 @@
+import { lazy, Suspense } from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import PageLoader from "../../components/shared/PageLoader.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { ADMIN_NAV } from "../../config/navigation.js";
 import { MODULE_INFO } from "../../data/dashboardMock.js";
-import AuditTrail from "./AuditTrail.jsx";
-import BreachManagement from "./BreachManagement.jsx";
-import ConsentManagement from "./ConsentManagement.jsx";
-import DataInventory from "./DataInventory.jsx";
-import PrivacyRequests from "./PrivacyRequests.jsx";
+
+const AuditTrail = lazy(() => import("./AuditTrail.jsx"));
+const BreachManagement = lazy(() => import("./BreachManagement.jsx"));
+const ConsentManagement = lazy(() => import("./ConsentManagement.jsx"));
+const DataInventory = lazy(() => import("./DataInventory.jsx"));
+const PrivacyRequests = lazy(() => import("./PrivacyRequests.jsx"));
 
 export default function ModulePage() {
     const slug = useLocation().pathname.split("/").pop();
-    if (slug === "breach") return <BreachManagement />;
-    if (slug === "consent") return <ConsentManagement />;
-    if (slug === "inventory") return <DataInventory />;
-    if (slug === "audit") return <AuditTrail />;
-    if (slug === "rights") return <PrivacyRequests />;
+    if (slug === "breach") return <Suspense fallback={<PageLoader />}><BreachManagement /></Suspense>;
+    if (slug === "consent") return <Suspense fallback={<PageLoader />}><ConsentManagement /></Suspense>;
+    if (slug === "inventory") return <Suspense fallback={<PageLoader />}><DataInventory /></Suspense>;
+    if (slug === "audit") return <Suspense fallback={<PageLoader />}><AuditTrail /></Suspense>;
+    if (slug === "dsar") return <Suspense fallback={<PageLoader />}><PrivacyRequests /></Suspense>;
     const info = MODULE_INFO[slug];
     if (!info) return <Navigate to="/dashboard" replace />;
     const icon = ADMIN_NAV.find((n) => n.to.endsWith(`/${slug}`))?.icon || "grid";

@@ -7,7 +7,7 @@ const LINKS_BEFORE = [{ label: "Home", href: "/" }];
 
 const COMMON_LINKS = [
     { label: "Consent", href: "/consent" },
-    { label: "User Rights", href: "/rights" },
+    { label: "DSAR", href: "/dsar" },
     { label: "Breach", href: "/breach" },
     { label: "Audit Trail", href: "/audit" },
 ];
@@ -31,7 +31,7 @@ export default function Navbar() {
     const initial = (session?.email || "?").charAt(0).toUpperCase();
     const admin = isAdmin(session);
     const LINKS = session
-        ? (admin ? [...LINKS_BEFORE, ...COMMON_LINKS] : [...LINKS_BEFORE, { label: "My Dashboard", href: "/user" }, { label: "My Tasks", href: "/user/tasks" }, { label: "My Security Reports", href: "/user/reports" }])
+        ? (admin ? [...LINKS_BEFORE, ...COMMON_LINKS.map((l) => ({ ...l, href: `/dashboard${l.href}` }))] : [...LINKS_BEFORE, { label: "My Dashboard", href: "/user" }, { label: "My Tasks", href: "/user/tasks" }, { label: "My Security Reports", href: "/user/reports" }])
         : [...LINKS_BEFORE, ...COMMON_LINKS];
 
     const onLogout = async () => {

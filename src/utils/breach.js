@@ -1,5 +1,4 @@
 import { toDate } from "./audit.js";
-// toDate treats API timestamps without a timezone as UTC (the backend stores UTC but sends no "Z").
 
 const pick = (obj, keys) => {
     for (const k of keys) {

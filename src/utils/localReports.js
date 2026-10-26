@@ -1,5 +1,3 @@
-// The backend has no "my reports" endpoint yet (only POST /report and admin-only GET /all),
-// so reports an employee submits are also remembered in this browser, per user.
 const key = (email) => `pg:my-reports:${String(email || "anon").toLowerCase()}`;
 
 export function loadLocalReports(email) {
@@ -15,14 +13,12 @@ export function addLocalReport(email, report) {
     try {
         const next = [{ ...report, local: true }, ...loadLocalReports(email)].slice(0, 50);
         localStorage.setItem(key(email), JSON.stringify(next));
+        return true;
     } catch {
-        /* storage unavailable: ignore */
+        return false;
     }
 }
 
-// Triage updates (severity, status, resolution) made by the security team are mirrored here
-// so an employee can SEE them read-only. Only works in the same browser until the backend
-// exposes a "my reports" endpoint. Matched by title + description, since local reports have no server id.
 const triageKey = "pg:triage-overlay";
 const fingerprint = (r) => `${String(r?.title ?? "").trim().toLowerCase()}|${String(r?.description ?? "").trim().toLowerCase()}`;
 
@@ -44,7 +40,7 @@ export function saveTriage(incident, patch) {
         map[k] = { ...map[k], ...clean };
         localStorage.setItem(triageKey, JSON.stringify(map));
     } catch {
-        /* storage unavailable: ignore */
+        return;
     }
 }
 

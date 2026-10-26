@@ -13,7 +13,7 @@ const ICONS = {
 
 const MODULES = [
     { icon: "consent", title: "Consent management", text: "Record purposes, capture consent and track withdrawals in one register." },
-    { icon: "rights", title: "User rights portal", text: "Log access, correction and erasure requests with clear status tracking." },
+    { icon: "rights", title: "DSAR", text: "Handle data subject access, correction and erasure requests with clear status tracking." },
     { icon: "breach", title: "Breach management", text: "Keep incident details, timelines and notification tasks organised." },
     { icon: "audit", title: "Audit trail", text: "Every action recorded in a reviewable, exportable activity history." },
 ];

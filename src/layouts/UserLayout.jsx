@@ -6,7 +6,6 @@ import ConsentGate from "../components/user/ConsentGate.jsx";
 import { TASKS_CHANGED, formatDay } from "../utils/campaign.js";
 import DashboardShell from "./DashboardShell.jsx";
 
-// Employee dashboard: small sidebar, live pending-task bell, no admin tooling.
 export default function UserLayout() {
     const profile = getProfile();
     const [pending, setPending] = useState([]);

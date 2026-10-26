@@ -61,7 +61,7 @@ export default function DpiaDetail() {
     const [error, setError] = useState("");
     const [notes, setNotes] = useState("");
     const [notesError, setNotesError] = useState("");
-    const [pending, setPending] = useState(null); // action key awaiting confirmation
+    const [pending, setPending] = useState(null);
     const [busy, setBusy] = useState(false);
     const [actionError, setActionError] = useState("");
     const [done, setDone] = useState("");

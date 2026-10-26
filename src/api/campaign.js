@@ -4,7 +4,6 @@ import { normalizeCampaign, normalizeStats } from "../utils/campaign.js";
 
 const seg = (id) => encodeURIComponent(id);
 
-// ---- Admin ----
 export async function createCampaign(payload) {
     return apiFetch("/api/Campaign/create", { method: "POST", body: payload });
 }
@@ -19,7 +18,6 @@ export async function getCampaignStats(id) {
     return res.ok ? { ...res, data: normalizeStats(res.data) } : res;
 }
 
-// ---- Normal user ----
 export async function getMyPendingCampaigns() {
     const res = await apiFetch("/api/Campaign/my-pending");
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeCampaign) } : res;

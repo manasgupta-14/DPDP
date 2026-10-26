@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMyPermissions } from "../api/permissions.js";
 
-// Loads /api/roles/my-permissions once per login and exposes can("DPIA.Create").
 export function usePermissions() {
     const [list, setList] = useState(null);
 

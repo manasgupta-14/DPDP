@@ -21,7 +21,6 @@ function Section({ title, children }) {
 
 const yesNo = (v, detail) => (v === "yes" ? `Yes${detail ? ` - ${detail}` : ""}` : "No");
 
-// Read-only rendering of a DPIA, used on the review page and on the wizard's last step.
 export default function AssessmentView({ title, details, legacyText }) {
     if (!details) {
         return (
@@ -31,7 +30,6 @@ export default function AssessmentView({ title, details, legacyText }) {
         );
     }
     const d = details;
-    // DPIAs submitted by an earlier version stored chip lists; show them too.
     const types = [Array.isArray(d.dataTypes) ? d.dataTypes.join(", ") : d.dataTypes, d.otherDataType].filter(Boolean).join(", ");
     const oldSafeguards = Array.isArray(d.safeguards) && d.safeguards.length ? d.safeguards.join(", ") : "";
     const safeguards = [oldSafeguards, d.safeguardNotes].filter(Boolean).join("\n");

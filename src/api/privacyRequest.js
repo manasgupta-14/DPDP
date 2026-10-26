@@ -41,6 +41,7 @@ export async function getAllPrivacyRequests() {
         status: 200,
         error: failed.length ? `${failed.length} of ${results.length} users' requests could not be loaded. Showing the rest.` : null,
         data,
+        team: team.data,
     };
 }
 

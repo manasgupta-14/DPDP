@@ -83,7 +83,7 @@ export function SubmitButton({ loading, children }) {
 
 const POINTS = [
     "Consent records and withdrawals in one register",
-    "User rights requests with clear status tracking",
+    "DSAR handling with clear status tracking",
     "Breach handling and a reviewable audit trail",
 ];
 

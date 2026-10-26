@@ -17,8 +17,8 @@ export const ADMIN_SECTIONS = [
         ],
     },
     {
-        label: "Rights",
-        items: [{ to: "/dashboard/rights", label: "User rights portal", icon: "rights" }],
+        label: "DSAR",
+        items: [{ to: "/dashboard/dsar", label: "DSAR", icon: "rights" }],
     },
     {
         label: "Governance",
@@ -33,6 +33,7 @@ export const ADMIN_SECTIONS = [
         label: "Administration",
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
+            { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
         ],
     },

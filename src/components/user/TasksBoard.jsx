@@ -43,7 +43,6 @@ function TaskCard({ campaign, busy, onAct }) {
     );
 }
 
-// Shared by the employee dashboard and the admin's own "My Tasks" page.
 export default function TasksBoard() {
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -74,7 +73,6 @@ export default function TasksBoard() {
         return () => { active = false; };
     }, []);
 
-    // Respond, then immediately re-fetch my-pending so the task disappears.
     const onAct = async (campaign, action) => {
         setNotice("");
         setError("");

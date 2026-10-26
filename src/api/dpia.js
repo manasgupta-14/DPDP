@@ -19,7 +19,6 @@ export async function createDpia(payload) {
     return res.ok ? { ...res, data: normalizeDpia(res.data?.data ?? res.data) } : res;
 }
 
-// action: "Approve" | "SendBack" (the only two the backend acts on).
 export async function reviewDpia(id, { action, reviewNotes }) {
     return apiFetch(`/api/Dpia/${encodeURIComponent(id)}/review`, {
         method: "PUT",
