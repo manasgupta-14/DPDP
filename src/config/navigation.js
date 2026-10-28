@@ -33,6 +33,7 @@ export const ADMIN_SECTIONS = [
         label: "Administration",
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
+            { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
         ],
