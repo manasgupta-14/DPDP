@@ -1,6 +1,6 @@
 import { Navigate, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute.jsx";
-import { AddUsers, AdminLayout, AdminProfile, AdminTasks, Campaigns, Dashboard, DpiaDetail, DpiaForm, DpiaList, ModulePage, RolesPermissions } from "./lazyPages.js";
+import { AddUsers, AdminLayout, AdminProfile, AdminTasks, Campaigns, Dashboard, DpiaDetail, DpiaForm, DpiaList, ModulePage, OrgUnits, RolesPermissions } from "./lazyPages.js";
 
 const MODULE_SLUGS = ["timeline", "consent", "notice", "dsar", "inventory", "breach", "checklist", "audit"];
 
@@ -16,6 +16,7 @@ export default function adminRoutes() {
         >
             <Route index element={<Dashboard />} />
             <Route path="add-users" element={<AddUsers />} />
+            <Route path="organisation" element={<OrgUnits />} />
             <Route path="roles" element={<RolesPermissions />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="my-tasks" element={<AdminTasks />} />
