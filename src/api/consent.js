@@ -2,24 +2,32 @@ import { apiFetch } from "./client.js";
 import { getMyTeam } from "./breach.js";
 import { getSession } from "../auth/authStore.js";
 import { asArray } from "../utils/breach.js";
-import { normalizeConsent } from "../utils/consent.js";
+import { CONSENT_STATUS, normalizeConsentList, normalizeConsentRecord } from "../utils/consent.js";
 
-export async function grantConsent({ dataPrincipalId, dataInventoryId, noticeVersion }) {
-    const res = await apiFetch("/api/Consent/grant", {
+export async function submitConsent({ dataPrincipalId, preferences }) {
+    const res = await apiFetch("/api/Consent/submit", {
         method: "POST",
-        body: { dataPrincipalId, dataInventoryId, noticeVersion: noticeVersion.trim() },
+        body: {
+            dataPrincipalId,
+            preferences: preferences.map((p) => ({ dataInventoryId: p.dataInventoryId, status: p.status })),
+        },
     });
     if (!res.ok) return res;
-    return { ...res, data: { message: res.data?.message ?? res.data?.Message, consentId: res.data?.consentId ?? res.data?.ConsentId } };
+    return { ...res, data: normalizeConsentRecord(res.data) };
 }
 
-export async function withdrawConsent(consentId) {
-    return apiFetch(`/api/Consent/withdraw/${encodeURIComponent(consentId)}`, { method: "PUT" });
+export const grantConsent = ({ dataPrincipalId, dataInventoryId }) =>
+    submitConsent({ dataPrincipalId, preferences: [{ dataInventoryId, status: CONSENT_STATUS.granted }] });
+
+export async function withdrawConsent({ recordId, inventoryId }) {
+    const res = await apiFetch(`/api/Consent/withdraw/${encodeURIComponent(recordId)}/${encodeURIComponent(inventoryId)}`, { method: "POST" });
+    if (res.ok || res.status !== 400) return res;
+    return { ...res, error: "This consent could not be withdrawn. It may already be withdrawn, or it was not found." };
 }
 
 export async function getConsentHistory(dataPrincipalId) {
     const res = await apiFetch(`/api/Consent/history/${encodeURIComponent(dataPrincipalId)}`);
-    return res.ok ? { ...res, data: asArray(res.data).map(normalizeConsent) } : res;
+    return res.ok ? { ...res, data: normalizeConsentList(asArray(res.data)) } : res;
 }
 
 export async function getOrganizationConsents() {
