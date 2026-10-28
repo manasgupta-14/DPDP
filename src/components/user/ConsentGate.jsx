@@ -1,30 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getConsentHistory, grantConsent } from "../../api/consent.js";
+import { getConsentHistory, submitConsent } from "../../api/consent.js";
 import { getDataInventory } from "../../api/dataInventory.js";
 import { getProfile } from "../../auth/authStore.js";
 import Alert from "../shared/Alert.jsx";
 import Modal from "../shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../shared/ui.js";
 import { NOTICE_TEXT, NOTICE_VERSION } from "../../config/consentNotice.js";
-
-const storageKey = (userId) => `pg-consent-denied:${userId}`;
-
-function readDenied(userId) {
-    try {
-        return JSON.parse(localStorage.getItem(storageKey(userId)) || "{}") || {};
-    } catch {
-        return {};
-    }
-}
-
-function writeDenied(userId, value) {
-    try {
-        localStorage.setItem(storageKey(userId), JSON.stringify(value));
-    } catch {
-        return;
-    }
-}
+import { CONSENT_STATUS } from "../../utils/consent.js";
 
 function Choice({ active, tone, onClick, children }) {
     const on = tone === "allow" ? "border-[#0F766E] bg-[#0F766E] text-white" : "border-[#B91C1C] bg-[#B91C1C] text-white";
@@ -56,8 +39,7 @@ export default function ConsentGate() {
         Promise.all([getConsentHistory(userId), getDataInventory()]).then(([hist, inv]) => {
             if (!active || !hist.ok || !inv.ok) return;
             const answered = new Set(hist.data.map((c) => c.inventoryId));
-            const denied = readDenied(userId);
-            const items = inv.data.filter((i) => !answered.has(String(i.id)) && denied[i.id] !== NOTICE_VERSION);
+            const items = inv.data.filter((i) => !answered.has(String(i.id)));
             if (items.length) {
                 setPending(items);
                 setOpen(true);
@@ -83,26 +65,21 @@ export default function ConsentGate() {
         }
         setBusy(true);
         setError("");
-        const denied = readDenied(userId);
-        const done = new Set();
-        const failed = [];
-        for (const item of decided) {
-            if (choices[item.id] === "allow") {
-                const res = await grantConsent({ dataPrincipalId: userId, dataInventoryId: item.id, noticeVersion: NOTICE_VERSION });
-                if (res.ok) done.add(item.id);
-                else failed.push(`${item.name}: ${res.error}`);
-            } else {
-                denied[item.id] = NOTICE_VERSION;
-                done.add(item.id);
-            }
-        }
-        writeDenied(userId, denied);
+        const res = await submitConsent({
+            dataPrincipalId: userId,
+            preferences: decided.map((item) => ({
+                dataInventoryId: item.id,
+                status: choices[item.id] === "allow" ? CONSENT_STATUS.granted : CONSENT_STATUS.denied,
+            })),
+        });
         setBusy(false);
-        setPending((p) => p.filter((i) => !done.has(i.id)));
-        if (failed.length) {
-            setError(failed.join(" "));
+        if (!res.ok) {
+            setError(res.error);
             return;
         }
+        const done = new Set(decided.map((i) => i.id));
+        setPending((p) => p.filter((i) => !done.has(i.id)));
+        setChoices({});
         setOpen(false);
     };
 
