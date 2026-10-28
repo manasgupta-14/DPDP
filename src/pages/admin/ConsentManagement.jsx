@@ -7,7 +7,7 @@ import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
 import { getSession } from "../../auth/authStore.js";
 import { formatDate, timeOf } from "../../utils/breach.js";
-import { CONSENT_STATUS, CONSENT_TONE, isGranted, shortId } from "../../utils/consent.js";
+import { CONSENT_STATUS, CONSENT_TONE, isDenied, isGranted, shortId } from "../../utils/consent.js";
 
 const PAGE_SIZE = 10;
 const th = "px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]";
@@ -40,7 +40,7 @@ export default function ConsentManagement() {
 
     const apply = useCallback(([cons, inv]) => {
         if (cons.ok) {
-            setConsents([...cons.data].sort((a, b) => timeOf(b.grantedAt) - timeOf(a.grantedAt)));
+            setConsents([...cons.data].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)));
             setTeam(cons.team || []);
             setError(cons.error || "");
         } else {
@@ -90,7 +90,8 @@ export default function ConsentManagement() {
     const counts = useMemo(() => ({
         total: rows.length,
         granted: rows.filter(isGranted).length,
-        withdrawn: rows.filter((c) => !isGranted(c)).length,
+        denied: rows.filter(isDenied).length,
+        withdrawn: rows.filter((c) => c.status === CONSENT_STATUS.withdrawn).length,
         users: new Set(rows.filter(isGranted).map((c) => c.principalId)).size,
     }), [rows]);
 
@@ -119,7 +120,7 @@ export default function ConsentManagement() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Consent management</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Who has agreed to what, under which privacy notice, and when it was withdrawn. Users give and withdraw their own consent from their My Consents page.</p>
+                    <p className="mt-1 text-sm text-[#475569]">Who has agreed to or declined what, under which privacy notice, and when it was withdrawn. Users give and withdraw their own consent from their My Consents page.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
                     <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
@@ -129,9 +130,10 @@ export default function ConsentManagement() {
                 </div>
             </div>
 
-            <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
                 <Stat label="Total records" value={counts.total} tone="text-[#0F172A]" />
                 <Stat label="Active consents" value={counts.granted} tone="text-[#16A34A]" />
+                <Stat label="Denied" value={counts.denied} tone="text-[#D97706]" />
                 <Stat label="Withdrawn" value={counts.withdrawn} tone="text-[#DC2626]" />
                 <Stat label="Users with active consent" value={counts.users} tone="text-[#0E7490]" />
             </section>
@@ -145,6 +147,7 @@ export default function ConsentManagement() {
                     <select value={status} onChange={onFilter(setStatus)} className={`${field} min-w-[150px] py-2`}>
                         <option value="">All statuses</option>
                         <option value={CONSENT_STATUS.granted}>Granted</option>
+                        <option value={CONSENT_STATUS.denied}>Denied</option>
                         <option value={CONSENT_STATUS.withdrawn}>Withdrawn</option>
                     </select>
                 </label>
@@ -183,7 +186,7 @@ export default function ConsentManagement() {
                                     <th className={th}>Data point</th>
                                     <th className={th}>Status</th>
                                     <th className={th}>Notice</th>
-                                    <th className={th}>Granted</th>
+                                    <th className={th}>Recorded</th>
                                     <th className={th}>Withdrawn</th>
                                 </tr>
                             </thead>
@@ -197,7 +200,7 @@ export default function ConsentManagement() {
                                         </td>
                                         <td className="px-5 py-3.5"><StatusPill status={c.status} /></td>
                                         <td className="px-5 py-3.5 text-[#334155]">v{c.noticeVersion}</td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.grantedAt)}</td>
+                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.submittedAt)}</td>
                                         <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.withdrawnAt)}</td>
                                     </tr>
                                 ))}
