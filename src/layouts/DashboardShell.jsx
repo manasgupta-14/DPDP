@@ -116,7 +116,7 @@ export default function DashboardShell({
     return (
         <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A]">
             <style>{`
-        @keyframes pg-rise { 0% { opacity: 0; transform: translateY(14px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes pg-rise { 0% { opacity: 0; transform: translateY(14px); } 100% { opacity: 1; transform: none; } }
         @keyframes pg-fill { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
         @keyframes pg-glow { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,20px); } }
         @media (prefers-reduced-motion: reduce) { .pg-dash, .pg-dash * { animation: none !important; transition: none !important; } }
