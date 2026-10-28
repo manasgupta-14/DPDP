@@ -6,6 +6,7 @@ export const AdminProfile = lazy(() => import("../pages/admin/AdminProfile.jsx")
 export const Campaigns = lazy(() => import("../pages/admin/Campaigns.jsx"));
 export const Dashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
 export const RolesPermissions = lazy(() => import("../pages/admin/RolesPermissions.jsx"));
+export const RoleEditor = lazy(() => import("../pages/admin/RoleEditor.jsx"));
 export const ModulePage = lazy(() => import("../pages/admin/ModulePage.jsx"));
 export const OrgUnits = lazy(() => import("../pages/admin/OrgUnits.jsx"));
 export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
@@ -23,3 +24,6 @@ export const PublicLayout = lazy(() => import("../layouts/PublicLayout.jsx"));
 export const Home = lazy(() => import("../pages/public/Home.jsx"));
 export const Login = lazy(() => import("../pages/public/Login.jsx"));
 export const Register = lazy(() => import("../pages/public/Register.jsx"));
+export const GrievanceList = lazy(() => import("../pages/grievance/GrievanceList.jsx"));
+export const GrievanceDetail = lazy(() => import("../pages/grievance/GrievanceDetail.jsx"));
+export const RaiseGrievance = lazy(() => import("../pages/user/RaiseGrievance.jsx"));
