@@ -80,9 +80,12 @@ export function getProfile() {
     };
 }
 
+const MANAGE_PERMISSIONS = ["users.create", "users.edit", "roles.manage"];
+
 export function isAdmin(session = getSession()) {
     const roles = [].concat(session?.role ?? []);
-    return roles.some((r) => /admin/i.test(String(r)));
+    if (roles.some((r) => /admin/i.test(String(r)))) return true;
+    return (session?.permissions ?? []).some((p) => MANAGE_PERMISSIONS.includes(String(p).toLowerCase()));
 }
 
 export function isDpo(session = getSession()) {
