@@ -1,230 +1,173 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { createRole, getAllPermissions, getMyPermissionsGrouped, getUserPermissionsGrouped } from "../../api/roles.js";
-import { getOrganizationUsers } from "../../api/users.js";
-import PermissionPicker from "../../components/admin/roles/PermissionPicker.jsx";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
+import { getAllPermissions, getRoleList } from "../../api/roles.js";
+import { usePermissions } from "../../auth/usePermissions.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
-import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
-import { allPermissionIds, validateRole } from "../../utils/roles.js";
+import PageLoader from "../../components/shared/PageLoader.jsx";
+import { primaryBtn } from "../../components/shared/ui.js";
+import { allPermissionIds } from "../../utils/roles.js";
 
-const EMPTY = { roleName: "", description: "" };
+const VISIBLE_MODULES = 3;
 
-function CreateRole() {
+export default function RolesPermissions() {
+    const { query = "" } = useOutletContext() || {};
+    const location = useLocation();
     const navigate = useNavigate();
-    const [modules, setModules] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState("");
-    const [form, setForm] = useState(EMPTY);
-    const [selected, setSelected] = useState(() => new Set());
-    const [errors, setErrors] = useState({});
-    const [apiError, setApiError] = useState("");
-    const [notice, setNotice] = useState("");
-    const [busy, setBusy] = useState(false);
+    const { loading: permsLoading, can } = usePermissions();
+    const canManage = can("Roles.Manage");
+    const canView = canManage || can("Roles.View");
 
-    const apply = useCallback((res) => {
-        if (res.ok) {
-            setModules(res.data);
-            setLoadError("");
-        } else {
-            setLoadError(res.error);
-        }
-        setLoading(false);
-    }, []);
+    const [roles, setRoles] = useState([]);
+    const [totalPermissions, setTotalPermissions] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [notice, setNotice] = useState(location.state?.notice ?? "");
+    const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
+        if (permsLoading || !canView) return undefined;
         let active = true;
-        getAllPermissions().then((res) => {
-            if (active) apply(res);
+        Promise.all([getRoleList(), getAllPermissions()]).then(([list, permissions]) => {
+            if (!active) return;
+            if (list.ok) {
+                setRoles(list.data);
+                setError("");
+            } else {
+                setError(list.error);
+            }
+            setTotalPermissions(permissions.ok ? allPermissionIds(permissions.data).length : 0);
+            setLoading(false);
         });
-        return () => { active = false; };
-    }, [apply]);
+        return () => {
+            active = false;
+        };
+    }, [permsLoading, canView, reloadKey]);
+
+    useEffect(() => {
+        if (location.state?.notice) navigate(location.pathname, { replace: true, state: null });
+    }, [location.state, location.pathname, navigate]);
+
+    useEffect(() => {
+        if (!notice) return undefined;
+        const timer = setTimeout(() => setNotice(""), 4500);
+        return () => clearTimeout(timer);
+    }, [notice]);
 
     const retry = () => {
         setLoading(true);
-        getAllPermissions().then(apply);
+        setReloadKey((key) => key + 1);
     };
 
-    const set = (k) => (e) => {
-        setForm((f) => ({ ...f, [k]: e.target.value }));
-        setErrors((er) => ({ ...er, [k]: undefined }));
-        setNotice("");
-    };
+    const shown = useMemo(() => {
+        const needle = String(query).trim().toLowerCase();
+        if (!needle) return roles;
+        return roles.filter((r) => `${r.name} ${r.modules.map((m) => m.name).join(" ")}`.toLowerCase().includes(needle));
+    }, [roles, query]);
 
-    const toggle = (id) => {
-        setSelected((s) => {
-            const next = new Set(s);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-        setErrors((er) => ({ ...er, permissions: undefined }));
-        setNotice("");
-    };
+    if (permsLoading) return <PageLoader />;
 
-    const toggleModule = (ids, on) => {
-        setSelected((s) => {
-            const next = new Set(s);
-            ids.forEach((id) => (on ? next.add(id) : next.delete(id)));
-            return next;
-        });
-        setErrors((er) => ({ ...er, permissions: undefined }));
-        setNotice("");
-    };
-
-    const total = useMemo(() => allPermissionIds(modules).length, [modules]);
-
-    const submit = async (e) => {
-        e.preventDefault();
-        setApiError("");
-        setNotice("");
-        const found = validateRole(form, selected.size);
-        setErrors(found);
-        if (Object.keys(found).length) return;
-
-        setBusy(true);
-        const res = await createRole({ roleName: form.roleName, description: form.description, permissionIds: [...selected] });
-        setBusy(false);
-
-        if (!res.ok) return setApiError(res.error);
-        setNotice(`Role "${form.roleName.trim()}" was created with ${selected.size} permission${selected.size === 1 ? "" : "s"}.`);
-        setForm(EMPTY);
-        setSelected(new Set());
-    };
+    if (!canView) {
+        return (
+            <div className="space-y-6">
+                <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
+                <Alert>You do not have permission to view roles and permissions. Ask an administrator to grant you access.</Alert>
+            </div>
+        );
+    }
 
     return (
-        <form onSubmit={submit} noValidate className="space-y-5">
-            <div className={`${panel} space-y-4 p-5 sm:p-6`}>
-                <h2 className="text-lg font-semibold">Add role</h2>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Role name
-                    <input value={form.roleName} onChange={set("roleName")} maxLength={100} placeholder="e.g. Compliance Officer" className={field} aria-invalid={!!errors.roleName} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleName}</span>
-                </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Description (optional)
-                    <textarea value={form.description} onChange={set("description")} rows={2} maxLength={500} placeholder="What is this role responsible for?" className={`${field} resize-y`} aria-invalid={!!errors.description} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.description}</span>
-                </label>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
+            <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h2 className="text-lg font-semibold">Permissions</h2>
-                    <p className="text-sm text-[#475569]">{selected.size} of {total} selected</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
+                    <p className="mt-1.5 text-[15px] text-[#475569]">See what each role in your organisation can do{canManage ? ", edit them, and add new roles." : "."}</p>
                 </div>
-                <div className="flex gap-2.5">
-                    <button type="button" disabled={loading || !total} onClick={() => setSelected(new Set(allPermissionIds(modules)))} className={primaryBtn}>Select all permissions</button>
-                    <button type="button" disabled={selected.size === 0} onClick={() => setSelected(new Set())} className={ghostBtn}>Reset permissions</button>
-                </div>
-            </div>
+                {canManage ? (
+                    <Link to="/dashboard/roles/new" className={primaryBtn}>
+                        <Icon name="key" className="h-4 w-4" /> Add role
+                    </Link>
+                ) : (
+                    <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-xs font-semibold text-[#334155]">View only</span>
+                )}
+            </header>
 
-            <Alert action={<button type="button" onClick={retry} className="shrink-0 font-semibold underline">Retry</button>}>{loadError}</Alert>
-            {loading ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>Loading permissions...</p>
-            ) : (
-                !loadError && <PermissionPicker modules={modules} selected={selected} onToggle={toggle} onToggleModule={toggleModule} />
-            )}
-            {errors.permissions && <p role="alert" className="text-sm text-[#DC2626]">{errors.permissions}</p>}
-
-            <Alert>{apiError}</Alert>
             <Alert tone="success">{notice}</Alert>
 
-            <div className="flex justify-end gap-2.5">
-                <button type="button" onClick={() => navigate("/dashboard")} disabled={busy} className={ghostBtn}>Cancel</button>
-                <button type="submit" disabled={busy || loading || !!loadError} className={primaryBtn}>{busy ? "Saving..." : "Save changes"}</button>
-            </div>
-        </form>
-    );
-}
-
-function Viewer() {
-    const [users, setUsers] = useState({ items: [], error: "" });
-    const [target, setTarget] = useState("me");
-    const [state, setState] = useState({ loading: true, modules: [], error: "" });
-
-    useEffect(() => {
-        let active = true;
-        getOrganizationUsers().then((res) => {
-            if (active) setUsers({ items: res.ok ? res.data : [], error: res.ok ? "" : res.error });
-        });
-        return () => { active = false; };
-    }, []);
-
-    useEffect(() => {
-        let active = true;
-        const request = target === "me" ? getMyPermissionsGrouped() : getUserPermissionsGrouped(target);
-        request.then((res) => {
-            if (active) setState({ loading: false, modules: res.ok ? res.data : [], error: res.ok ? "" : res.error });
-        });
-        return () => { active = false; };
-    }, [target]);
-
-    const pickTarget = (e) => {
-        setState({ loading: true, modules: [], error: "" });
-        setTarget(e.target.value);
-    };
-
-    const count = state.modules.reduce((n, m) => n + m.actions.length, 0);
-
-    return (
-        <div className="space-y-5">
-            <div className={`${panel} p-5 sm:p-6`}>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Show permissions for
-                    <select value={target} onChange={pickTarget} className={field}>
-                        <option value="me">Me (my own permissions)</option>
-                        {users.items.map((u) => <option key={u.id} value={u.id}>{u.name || u.email} ({u.role})</option>)}
-                    </select>
-                </label>
-                {users.error && <p className="mt-2 text-xs text-[#B45309]">Team list could not be loaded ({users.error}). Only your own permissions can be shown.</p>}
-            </div>
-
-            <Alert>{state.error}</Alert>
-            {state.loading ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>Loading permissions...</p>
-            ) : !state.error && count === 0 ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>No permissions are assigned to this role yet.</p>
-            ) : (
-                <div className="space-y-4">
-                    {state.modules.map((m) => (
-                        <section key={m.name} className={`${panel} overflow-hidden`} aria-label={m.name}>
-                            <h3 className="bg-[#F8FAFC] px-4 py-3 text-sm font-semibold text-[#0F172A]">{m.name}</h3>
-                            <ul className="divide-y divide-[#E2E8F0]">
-                                {m.actions.map((a) => (
-                                    <li key={a.id} className="flex items-center gap-2.5 px-4 py-3 text-sm text-[#334155]">
-                                        <span className="grid h-5 w-5 place-items-center rounded-full bg-[#16A34A]/10 text-[#16A34A]"><Icon name="check" className="h-3.5 w-3.5" /></span>
-                                        {a.name}
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
-                    ))}
+            <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-semibold">Roles in your organisation</h2>
+                        <p className="text-xs text-[#64748B]">Live from the server. Open a role to see the permissions it includes.</p>
+                    </div>
+                    <span className="rounded-full bg-[#CCFBF1] px-2.5 py-1 text-xs font-semibold text-[#0F766E]">{roles.length} total</span>
                 </div>
-            )}
-        </div>
-    );
-}
 
-const TABS = [
-    { id: "create", label: "Create role" },
-    { id: "view", label: "View permissions" },
-];
+                {error && (
+                    <div className="mt-4">
+                        <Alert action={<button type="button" onClick={retry} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>
+                    </div>
+                )}
 
-export default function RolesPermissions() {
-    const [tab, setTab] = useState("create");
-    return (
-        <div className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
-                <p className="mt-1 text-sm text-[#475569]">Create roles for your organisation and choose exactly what each role can do.</p>
-            </div>
-            <div role="tablist" aria-label="Roles and permissions" className="inline-flex gap-1 rounded-xl border border-[#E2E8F0] bg-white p-1">
-                {TABS.map((t) => (
-                    <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)} className={`rounded-lg px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${tab === t.id ? "bg-[#0F766E] text-white" : "text-[#475569] hover:text-[#0F766E]"}`}>{t.label}</button>
-                ))}
-            </div>
-            {tab === "create" ? <CreateRole /> : <Viewer />}
+                {loading ? (
+                    <p className="py-12 text-center text-sm text-[#64748B]">Loading roles...</p>
+                ) : shown.length === 0 ? (
+                    <p className="py-12 text-center text-sm text-[#64748B]">
+                        {roles.length ? "No roles match your search." : canManage ? "No roles yet. Use Add role to create the first one." : "No roles yet."}
+                    </p>
+                ) : (
+                    <div className="mt-4 overflow-x-auto">
+                        <table className="w-full min-w-[640px] text-left text-sm">
+                            <thead>
+                                <tr className="border-b border-[#E2E8F0] text-xs uppercase tracking-wide text-[#64748B]">
+                                    <th className="py-2 pr-3 font-semibold">Role</th>
+                                    <th className="py-2 pr-3 font-semibold">Permissions</th>
+                                    <th className="py-2 pr-3 font-semibold">Users</th>
+                                    <th className="py-2"><span className="sr-only">Action</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {shown.map((r) => (
+                                    <tr key={r.id} className="border-b border-[#E2E8F0] align-top last:border-0">
+                                        <td className="py-3 pr-3">
+                                            <p className="font-medium">{r.name}</p>
+                                        </td>
+                                        <td className="py-3 pr-3">
+                                            {!r.permissionsKnown ? (
+                                                <span className="text-xs text-[#64748B]">Shown once a user has this role</span>
+                                            ) : r.permissionCount === 0 ? (
+                                                <span className="text-[#64748B]">No permissions</span>
+                                            ) : (
+                                                <>
+                                                    <p className="font-medium tabular-nums">
+                                                        {r.permissionCount}
+                                                        {totalPermissions > 0 && <span className="font-normal text-[#64748B]"> of {totalPermissions}</span>}
+                                                    </p>
+                                                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                                        {r.modules.slice(0, VISIBLE_MODULES).map((m) => (
+                                                            <span key={m.name} className="rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E]">{m.name} · {m.count}</span>
+                                                        ))}
+                                                        {r.modules.length > VISIBLE_MODULES && (
+                                                            <span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-semibold text-[#475569]">+{r.modules.length - VISIBLE_MODULES} more</span>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </td>
+                                        <td className="py-3 pr-3 tabular-nums text-[#475569]">{r.userCount ?? "-"}</td>
+                                        <td className="py-3 text-right">
+                                            <div className="flex justify-end gap-4">
+                                                <Link to={`/dashboard/roles/${r.id}`} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline">View</Link>
+                                                {canManage && <Link to={`/dashboard/roles/${r.id}/edit`} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline">Edit</Link>}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </section>
         </div>
     );
 }
