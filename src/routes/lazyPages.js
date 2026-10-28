@@ -7,6 +7,7 @@ export const Campaigns = lazy(() => import("../pages/admin/Campaigns.jsx"));
 export const Dashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
 export const RolesPermissions = lazy(() => import("../pages/admin/RolesPermissions.jsx"));
 export const ModulePage = lazy(() => import("../pages/admin/ModulePage.jsx"));
+export const OrgUnits = lazy(() => import("../pages/admin/OrgUnits.jsx"));
 export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
 export const DpiaDetail = lazy(() => import("../pages/dpia/DpiaDetail.jsx"));
 export const DpiaForm = lazy(() => import("../pages/dpia/DpiaForm.jsx"));
