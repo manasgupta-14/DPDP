@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
-import { getRoles } from "../../api/roles.js";
+import { getRoleOptions } from "../../api/roles.js";
 import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
@@ -56,7 +56,7 @@ export default function AddUsers() {
 
     useEffect(() => {
         let active = true;
-        getRoles().then((res) => {
+        getRoleOptions().then((res) => {
             if (!active) return;
             if (res.ok) {
                 setRoles(res.data);
@@ -84,7 +84,7 @@ export default function AddUsers() {
         if (!/^[0-9+\-\s]{7,15}$/.test(form.phone.trim())) next.phone = "Enter a valid phone number.";
         if (form.password.length < 8) next.password = "Password must be at least 8 characters.";
         if (!form.roleId) next.roleId = "Select a role for this user.";
-        if (!roles.length) next.roleId = rolesError || "No roles are available. Create a role first or check the roles API.";
+        if (!roles.length) next.roleId = rolesError || "No roles are available yet. Create a role in Roles & permissions first.";
         if (users.some((u) => u.email.toLowerCase() === form.email.trim().toLowerCase())) next.email = "This email is already registered.";
         setErrors(next);
         if (Object.keys(next).length) return;
@@ -179,6 +179,9 @@ export default function AddUsers() {
                         </select>
                         <span className="mt-1 block text-xs text-[#64748B]">The selected role controls which modules and actions this user can access.</span>
                         {rolesError && <span role="alert" className="mt-1 block text-xs text-[#B45309]">Could not load roles: {rolesError}</span>}
+                        {!rolesLoading && !rolesError && roles.length === 0 && (
+                            <span className="mt-1 block text-xs text-[#B45309]">No roles yet. <Link to="/dashboard/roles/new" className="font-semibold underline">Create a role</Link> first, then come back to add the user.</span>
+                        )}
                         {errors.roleId && <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleId}</span>}
                     </label>
 
