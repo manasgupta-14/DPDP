@@ -21,7 +21,7 @@ function GrantDialog({ item, principalId, onClose, onDone }) {
     const agree = async () => {
         setBusy(true);
         setError("");
-        const res = await grantConsent({ dataPrincipalId: principalId, dataInventoryId: item.id, noticeVersion: NOTICE_VERSION });
+        const res = await grantConsent({ dataPrincipalId: principalId, dataInventoryId: item.id });
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
@@ -58,7 +58,7 @@ function WithdrawButton({ record, onDone, name }) {
     const run = async () => {
         setBusy(true);
         setError("");
-        const res = await withdrawConsent(record.id);
+        const res = await withdrawConsent({ recordId: record.recordId, inventoryId: record.inventoryId });
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
@@ -97,7 +97,7 @@ export default function MyConsents() {
 
     const apply = useCallback(([hist, inv]) => {
         if (hist.ok) {
-            setHistory([...hist.data].sort((a, b) => timeOf(b.grantedAt) - timeOf(a.grantedAt)));
+            setHistory([...hist.data].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)));
             setError("");
         } else {
             setError(hist.error);
@@ -208,7 +208,7 @@ export default function MyConsents() {
                         <table className="w-full min-w-[640px] text-sm">
                             <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
                                 <tr>
-                                    {["Data point", "Status", "Notice", "Given", "Withdrawn"].map((h) => (
+                                    {["Data point", "Status", "Notice", "Recorded", "Withdrawn"].map((h) => (
                                         <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]">{h}</th>
                                     ))}
                                 </tr>
@@ -219,7 +219,7 @@ export default function MyConsents() {
                                         <td className="px-5 py-3.5 font-medium text-[#0F172A]">{nameOf.get(c.inventoryId)?.name || `Data point ${shortId(c.inventoryId)}`}</td>
                                         <td className="px-5 py-3.5"><Pill status={c.status} /></td>
                                         <td className="px-5 py-3.5 text-[#334155]">v{c.noticeVersion}</td>
-                                        <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.grantedAt)}</td>
+                                        <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.submittedAt)}</td>
                                         <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.withdrawnAt)}</td>
                                     </tr>
                                 ))}
