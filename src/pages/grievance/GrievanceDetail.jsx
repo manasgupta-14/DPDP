@@ -1,20 +1,20 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { assignGrievance, escalateGrievance, getGrievance, replyGrievance } from "../../api/grievance.js";
+import { assignGrievance, escalateGrievance, getGrievance, replyGrievance, resolveGrievance } from "../../api/grievance.js";
 import { usePermissions } from "../../auth/usePermissions.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
-import { formatDate } from "../../utils/breach.js";
-import { ESC_SEVERITIES, PERM, grievanceStatusTone, severityTone } from "../../utils/grievance.js";
+import { formatDate, severityTone } from "../../utils/breach.js";
+import { ESC_SEVERITIES, PERM, buildTimeline, grievanceStatusToneLight, isClosedStatus } from "../../utils/grievance.js";
 
 const pill = "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1";
 
-function Meta({ label, children }) {
+function Row({ label, children }) {
     return (
-        <div className="flex items-start justify-between gap-4 py-2.5 text-sm">
+        <div className="grid grid-cols-[110px_1fr] gap-3 py-1.5 text-sm">
             <dt className="text-[#64748B]">{label}</dt>
-            <dd className="text-right font-medium text-[#0F172A]">{children}</dd>
+            <dd className="min-w-0 break-words font-medium text-[#0F172A]">{children}</dd>
         </div>
     );
 }
@@ -39,7 +39,7 @@ function EscalateDialog({ ticket, onClose, onDone }) {
 
     return (
         <form onSubmit={submit} className={`${panel} space-y-4 p-5 sm:p-6`}>
-            <h2 className="pr-8 text-lg font-semibold">Escalate to data breach</h2>
+            <h2 className="pr-8 text-lg font-semibold text-[#0F172A]">Escalate to data breach</h2>
             <p className="text-sm text-[#475569]">This creates a breach incident from {ticket.referenceId}. Use it only when the complaint points to a real data breach.</p>
             <Alert>{error}</Alert>
             <label className="block text-sm font-medium">Breach title
@@ -89,98 +89,117 @@ export default function GrievanceDetail() {
         return () => { active = false; };
     }, [id]);
 
+    const timeline = useMemo(() => (ticket ? buildTimeline(ticket) : []), [ticket]);
     const canManage = can(PERM.manage);
     const canEscalate = can(PERM.escalate);
 
-    const take = async () => {
-        setBusy(true); setError("");
-        const res = await assignGrievance(id);
+    const act = async (fn, okMessage) => {
+        setBusy(true); setError(""); setFlash("");
+        const res = await fn();
         setBusy(false);
         if (!res.ok) return setError(res.error);
-        setFlash("Ticket assigned to you and moved to In Progress.");
+        setFlash(okMessage);
         load();
     };
 
     const send = async (e) => {
         e.preventDefault();
         if (!reply.trim()) return setError("Write a message first.");
-        setBusy(true); setError("");
-        const res = await replyGrievance(id, { messageText: reply, isInternal: internal });
-        setBusy(false);
-        if (!res.ok) return setError(res.error);
-        setFlash(internal ? "Internal note added." : "Reply sent.");
+        const wasInternal = internal;
+        await act(() => replyGrievance(id, { messageText: reply, isInternal: internal }), wasInternal ? "Internal note added." : "Reply sent.");
         setReply(""); setInternal(false);
-        load();
     };
 
     if (loading) return <p className="text-sm text-[#475569]">Loading grievance...</p>;
     if (!ticket) {
         return (
-            <div className="space-y-4">
+            <div className="mx-auto max-w-3xl space-y-4">
                 <Alert>{error || "Grievance not found."}</Alert>
                 <Link to="/dashboard/grievances" className={ghostBtn}>Back to grievances</Link>
             </div>
         );
     }
 
+    const isOpen = ticket.status === "Open";
+    const isInProgress = ticket.status === "In Progress";
+    const closed = isClosedStatus(ticket.status);
+    const escalated = ticket.status === "Escalated to Breach";
+
     return (
-        <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div>
-                <Link to="/dashboard/grievances" className="text-sm font-semibold text-[#0F766E] hover:underline">&larr; Back to grievances</Link>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <h1 className="text-2xl font-bold tracking-tight">{ticket.subject}</h1>
-                    <span className={`${pill} ${grievanceStatusTone(ticket.status)}`}>{ticket.status}</span>
+        <div className="space-y-5" style={{ animation: "pg-rise .6s ease-out both" }}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-3">
+                        <h1 className="break-words text-2xl font-bold tracking-tight text-[#0F172A]">{ticket.subject}</h1>
+                        <span className={`${pill} ${grievanceStatusToneLight(ticket.status)}`}>{ticket.status}</span>
+                    </div>
+                    <Link to="/dashboard/grievances" className="mt-1 inline-block text-sm font-semibold text-[#0F766E] hover:underline">&larr; Back to grievances &middot; <span className="font-mono text-xs">{ticket.referenceId}</span></Link>
                 </div>
-                <p className="mt-1 font-mono text-xs text-[#64748B]">{ticket.referenceId}</p>
+                {canManage && !closed && (
+                    <button
+                        type="button"
+                        className={primaryBtn}
+                        disabled={busy || !isInProgress}
+                        title={isOpen ? "Assign the ticket to yourself first, then resolve it." : undefined}
+                        onClick={() => act(() => resolveGrievance(id), "Grievance marked as Resolved.")}
+                    >
+                        {busy ? "Please wait..." : "Resolve"}
+                    </button>
+                )}
             </div>
 
             <Alert tone="success">{flash}</Alert>
             <Alert>{error}</Alert>
 
-            <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-                <div className="space-y-6">
-                    {canManage && (
-                        <section className={`${panel} space-y-3 p-5`}>
-                            <h2 className="text-base font-semibold">Actions</h2>
-                            <div className="flex flex-wrap gap-3">
-                                {ticket.status === "Open" && (
-                                    <button type="button" className={primaryBtn} onClick={take} disabled={busy}>Assign to me</button>
-                                )}
-                                {canEscalate && (
-                                    <button type="button" className={ghostBtn} onClick={() => setEscalating(true)} disabled={busy}>Escalate to breach</button>
-                                )}
-                                {ticket.status !== "Open" && !canEscalate && <p className="text-sm text-[#64748B]">This ticket is already in progress.</p>}
-                            </div>
-                        </section>
-                    )}
+            <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+                <div className="space-y-5">
+                    <section className={`${panel} p-5`}>
+                        <h2 className="text-base font-semibold text-[#0F172A]">Complaint</h2>
+                        <dl className="mt-3 divide-y divide-[#E2E8F0]">
+                            <Row label="Reference"><span className="font-mono text-xs">{ticket.referenceId}</span></Row>
+                            <Row label="Category">{ticket.category}</Row>
+                            <Row label="Severity"><span className={`${pill} ${severityTone(ticket.severity)}`}>{ticket.severity || "-"}</span></Row>
+                            <Row label="Status"><span className={`${pill} ${grievanceStatusToneLight(ticket.status)}`}>{ticket.status}</span></Row>
+                            <Row label="Raised by"><span className="font-mono text-xs">{ticket.raisedBy || "-"}</span></Row>
+                            <Row label="Raised">{formatDate(ticket.createdAt)}</Row>
+                        </dl>
+                    </section>
 
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold">Conversation</h2>
+                        <h2 className="text-base font-semibold text-[#0F172A]">Conversation</h2>
+                        {canManage && <p className="text-xs text-[#64748B]">Messages marked internal are never shown to the Data Principal.</p>}
                         {ticket.messages.length === 0 ? (
-                            <p className="mt-3 text-sm text-[#64748B]">No messages yet.</p>
+                            <p className="mt-4 text-sm text-[#475569]">No messages yet.</p>
                         ) : (
-                            <ul className="mt-3 space-y-3">
-                                {ticket.messages.map((m, i) => (
-                                    <li key={i} className={`rounded-xl border p-3 text-sm ${m.isInternal ? "border-[#D97706]/40 bg-[#D97706]/10" : m.senderType === "User" ? "border-[#E2E8F0] bg-[#F8FAFC]" : "border-[#0F766E]/30 bg-[#CCFBF1]/40"}`}>
-                                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
-                                            <span className="font-semibold text-[#334155]">{m.isInternal ? "Internal note" : m.senderType === "User" ? "Data principal" : "Support team"}</span>
-                                            <span>{formatDate(m.createdAt)}</span>
-                                        </div>
-                                        <p className="mt-1.5 whitespace-pre-wrap break-words text-[#0F172A]">{m.text}</p>
-                                    </li>
-                                ))}
+                            <ul className="mt-4 space-y-3">
+                                {ticket.messages.map((m, i) => {
+                                    const fromUser = m.senderType === "User";
+                                    const tone = m.isInternal ? "border-[#D97706]/40 bg-[#D97706]/10" : fromUser ? "border-[#E2E8F0] bg-[#F8FAFC]" : "border-[#0F766E]/30 bg-[#CCFBF1]/40";
+                                    return (
+                                        <li key={i} className={`rounded-xl border p-3 text-sm ${tone}`}>
+                                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                                                <span className="flex items-center gap-2">
+                                                    <span className="font-semibold text-[#334155]">{fromUser ? "Data Principal" : "Support team"}</span>
+                                                    {m.isInternal && <span className="rounded bg-[#D97706]/20 px-1.5 py-0.5 text-[10px] font-semibold text-[#0F172A]">Internal note</span>}
+                                                </span>
+                                                <span>{formatDate(m.createdAt)}</span>
+                                            </div>
+                                            <p className="mt-1.5 whitespace-pre-wrap break-words text-[#0F172A]">{m.text}</p>
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
 
                         <form onSubmit={send} className="mt-5 space-y-3 border-t border-[#E2E8F0] pt-4">
-                            <label className="block text-sm font-medium">{canManage ? "Reply or add a note" : "Your reply"}
+                            <label className="block text-sm font-medium">{canManage ? "Reply to the Data Principal" : "Your reply"}
                                 <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write your message..." />
                             </label>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 {canManage ? (
                                     <label className="flex items-center gap-2 text-sm text-[#334155]">
                                         <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} className="h-4 w-4 accent-[#0F766E]" />
-                                        Internal note (not visible to the data principal)
+                                        Internal note (not sent to the complainant)
                                     </label>
                                 ) : <span />}
                                 <button type="submit" className={primaryBtn} disabled={busy || !reply.trim()}>{busy ? "Sending..." : internal ? "Add note" : "Send reply"}</button>
@@ -189,14 +208,34 @@ export default function GrievanceDetail() {
                     </section>
                 </div>
 
-                <aside className={`${panel} h-fit p-5`}>
-                    <h2 className="text-base font-semibold">Ticket</h2>
-                    <dl className="mt-1 divide-y divide-[#E2E8F0]">
-                        <Meta label="Category">{ticket.category}</Meta>
-                        <Meta label="Severity"><span className={`${pill} ${severityTone(ticket.severity)}`}>{ticket.severity}</span></Meta>
-                        <Meta label="Raised by"><span className="font-mono text-xs">{ticket.raisedBy}</span></Meta>
-                        <Meta label="Raised">{formatDate(ticket.createdAt)}</Meta>
-                    </dl>
+                <aside className="space-y-5">
+                    {canManage && (
+                        <section className={`${panel} p-5`}>
+                            <h2 className="text-base font-semibold text-[#0F172A]">Case handling</h2>
+                            <p className="mt-1 text-xs text-[#64748B]">Current status: <span className="font-semibold text-[#0F172A]">{ticket.status}</span></p>
+                            <div className="mt-4 flex flex-col gap-2.5">
+                                {isOpen && <button type="button" className={primaryBtn} disabled={busy} onClick={() => act(() => assignGrievance(id), "Ticket assigned to you and moved to In Progress.")}>Assign to me</button>}
+                                {canEscalate && !escalated && <button type="button" className={ghostBtn} disabled={busy} onClick={() => setEscalating(true)}>Escalate to breach</button>}
+                                {closed && !canEscalate && <p className="text-xs text-[#64748B]">No further action is needed on this ticket.</p>}
+                            </div>
+                        </section>
+                    )}
+
+                    <section className={`${panel} p-5`}>
+                        <h2 className="text-base font-semibold text-[#0F172A]">Timeline</h2>
+                        <p className="text-xs text-[#64748B]">Every action taken on this grievance.</p>
+                        <ol className="mt-4 space-y-4">
+                            {timeline.map((ev) => (
+                                <li key={ev.key} className="flex gap-3">
+                                    <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ev.color }} />
+                                    <div>
+                                        <p className="text-sm font-semibold text-[#0F172A]">{ev.label}</p>
+                                        <p className="text-xs text-[#64748B]">{formatDate(ev.time)}</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ol>
+                    </section>
                 </aside>
             </div>
 
