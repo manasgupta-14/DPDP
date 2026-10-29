@@ -1,65 +1,57 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { getOrganizationConsents } from "../../api/consent.js";
-import { getDataInventory } from "../../api/dataInventory.js";
-import Alert from "../../components/shared/Alert.jsx";
+import { getOrganizationConsentArtifacts } from "../../api/consent.js";
+import CreateConsentModal from "../../components/admin/consent/CreateConsentModal.jsx";
+import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModal.jsx";
+import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
+import { dkBtn, dkCard, dkInput } from "../../components/admin/consent/styles.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { field, ghostBtn, panel } from "../../components/shared/ui.js";
-import { getSession } from "../../auth/authStore.js";
-import { formatDate, timeOf } from "../../utils/breach.js";
-import { CONSENT_STATUS, CONSENT_TONE, isDenied, isGranted, shortId } from "../../utils/consent.js";
+import { timeOf } from "../../utils/breach.js";
+import { CONSENT_STATUS, STATUS_LABEL, consentsToCsv, dayKey, downloadCsv, latestPerPrincipal } from "../../utils/consent.js";
 
 const PAGE_SIZE = 10;
-const th = "px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]";
+const EMPTY_FILTERS = { principal: "", status: "", purpose: "", decision: "", from: "", to: "" };
 
-function Stat({ label, value, tone }) {
-    return (
-        <div className={`${panel} pg-card p-4`}>
-            <p className="text-xs font-medium text-[#64748B]">{label}</p>
-            <p className={`mt-1 text-2xl font-bold tracking-tight ${tone}`}>{value}</p>
-        </div>
-    );
-}
-
-function StatusPill({ status }) {
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${CONSENT_TONE[status] || CONSENT_TONE.Granted}`}>{status}</span>;
+function Filter({ label, children }) {
+    return <label className="min-w-0 text-[11px] font-medium text-[#475569]">{label}{children}</label>;
 }
 
 export default function ConsentManagement() {
     const { query } = useOutletContext() || { query: "" };
-    const [consents, setConsents] = useState([]);
-    const [team, setTeam] = useState([]);
-    const [inventory, setInventory] = useState([]);
+    const [artifacts, setArtifacts] = useState([]);
+    const [pending, setPending] = useState([]);
+    const [allPurposes, setAllPurposes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
-    const [status, setStatus] = useState("");
-    const [inventoryId, setInventoryId] = useState("");
-    const [principalId, setPrincipalId] = useState("");
+    const [filters, setFilters] = useState(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
+    const [openId, setOpenId] = useState(null);
+    const [view, setView] = useState("users"); // "users" = har user ka latest, "history" = har version ek row
+    const [creating, setCreating] = useState(false);
+    const [flash, setFlash] = useState("");
 
-    const apply = useCallback(([cons, inv]) => {
+    const apply = useCallback((cons) => {
         if (cons.ok) {
-            setConsents([...cons.data].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)));
-            setTeam(cons.team || []);
-            setError(cons.error || "");
+            setArtifacts(cons.data);
+            setPending(cons.pending ?? []);
+            setAllPurposes(cons.purposes ?? []);
+            setError("");
         } else {
             setError(cons.error);
         }
-        if (inv.ok) setInventory(inv.data);
-        else if (cons.ok) setError(inv.error);
         setLoading(false);
         setRefreshing(false);
     }, []);
 
     const load = useCallback(async () => {
         setRefreshing(true);
-        apply(await Promise.all([getOrganizationConsents(), getDataInventory()]));
+        apply(await getOrganizationConsentArtifacts());
     }, [apply]);
 
     useEffect(() => {
         let active = true;
-        Promise.all([getOrganizationConsents(), getDataInventory()]).then((res) => {
+        getOrganizationConsentArtifacts().then((res) => {
             if (active) apply(res);
         });
         return () => {
@@ -67,159 +59,174 @@ export default function ConsentManagement() {
         };
     }, [apply]);
 
-    const people = useMemo(() => {
-        const list = [...team];
-        const ownId = getSession()?.userId;
-        if (ownId && !list.some((m) => String(m.id) === String(ownId))) list.push({ id: String(ownId), name: "You" });
-        return list.map((m) => ({ id: String(m.id), name: m.name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [team]);
+    // Har user ka sirf latest version ek row; purane versions detail ki History mein dikhte hain.
+    const userRows = useMemo(() => latestPerPrincipal(artifacts).sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)), [artifacts]);
+    // History view: har consent version ek row, naya pehle. Detail mein us user ki poori history dikhti hai.
+    const historyRows = useMemo(() => {
+        const versionsOf = new Map(userRows.map((u) => [u.principalId, u.versions]));
+        return [...artifacts].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)).map((a) => ({ ...a, versions: versionsOf.get(a.principalId) ?? [a] }));
+    }, [artifacts, userRows]);
+    const rows = view === "history" ? historyRows : userRows;
 
-    const nameOf = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
-    const inventoryOf = useMemo(() => new Map(inventory.map((i) => [String(i.id), i])), [inventory]);
-
-    const rows = useMemo(
-        () => consents.map((c) => ({
-            ...c,
-            userName: nameOf.get(c.principalId) || `User ${shortId(c.principalId)}`,
-            dataName: inventoryOf.get(c.inventoryId)?.name || `Data point ${shortId(c.inventoryId)}`,
-            dataCategory: inventoryOf.get(c.inventoryId)?.category || "",
-        })),
-        [consents, nameOf, inventoryOf],
-    );
-
-    const counts = useMemo(() => ({
-        total: rows.length,
-        granted: rows.filter(isGranted).length,
-        denied: rows.filter(isDenied).length,
-        withdrawn: rows.filter((c) => c.status === CONSENT_STATUS.withdrawn).length,
-        users: new Set(rows.filter(isGranted).map((c) => c.principalId)).size,
-    }), [rows]);
+    const purposeOptions = useMemo(() => {
+        const map = new Map();
+        allPurposes.forEach((p) => map.set(p.id, p.name));
+        rows.forEach((r) => r.purposes.forEach((p) => map.set(p.purposeId, p.name)));
+        return [...map].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+    }, [rows, allPurposes]);
 
     const filtered = useMemo(() => {
         const q = (query || "").trim().toLowerCase();
-        return rows.filter((c) => {
-            if (status && c.status !== status) return false;
-            if (inventoryId && c.inventoryId !== inventoryId) return false;
-            if (principalId && c.principalId !== principalId) return false;
+        const dp = filters.principal.trim().toLowerCase();
+        return rows.filter((r) => {
+            if (dp && !`${r.principalId} ${r.principalName || ""}`.toLowerCase().includes(dp)) return false;
+            if (filters.status && r.status !== filters.status) return false;
+            if (filters.purpose || filters.decision) {
+                const scope = filters.purpose ? r.purposes.filter((p) => p.purposeId === filters.purpose) : r.purposes;
+                if (filters.purpose && scope.length === 0) return false;
+                if (filters.decision === "allowed" && !scope.some((p) => p.allowed)) return false;
+                if (filters.decision === "denied" && !scope.some((p) => !p.allowed)) return false;
+            }
+            const given = dayKey(r.submittedAt);
+            if (filters.from && (!given || given < filters.from)) return false;
+            if (filters.to && (!given || given > filters.to)) return false;
             if (!q) return true;
-            return [c.userName, c.dataName, c.dataCategory, c.noticeVersion, c.status].some((v) => v && String(v).toLowerCase().includes(q));
+            return [r.reference, r.principalName, r.status, ...r.purposes.map((p) => p.name)].some((v) => v && String(v).toLowerCase().includes(q));
         });
-    }, [rows, query, status, inventoryId, principalId]);
+    }, [rows, query, filters]);
 
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page, pages);
     const slice = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+    const selected = rows.find((r) => r.id === openId) || null;
+    const hasFilters = Object.values(filters).some(Boolean);
 
-    const onFilter = (setter) => (e) => {
-        setter(e.target.value);
+    const setFilter = (key) => (e) => {
+        setFilters((f) => ({ ...f, [key]: e.target.value }));
         setPage(1);
     };
 
+    const clear = () => {
+        setFilters(EMPTY_FILTERS);
+        setPage(1);
+    };
+
+    const exportCsv = () => downloadCsv(consentsToCsv(filtered), `consent-register-${new Date().toISOString().slice(0, 10)}.csv`);
+
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Consent management</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Who has agreed to or declined what, under which privacy notice, and when it was withdrawn. Users give and withdraw their own consent from their My Consents page.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Consent records</h1>
+                    <p className="mt-1 text-sm text-[#475569]">Each user's consent, purpose by purpose. See who allowed their name, number or email, and who did not.</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                    <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
+                <div className="flex items-center gap-2">
+                    <button type="button" onClick={load} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                        {refreshing ? "Refreshing..." : "Refresh"}
+                    </button>
+                    <button type="button" onClick={exportCsv} disabled={loading || rows.length === 0} className={dkBtn}>
+                        <Icon name="download" className="h-4 w-4" />
+                        Export register (CSV)
+                    </button>
+                    <button type="button" onClick={() => setCreating(true)} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#0F766E] px-4 text-xs font-semibold text-white transition hover:bg-[#0E6B63] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                        <span aria-hidden className="text-base leading-none">+</span> Create consent
                     </button>
                 </div>
             </div>
 
-            <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <Stat label="Total records" value={counts.total} tone="text-[#0F172A]" />
-                <Stat label="Active consents" value={counts.granted} tone="text-[#16A34A]" />
-                <Stat label="Denied" value={counts.denied} tone="text-[#D97706]" />
-                <Stat label="Withdrawn" value={counts.withdrawn} tone="text-[#DC2626]" />
-                <Stat label="Users with active consent" value={counts.users} tone="text-[#0E7490]" />
-            </section>
+            {flash && <p role="status" className="rounded-md border border-[#16A34A]/25 bg-[#16A34A]/10 px-3 py-2 text-xs text-[#15803D]">{flash}</p>}
 
-            <Alert tone="info">Under Section 6 of the DPDP Act, 2023, only the Data Principal (the user) can give or withdraw consent, so this page is view-only. Once a consent is withdrawn, stop using that data for that purpose.</Alert>
-            {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
-
-            <div className="flex flex-wrap items-end gap-3">
-                <label className="text-xs font-medium text-[#475569]">
-                    Status
-                    <select value={status} onChange={onFilter(setStatus)} className={`${field} min-w-[150px] py-2`}>
-                        <option value="">All statuses</option>
-                        <option value={CONSENT_STATUS.granted}>Granted</option>
-                        <option value={CONSENT_STATUS.denied}>Denied</option>
-                        <option value={CONSENT_STATUS.withdrawn}>Withdrawn</option>
-                    </select>
-                </label>
-                <label className="text-xs font-medium text-[#475569]">
-                    User
-                    <select value={principalId} onChange={onFilter(setPrincipalId)} className={`${field} min-w-[170px] py-2`}>
-                        <option value="">All users</option>
-                        {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                </label>
-                <label className="text-xs font-medium text-[#475569]">
-                    Data point
-                    <select value={inventoryId} onChange={onFilter(setInventoryId)} className={`${field} min-w-[190px] py-2`}>
-                        <option value="">All data points</option>
-                        {inventory.map((i) => <option key={i.id} value={String(i.id)}>{i.name}</option>)}
-                    </select>
-                </label>
-                <p className="ml-auto pb-2.5 text-xs text-[#64748B]">Showing {filtered.length} of {rows.length}</p>
-            </div>
-
-            <div className={`${panel} overflow-hidden`}>
-                {loading ? (
-                    <div className="space-y-3 p-5" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>
-                ) : filtered.length === 0 ? (
-                    <div className="px-5 py-12 text-center">
-                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-6 w-6" /></span>
-                        <p className="mt-3 font-semibold">{rows.length === 0 ? "No consent records yet" : "No records match these filters"}</p>
-                        <p className="mt-1 text-sm text-[#475569]">{rows.length === 0 ? "Consent records appear here once users respond from their My Consents page." : "Try a different status, user or data point."}</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[720px] text-sm">
-                            <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                                <tr>
-                                    <th className={th}>User</th>
-                                    <th className={th}>Data point</th>
-                                    <th className={th}>Status</th>
-                                    <th className={th}>Notice</th>
-                                    <th className={th}>Recorded</th>
-                                    <th className={th}>Withdrawn</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
-                                {slice.map((c) => (
-                                    <tr key={c.id} className="align-top">
-                                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">{c.userName}</td>
-                                        <td className="px-5 py-3.5">
-                                            <p className="font-medium text-[#0F172A]">{c.dataName}</p>
-                                            {c.dataCategory && <p className="text-xs text-[#64748B]">{c.dataCategory}</p>}
-                                        </td>
-                                        <td className="px-5 py-3.5"><StatusPill status={c.status} /></td>
-                                        <td className="px-5 py-3.5 text-[#334155]">v{c.noticeVersion}</td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.submittedAt)}</td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.withdrawnAt)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-
-            {!loading && filtered.length > PAGE_SIZE && (
-                <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-[#64748B]">Page {current} of {pages}</p>
-                    <div className="flex gap-2">
-                        <button type="button" onClick={() => setPage(current - 1)} disabled={current === 1} className={`${ghostBtn} px-3 py-1.5`}>Previous</button>
-                        <button type="button" onClick={() => setPage(current + 1)} disabled={current === pages} className={`${ghostBtn} px-3 py-1.5`}>Next</button>
-                    </div>
+            {error && (
+                <div role="alert" className="flex items-start justify-between gap-3 rounded-md border border-[#EF4444]/30 bg-[#EF4444]/10 px-3 py-2 text-xs text-[#FCA5A5]">
+                    <span className="min-w-0 break-words">{error}</span>
+                    <button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>
                 </div>
             )}
 
+            <section aria-label="Consent items" className={`${dkCard} flex flex-wrap items-center justify-between gap-3 p-3`}>
+                <div className="min-w-0">
+                    <p className="text-xs font-semibold text-[#0F172A]">Users are asked to allow ({allPurposes.length})</p>
+                    {allPurposes.length === 0 ? (
+                        <p className="mt-1 text-xs text-[#475569]">Nothing yet. Use "Create consent" to ask users for permission to use their name, email or mobile number.</p>
+                    ) : (
+                        <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                            {allPurposes.map((p) => <li key={p.id} className="rounded-md bg-[#F1F5F9] px-2 py-1 text-[11px] font-medium text-[#334155] ring-1 ring-[#CBD5E1]">{p.name}{p.mandatory ? " (required)" : ""}</li>)}
+                        </ul>
+                    )}
+                </div>
+                <div className="inline-flex rounded-xl border border-[#E2E8F0] p-0.5" role="group" aria-label="View">
+                    {[["users", "By user"], ["history", "History"]].map(([key, label]) => (
+                        <button key={key} type="button" aria-pressed={view === key} onClick={() => { setView(key); setPage(1); setOpenId(null); }} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${view === key ? "bg-[#CCFBF1] text-[#0F766E]" : "text-[#475569] hover:bg-[#F1F5F9]"}`}>{label}</button>
+                    ))}
+                </div>
+            </section>
+
+            {!loading && pending.length > 0 && (
+                <p className="rounded-md border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-xs text-[#475569]">
+                    {pending.length} user{pending.length === 1 ? " has" : "s have"} not answered the consent popup yet: {pending.slice(0, 5).map((u) => u.name || u.email).join(", ")}{pending.length > 5 ? ` and ${pending.length - 5} more` : ""}. Until they answer, none of their optional details should be used.
+                </p>
+            )}
+
+            <section aria-label="Filters" className={`${dkCard} p-3`}>
+                <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.3fr_1fr_1.4fr_1fr_1fr_1fr_auto]">
+                    <Filter label="Data principal">
+                        <input type="text" value={filters.principal} onChange={setFilter("principal")} placeholder="Name or user id" className={dkInput} />
+                    </Filter>
+                    <Filter label="Status">
+                        <select value={filters.status} onChange={setFilter("status")} className={dkInput}>
+                            <option value="">Any status</option>
+                            {Object.values(CONSENT_STATUS).map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+                        </select>
+                    </Filter>
+                    <Filter label="Purpose">
+                        <select value={filters.purpose} onChange={setFilter("purpose")} className={dkInput}>
+                            <option value="">Any purpose</option>
+                            {purposeOptions.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                        </select>
+                    </Filter>
+                    <Filter label="Decision">
+                        <select value={filters.decision} onChange={setFilter("decision")} className={dkInput}>
+                            <option value="">Any decision</option>
+                            <option value="allowed">Allowed</option>
+                            <option value="denied">Not allowed</option>
+                        </select>
+                    </Filter>
+                    <Filter label="From">
+                        <input type="date" value={filters.from} max={filters.to || undefined} onChange={setFilter("from")} className={dkInput} />
+                    </Filter>
+                    <Filter label="To">
+                        <input type="date" value={filters.to} min={filters.from || undefined} onChange={setFilter("to")} className={dkInput} />
+                    </Filter>
+                    <button type="button" onClick={clear} disabled={!hasFilters} className="h-9 px-2 text-xs font-semibold text-[#0E7490] hover:underline disabled:cursor-not-allowed disabled:text-[#94A3B8] disabled:no-underline">Clear filters</button>
+                </div>
+            </section>
+
+            {loading ? (
+                <div className={`${dkCard} space-y-2 p-4`} aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+            ) : filtered.length === 0 ? (
+                <div className={`${dkCard} px-5 py-12 text-center`}>
+                    <p className="text-sm font-semibold">{rows.length === 0 ? "No consent records yet" : "No records match these filters"}</p>
+                    <p className="mt-1 text-xs text-[#475569]">{rows.length === 0 ? "Consent records appear here once users answer the consent popup or their My Consents page." : "Try changing or clearing the filters."}</p>
+                </div>
+            ) : (
+                <ConsentTable rows={slice} onOpen={(r) => setOpenId(r.id)} />
+            )}
+
+            {!loading && filtered.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#475569]">
+                    <p>Showing {slice.length} of {filtered.length}{filtered.length !== rows.length ? ` (${rows.length} total)` : ""} · Page {current} of {pages}</p>
+                    {pages > 1 && (
+                        <div className="flex gap-2">
+                            <button type="button" onClick={() => setPage(current - 1)} disabled={current === 1} className={dkBtn}>Previous</button>
+                            <button type="button" onClick={() => setPage(current + 1)} disabled={current === pages} className={dkBtn}>Next</button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {creating && <CreateConsentModal existing={allPurposes} onClose={() => setCreating(false)} onCreated={(n) => { setFlash(`${n} consent item${n === 1 ? "" : "s"} created. Users will see ${n === 1 ? "it" : "them"} in their consent popup.`); load(); }} />}
+
+            {selected && <ConsentDetailModal record={selected} onClose={() => setOpenId(null)} />}
         </div>
     );
 }
