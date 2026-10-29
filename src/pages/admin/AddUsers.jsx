@@ -3,6 +3,8 @@ import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { getRoleOptions } from "../../api/roles.js";
 import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
+import { usePermissions } from "../../auth/usePermissions.js";
+import EditUserModal from "../../components/admin/users/EditUserModal.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { toDate } from "../../utils/audit.js";
@@ -12,6 +14,9 @@ const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px
 
 export default function AddUsers() {
     const { query } = useOutletContext();
+    const { can } = usePermissions();
+    const canEdit = can("Users.Edit");
+    const [editing, setEditing] = useState(null);
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [rolesLoading, setRolesLoading] = useState(true);
@@ -116,6 +121,13 @@ export default function AddUsers() {
         load();
     };
 
+    const onEdited = (message) => {
+        setEditing(null);
+        setNotice(message);
+        setTimeout(() => setNotice(""), 4000);
+        load();
+    };
+
     const shown = users.filter((u) => !query || `${u.name} ${u.email} ${u.phone} ${u.role}`.toLowerCase().includes(String(query).toLowerCase()));
 
     return (
@@ -194,11 +206,23 @@ export default function AddUsers() {
                 </Modal>
                 )}
 
+                {editing && (
+                    <EditUserModal
+                        user={editing}
+                        users={users}
+                        roles={roles}
+                        rolesLoading={rolesLoading}
+                        rolesError={rolesError}
+                        onClose={() => setEditing(null)}
+                        onSaved={onEdited}
+                    />
+                )}
+
                 <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-semibold">People in your organisation</h2>
-                            <p className="text-xs text-[#64748B]">Live from the server. Deactivate an employee to block their login.</p>
+                            <p className="text-xs text-[#64748B]">Live from the server. Deactivate an employee to block their login.{canEdit ? " Use Edit to update their details or role." : ""}</p>
                         </div>
                         <span className="rounded-full bg-[#CCFBF1] px-2.5 py-1 text-xs font-semibold text-[#0F766E]">{users.length} total</span>
                     </div>
@@ -234,10 +258,17 @@ export default function AddUsers() {
                                                 <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${u.active ? "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]"}`}>{u.active ? "Active" : "Disabled"}</span>
                                             </td>
                                             <td className="py-3 text-right">
-                                                {u.role !== "Admin" && (
-                                                    <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
-                                                        {busyId === u.id ? "Saving..." : u.active ? "Deactivate" : "Activate"}
-                                                    </button>
+                                                {canEdit && (
+                                                    <div className="flex items-center justify-end gap-4">
+                                                        <button type="button" disabled={busyId === u.id} onClick={() => setEditing(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
+                                                            Edit
+                                                        </button>
+                                                        {u.role !== "Admin" && (
+                                                            <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
+                                                                {busyId === u.id ? "Saving..." : u.active ? "Deactivate" : "Activate"}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </td>
                                         </tr>
