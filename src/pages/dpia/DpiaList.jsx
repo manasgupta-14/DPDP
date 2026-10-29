@@ -48,11 +48,14 @@ export default function DpiaList() {
             else setError(res.error);
             setLoading(false);
         });
-        if (location.state?.flash) navigate(location.pathname, { replace: true, state: null });
         return () => {
             active = false;
         };
     }, []);
+
+    useEffect(() => {
+        if (location.state?.flash) navigate(location.pathname, { replace: true, state: null });
+    }, [location.pathname, location.state, navigate]);
 
     const canCreate = can(PERM.create);
     const canApprove = can(PERM.approve);
