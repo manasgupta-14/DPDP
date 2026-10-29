@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
+import { getRoleOptions } from "../../api/roles.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
@@ -48,12 +49,18 @@ function CreateForm({ onCreated, onDone }) {
     const [apiError, setApiError] = useState("");
     const [success, setSuccess] = useState("");
     const [inventory, setInventory] = useState({ loading: true, items: [], error: "" });
+    const [audiences, setAudiences] = useState(AUDIENCES);
 
     useEffect(() => {
         let active = true;
         getDataInventory().then((res) => {
             if (!active) return;
             setInventory(res.ok ? { loading: false, items: res.data, error: "" } : { loading: false, items: [], error: res.error });
+        });
+        getRoleOptions().then((res) => {
+            if (!active || !res.ok || res.data.length === 0) return;
+            const names = [...new Set(res.data.map((r) => r.name))];
+            setAudiences([{ value: "All", label: "Everyone" }, ...names.map((name) => ({ value: name, label: name }))]);
         });
         return () => { active = false; };
     }, []);
@@ -127,7 +134,7 @@ function CreateForm({ onCreated, onDone }) {
                         Audience
                         <select value={form.targetRole} onChange={set("targetRole")} className={field} aria-invalid={!!errors.targetRole}>
                             <option value="" disabled>Select audience</option>
-                            {AUDIENCES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                            {audiences.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
                         <span className="mt-1 block text-xs text-[#DC2626]">{errors.targetRole}</span>
                     </label>

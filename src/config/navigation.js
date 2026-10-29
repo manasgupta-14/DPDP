@@ -23,6 +23,7 @@ export const ADMIN_SECTIONS = [
     {
         label: "Governance",
         items: [
+            { to: "/dashboard/grievances", label: "Grievances", icon: "rights" },
             { to: "/dashboard/breach", label: "Breach management", icon: "shield" },
             { to: "/dashboard/dpia", label: "DPIA", icon: "scale" },
             { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist" },
@@ -55,7 +56,10 @@ export const USER_SECTIONS = [
     },
     {
         label: "Help center",
-        items: [{ to: "/user/privacy", label: "Privacy settings", icon: "rights" }],
+        items: [
+            { to: "/user/grievance", label: "Raise a grievance", icon: "rights" },
+            { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
+        ],
     },
 ];
 

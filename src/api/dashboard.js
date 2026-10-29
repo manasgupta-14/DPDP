@@ -3,7 +3,9 @@ import { normalizeSummary } from "../utils/dashboard.js";
 
 export async function getDashboardSummary() {
     const res = await apiFetch("/api/Dashboard/summary");
-    return res.ok ? { ...res, data: normalizeSummary(res.data) } : res;
+    if (res.ok) return { ...res, data: normalizeSummary(res.data) };
+    if (res.status === 403) return { ...res, error: "The organisation overview is only available to users whose role is named Admin. Your other pages still work." };
+    return res;
 }
 
 const pick = (o, ...keys) => {
