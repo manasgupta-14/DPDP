@@ -18,6 +18,26 @@ function splitEntity(entity) {
     return { table: text.slice(0, at), key: text.slice(at).trim() };
 }
 
+export const NOT_IN_API = "Not available - the Audit API (GET /api/Audit/logs) does not return this field.";
+
+function parseKey(key) {
+    const text = String(key ?? "").trim();
+    if (!text) return [];
+    try {
+        const obj = JSON.parse(text);
+        if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+            return Object.entries(obj).map(([name, value]) => ({ name, value: value === null || value === undefined ? "" : String(value) }));
+        }
+    } catch {
+        // key is not JSON, fall through and show it as plain text
+    }
+    return [{ name: "", value: text }];
+}
+
+export function humanizeEntity(name) {
+    return String(name ?? "").replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
+}
+
 function splitActor(actor) {
     const [email = "", ...rest] = String(actor ?? "").split(/\r?\n/);
     return { email: email.trim(), role: rest.join(" ").trim() };
@@ -28,6 +48,7 @@ export function normalizeLog(r, index = 0) {
     const entity = String(pick(r, "entity", "Entity") ?? "");
     const { table, key } = splitEntity(entity);
     const { email, role } = splitActor(pick(r, "actor", "Actor"));
+    const keyPairs = parseKey(key);
     return {
         id: String(seq ?? `row-${index}`),
         seq: seq === null ? null : Number(seq),
@@ -36,6 +57,9 @@ export function normalizeLog(r, index = 0) {
         entity,
         table,
         key,
+        keyPairs,
+        entityType: humanizeEntity(table),
+        entityId: keyPairs.map((k) => k.value).filter(Boolean).join(", "),
         actorEmail: email,
         actorRole: role,
         outcome: String(pick(r, "outcome", "Outcome") ?? ""),
