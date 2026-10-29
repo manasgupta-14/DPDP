@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { raiseGrievance } from "../../api/grievance.js";
 import Alert from "../../components/shared/Alert.jsx";
 import { field, panel, primaryBtn } from "../../components/shared/ui.js";
@@ -31,7 +32,9 @@ export default function RaiseGrievance() {
             </div>
 
             {ticket && (
-                <Alert tone="success">Your grievance was submitted. Keep this ticket number: <span className="font-mono font-semibold">{ticket}</span></Alert>
+                <Alert tone="success" action={<Link to="/user/my-grievances" className="shrink-0 font-semibold text-[#0F766E] hover:underline">View my grievances</Link>}>
+                    Your grievance was submitted. Keep this ticket number: <span className="font-mono font-semibold">{ticket}</span>
+                </Alert>
             )}
 
             <form onSubmit={submit} className={`${panel} space-y-4 p-5 sm:p-6`}>
