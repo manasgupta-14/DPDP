@@ -23,7 +23,8 @@ function extractError(data, status) {
 
 export async function apiFetch(path, { method = "GET", body, auth = true, token } = {}) {
     const headers = { Accept: "application/json" };
-    if (body !== undefined) headers["Content-Type"] = "application/json";
+    const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+    if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
 
     const jwt = auth ? token ?? getToken() : null;
     if (jwt) headers.Authorization = `Bearer ${jwt}`;
@@ -35,7 +36,7 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
         const res = await fetch(`${BASE_URL}${path}`, {
             method,
             headers,
-            body: body !== undefined ? JSON.stringify(body) : undefined,
+            body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
             signal: controller.signal,
         });
 
