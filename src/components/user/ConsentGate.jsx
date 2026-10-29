@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getConsentHistory, submitConsent } from "../../api/consent.js";
-import { getDataInventory } from "../../api/dataInventory.js";
+import { getMyConsent, getPurposes, recordConsent } from "../../api/consent.js";
 import { getProfile } from "../../auth/authStore.js";
 import Alert from "../shared/Alert.jsx";
 import Modal from "../shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../shared/ui.js";
-import { NOTICE_TEXT, NOTICE_VERSION } from "../../config/consentNotice.js";
-import { CONSENT_STATUS } from "../../utils/consent.js";
+import { NOTICE_LOCALE, NOTICE_TEXT, NOTICE_VERSION } from "../../config/consentNotice.js";
+import { CONSENT_STATUS, questionFor } from "../../utils/consent.js";
 
 function Choice({ active, tone, onClick, children }) {
     const on = tone === "allow" ? "border-[#0F766E] bg-[#0F766E] text-white" : "border-[#B91C1C] bg-[#B91C1C] text-white";
@@ -23,9 +22,12 @@ function Choice({ active, tone, onClick, children }) {
     );
 }
 
+// Login ke baad: agar user ne abhi tak consent nahi diya (ya naya purpose add hua hai) toh yeh popup aata hai.
+// User har purpose par Allow / Don't allow chunta hai. Allow = data use ho sakta hai, Don't allow = nahi.
 export default function ConsentGate() {
     const userId = getProfile()?.userId;
-    const [pending, setPending] = useState([]);
+    const [purposes, setPurposes] = useState([]); // sabhi purposes
+    const [previous, setPrevious] = useState(null); // user ka pichla consent (agar hai)
     const [open, setOpen] = useState(false);
     const [lang, setLang] = useState("en");
     const [choices, setChoices] = useState({});
@@ -36,21 +38,30 @@ export default function ConsentGate() {
     useEffect(() => {
         if (!userId) return undefined;
         let active = true;
-        Promise.all([getConsentHistory(userId), getDataInventory()]).then(([hist, inv]) => {
-            if (!active || !hist.ok || !inv.ok) return;
-            const answered = new Set(hist.data.map((c) => c.inventoryId));
-            const items = inv.data.filter((i) => !answered.has(String(i.id)));
-            if (items.length) {
-                setPending(items);
-                setOpen(true);
-            }
+        getPurposes().then(async (list) => {
+            if (!list.ok || list.data.length === 0) return;
+            const mine = await getMyConsent(userId, list.data);
+            if (!active || !mine.ok) return;
+            const latest = mine.data;
+            // User ne pehle consent wapas le liya hai: dobara pareshan nahi karna, My Consents se wo khud de sakta hai.
+            if (latest && latest.status === CONSENT_STATUS.withdrawn) return;
+            const answered = new Set((latest?.purposes ?? []).map((p) => p.purposeId));
+            const pending = list.data.filter((p) => !answered.has(p.id));
+            if (pending.length === 0) return;
+            setPurposes(list.data);
+            setPrevious(latest);
+            setOpen(true);
         });
         return () => {
             active = false;
         };
     }, [userId]);
 
-    if (!open || pending.length === 0) return null;
+    if (!open || purposes.length === 0) return null;
+
+    const answered = new Set((previous?.purposes ?? []).map((p) => p.purposeId));
+    const pending = purposes.filter((p) => !answered.has(p.id));
+    const needAnswer = pending.filter((p) => !p.mandatory);
 
     const choose = (id, value) => {
         setError("");
@@ -58,34 +69,32 @@ export default function ConsentGate() {
     };
 
     const save = async () => {
-        const decided = pending.filter((i) => choices[i.id]);
-        if (!decided.length) {
+        if (needAnswer.some((p) => !choices[p.id])) {
             setError(t.pickOne);
             return;
         }
+        // Naya record sab purposes ka hota hai: purane faisle jaise the waise, naye purposes par abhi ka choice.
+        const before = new Map((previous?.purposes ?? []).map((p) => [p.purposeId, p.allowed]));
+        const decisions = purposes.map((p) => ({
+            purposeId: p.id,
+            allow: p.mandatory ? true : answered.has(p.id) ? !!before.get(p.id) : choices[p.id] === "allow",
+        }));
+
         setBusy(true);
         setError("");
-        const res = await submitConsent({
-            dataPrincipalId: userId,
-            preferences: decided.map((item) => ({
-                dataInventoryId: item.id,
-                status: choices[item.id] === "allow" ? CONSENT_STATUS.granted : CONSENT_STATUS.denied,
-            })),
-        });
+        const res = await recordConsent({ dataPrincipalId: userId, decisions, language: NOTICE_LOCALE[lang] });
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
             return;
         }
-        const done = new Set(decided.map((i) => i.id));
-        setPending((p) => p.filter((i) => !done.has(i.id)));
         setChoices({});
         setOpen(false);
     };
 
     return (
         <Modal title={t.title} onClose={() => !busy && setOpen(false)}>
-            <div className={`${panel} space-y-5 p-5 sm:p-6`}>
+            <div className={`${panel} max-h-[88vh] space-y-5 overflow-y-auto p-5 sm:p-6`}>
                 <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
                     <div>
                         <h2 className="text-xl font-semibold">{t.title}</h2>
@@ -113,14 +122,18 @@ export default function ConsentGate() {
                     <ul className="mt-2 space-y-3">
                         {pending.map((item) => (
                             <li key={item.id} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                                <p className="font-semibold text-[#0F172A]">{item.name}</p>
-                                {item.category && <p className="text-xs text-[#64748B]">{item.category}</p>}
-                                {item.purpose && <p className="mt-1.5 break-words text-sm text-[#334155]">{item.purpose}</p>}
-                                {item.retentionDays && <p className="mt-1.5 text-xs text-[#64748B]">{t.retention(item.retentionDays)}</p>}
-                                <div className="mt-3 flex gap-2" role="group" aria-label={item.name}>
-                                    <Choice tone="allow" active={choices[item.id] === "allow"} onClick={() => choose(item.id, "allow")}>{t.allow}</Choice>
-                                    <Choice tone="deny" active={choices[item.id] === "deny"} onClick={() => choose(item.id, "deny")}>{t.deny}</Choice>
-                                </div>
+                                <p className="font-semibold text-[#0F172A]">{questionFor(item, lang)}</p>
+                                {item.mandatory ? (
+                                    <p className="mt-1.5 text-xs text-[#64748B]">
+                                        <span className="mr-2 inline-flex rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] ring-1 ring-[#0F766E]/25">{t.required}</span>
+                                        {t.requiredNote}
+                                    </p>
+                                ) : (
+                                    <div className="mt-3 flex gap-2" role="group" aria-label={item.name}>
+                                        <Choice tone="allow" active={choices[item.id] === "allow"} onClick={() => choose(item.id, "allow")}>{t.allow}</Choice>
+                                        <Choice tone="deny" active={choices[item.id] === "deny"} onClick={() => choose(item.id, "deny")}>{t.deny}</Choice>
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
