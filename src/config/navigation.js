@@ -35,6 +35,7 @@ export const ADMIN_SECTIONS = [
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
             { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
+            { to: "/dashboard/imports", label: "Bulk import", icon: "upload" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
         ],
@@ -57,7 +58,7 @@ export const USER_SECTIONS = [
     {
         label: "Help center",
         items: [
-            { to: "/user/grievance", label: "Raise a grievance", icon: "rights" },
+            { to: "/user/grievance", label: "Grievance", icon: "rights" },
             { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
         ],
     },
