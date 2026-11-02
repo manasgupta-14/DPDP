@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { getMyConsent, getPurposes, recordConsent } from "../../api/consent.js";
 import { getProfile } from "../../auth/authStore.js";
@@ -22,6 +22,15 @@ function Choice({ active, tone, onClick, children }) {
     );
 }
 
+const norm = (s) => String(s || "").trim().toLowerCase();
+
+// Purpose tab "answered" mana jayega jab pichle consent record me uski id ya uska naam mil jaye.
+const answeredIn = (latest) => {
+    const list = latest?.purposes ?? [];
+    return { ids: new Set(list.map((p) => p.purposeId)), names: new Set(list.map((p) => norm(p.name))) };
+};
+const isAnswered = (purpose, sets) => sets.ids.has(purpose.id) || sets.names.has(norm(purpose.name));
+
 // Login ke baad: agar user ne abhi tak consent nahi diya (ya naya purpose add hua hai) toh yeh popup aata hai.
 // User har purpose par Allow / Don't allow chunta hai. Allow = data use ho sakta hai, Don't allow = nahi.
 export default function ConsentGate() {
@@ -33,6 +42,7 @@ export default function ConsentGate() {
     const [choices, setChoices] = useState({});
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const saving = useRef(false); // double click par dobara save na ho
     const t = NOTICE_TEXT[lang];
 
     useEffect(() => {
@@ -45,8 +55,8 @@ export default function ConsentGate() {
             const latest = mine.data;
             // User ne pehle consent wapas le liya hai: dobara pareshan nahi karna, My Consents se wo khud de sakta hai.
             if (latest && latest.status === CONSENT_STATUS.withdrawn) return;
-            const answered = new Set((latest?.purposes ?? []).map((p) => p.purposeId));
-            const pending = list.data.filter((p) => !answered.has(p.id));
+            const answered = answeredIn(latest);
+            const pending = list.data.filter((p) => !isAnswered(p, answered));
             if (pending.length === 0) return;
             setPurposes(list.data);
             setPrevious(latest);
@@ -59,8 +69,8 @@ export default function ConsentGate() {
 
     if (!open || purposes.length === 0) return null;
 
-    const answered = new Set((previous?.purposes ?? []).map((p) => p.purposeId));
-    const pending = purposes.filter((p) => !answered.has(p.id));
+    const answered = answeredIn(previous);
+    const pending = purposes.filter((p) => !isAnswered(p, answered));
     const needAnswer = pending.filter((p) => !p.mandatory);
 
     const choose = (id, value) => {
@@ -69,20 +79,23 @@ export default function ConsentGate() {
     };
 
     const save = async () => {
+        if (saving.current) return;
         if (needAnswer.some((p) => !choices[p.id])) {
             setError(t.pickOne);
             return;
         }
         // Naya record sab purposes ka hota hai: purane faisle jaise the waise, naye purposes par abhi ka choice.
-        const before = new Map((previous?.purposes ?? []).map((p) => [p.purposeId, p.allowed]));
+        const beforeOf = (p) => (previous?.purposes ?? []).find((x) => x.purposeId === p.id || norm(x.name) === norm(p.name))?.allowed;
         const decisions = purposes.map((p) => ({
             purposeId: p.id,
-            allow: p.mandatory ? true : answered.has(p.id) ? !!before.get(p.id) : choices[p.id] === "allow",
+            allow: p.mandatory ? true : isAnswered(p, answered) ? !!beforeOf(p) : choices[p.id] === "allow",
         }));
 
+        saving.current = true;
         setBusy(true);
         setError("");
         const res = await recordConsent({ dataPrincipalId: userId, decisions, language: NOTICE_LOCALE[lang] });
+        saving.current = false;
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
@@ -123,6 +136,14 @@ export default function ConsentGate() {
                         {pending.map((item) => (
                             <li key={item.id} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
                                 <p className="font-semibold text-[#0F172A]">{questionFor(item, lang)}</p>
+                                {item.description && <p className="mt-1 text-xs leading-5 text-[#475569]">{item.description}</p>}
+                                {(item.categories.length > 0 || item.processors.length > 0 || item.retention) && (
+                                    <dl className="mt-2 space-y-0.5 text-xs text-[#475569]">
+                                        {item.categories.length > 0 && <div><dt className="inline font-semibold text-[#334155]">{t.dataUsed}: </dt><dd className="inline">{item.categories.map((c) => c.name).join(", ")}</dd></div>}
+                                        {item.retention && <div><dt className="inline font-semibold text-[#334155]">{t.keptFor}: </dt><dd className="inline">{item.retention}</dd></div>}
+                                        {item.processors.length > 0 && <div><dt className="inline font-semibold text-[#334155]">{t.sharedWith}: </dt><dd className="inline">{item.processors.map((p) => p.name).join(", ")}</dd></div>}
+                                    </dl>
+                                )}
                                 {item.mandatory ? (
                                     <p className="mt-1.5 text-xs text-[#64748B]">
                                         <span className="mr-2 inline-flex rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] ring-1 ring-[#0F766E]/25">{t.required}</span>
