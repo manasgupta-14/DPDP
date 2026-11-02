@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { getOrgHierarchy } from "../../api/orgUnit.js";
+import { activateOrgUnit, getOrgHierarchy } from "../../api/orgUnit.js";
 import DeactivateDialog from "../../components/admin/orgunit/DeactivateDialog.jsx";
+import DeleteOrgUnitDialog from "../../components/admin/orgunit/DeleteOrgUnitDialog.jsx";
+import EditOrgUnitForm from "../../components/admin/orgunit/EditOrgUnitForm.jsx";
 import OrgUnitForm from "../../components/admin/orgunit/OrgUnitForm.jsx";
 import OrgUnitRow from "../../components/admin/orgunit/OrgUnitRow.jsx";
 import Alert from "../../components/shared/Alert.jsx";
@@ -17,6 +19,7 @@ export default function OrgUnits() {
     const [notice, setNotice] = useState("");
     const [collapsed, setCollapsed] = useState(() => new Set());
     const [dialog, setDialog] = useState(null);
+    const [busyId, setBusyId] = useState(null);
 
     const flat = useMemo(() => flatten(tree), [tree]);
     const stats = useMemo(() => summarize(flat), [flat]);
@@ -69,6 +72,16 @@ export default function OrgUnits() {
     const afterDeactivate = async (message) => {
         setNotice(message);
         closeDialog();
+        await load();
+    };
+
+    const activate = async (unit) => {
+        setBusyId(unit.id);
+        setError("");
+        const res = await activateOrgUnit(unit.id);
+        setBusyId(null);
+        if (!res.ok) return setError(res.error);
+        setNotice(`${unit.name} was activated.`);
         await load();
     };
 
@@ -126,6 +139,10 @@ export default function OrgUnits() {
                                     onToggle={() => toggleCollapse(unit.id)}
                                     onAdd={() => setDialog({ type: "form", parent: flat.find((u) => u.id === unit.id) })}
                                     onDeactivate={() => setDialog({ type: "deactivate", unit })}
+                                    onEdit={() => setDialog({ type: "edit", unit })}
+                                    onActivate={() => activate(unit)}
+                                    onDelete={() => setDialog({ type: "delete", unit })}
+                                    busy={busyId === unit.id}
                                 />
                             ))}
                         </ul>
@@ -136,6 +153,16 @@ export default function OrgUnits() {
             {dialog?.type === "form" && (
                 <Modal title="New unit" onClose={closeDialog}>
                     <OrgUnitForm flat={flat} parent={dialog.parent} onSaved={afterCreate} onClose={closeDialog} />
+                </Modal>
+            )}
+            {dialog?.type === "edit" && (
+                <Modal title="Edit unit" onClose={closeDialog}>
+                    <EditOrgUnitForm unit={dialog.unit} flat={flat} onSaved={afterDeactivate} onClose={closeDialog} />
+                </Modal>
+            )}
+            {dialog?.type === "delete" && (
+                <Modal title="Delete unit" onClose={closeDialog}>
+                    <DeleteOrgUnitDialog unit={dialog.unit} onDone={afterDeactivate} onClose={closeDialog} />
                 </Modal>
             )}
             {dialog?.type === "deactivate" && (
