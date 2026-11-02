@@ -95,7 +95,7 @@ export default function OrgUnitForm({ flat, parent, onSaved, onClose }) {
                 <label className="block text-sm font-medium text-[#334155]">
                     Code <span className="text-[#DC2626]">*</span>
                     <input value={form.code} onChange={onCode} maxLength={60} placeholder="pune-urban" spellCheck={false} className={`${field} font-mono`} aria-invalid={!!errors.code} />
-                    <span className="mt-1 block text-xs text-[#475569]">Stable machine name. It cannot be changed later.</span>
+                    <span className="mt-1 block text-xs text-[#475569]">Stable machine name used to identify the unit.</span>
                     <span className="block text-xs text-[#DC2626]">{errors.code}</span>
                 </label>
 
