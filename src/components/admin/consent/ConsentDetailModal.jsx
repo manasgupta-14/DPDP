@@ -26,7 +26,7 @@ function Chips({ items, tone }) {
 
 const stateTone = (allowed) => (allowed ? "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]");
 
-export default function ConsentDetailModal({ record, onClose }) {
+export default function ConsentDetailModal({ record, loading = false, error = "", onClose }) {
     const history = artifactHistory(record);
     const yes = allowedPurposes(record);
     const no = notAllowedPurposes(record);
@@ -35,6 +35,8 @@ export default function ConsentDetailModal({ record, onClose }) {
         <Modal title="Consent artifact" onClose={onClose}>
             <div className={dkModal}>
                 <h2 className="pr-10 text-base font-semibold">Consent artifact</h2>
+                {loading && <p className="text-[11px] text-[#64748B]" aria-live="polite">Loading latest details...</p>}
+                {error && <p role="alert" className="text-[11px] text-[#B91C1C]">{error} Showing the data from the records list instead.</p>}
 
                 <dl className="divide-y divide-[#E2E8F0]">
                     <Row label="Reference" mono>{record.reference}</Row>
