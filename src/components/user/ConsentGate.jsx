@@ -48,9 +48,11 @@ export default function ConsentGate() {
     useEffect(() => {
         if (!userId) return undefined;
         let active = true;
-        getPurposes().then(async (list) => {
+        getPurposes({ includeInactive: true }).then(async (full) => {
+            // Archived (purane) versions ko dobara nahi poochna; history match ke liye poori list use hoti hai.
+            const list = full.ok ? { ...full, data: full.data.filter((p) => p.active) } : full;
             if (!list.ok || list.data.length === 0) return;
-            const mine = await getMyConsent(userId, list.data);
+            const mine = await getMyConsent(userId, full.data);
             if (!active || !mine.ok) return;
             const latest = mine.data;
             // User ne pehle consent wapas le liya hai: dobara pareshan nahi karna, My Consents se wo khud de sakta hai.
