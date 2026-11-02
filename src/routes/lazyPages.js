@@ -12,6 +12,7 @@ export const ModulePage = lazy(() => import("../pages/admin/ModulePage.jsx"));
 export const Purposes = lazy(() => import("../pages/admin/Purposes.jsx"));
 export const DataPrincipals = lazy(() => import("../pages/admin/DataPrincipals.jsx"));
 export const OrgUnits = lazy(() => import("../pages/admin/OrgUnits.jsx"));
+export const Staff = lazy(() => import("../pages/admin/Staff.jsx"));
 export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
 export const DpiaDetail = lazy(() => import("../pages/dpia/DpiaDetail.jsx"));
 export const DpiaForm = lazy(() => import("../pages/dpia/DpiaForm.jsx"));
