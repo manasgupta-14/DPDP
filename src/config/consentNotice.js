@@ -21,6 +21,9 @@ export const NOTICE_TEXT = {
         saving: "Saving...",
         later: "Decide later",
         pickOne: "Choose Allow or Don't allow for every item.",
+        dataUsed: "Data used",
+        keptFor: "Kept for",
+        sharedWith: "Shared with",
         version: (v) => `Privacy notice v${v}`,
     },
     hi: {
@@ -40,6 +43,9 @@ export const NOTICE_TEXT = {
         saving: "सहेजा जा रहा है...",
         later: "बाद में तय करूँगा",
         pickOne: "हर चीज़ के लिए \"अनुमति दें\" या \"अनुमति नहीं\" चुनें।",
+        dataUsed: "उपयोग होने वाला डेटा",
+        keptFor: "कितने समय तक रखा जाएगा",
+        sharedWith: "किसके साथ साझा होगा",
         version: (v) => `गोपनीयता सूचना v${v}`,
     },
 };
