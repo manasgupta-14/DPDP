@@ -1,5 +1,5 @@
 import { dkCard, dkTh } from "../consent/styles.js";
-import { NotInApi, Shown } from "./NotInApi.jsx";
+import { Shown } from "./NotInApi.jsx";
 
 const chip = "inline-flex max-w-[200px] items-center truncate rounded-md px-1.5 py-0.5 text-[11px] font-medium ring-1";
 const NEUTRAL = "bg-[#F1F5F9] text-[#334155] ring-[#CBD5E1]";
@@ -20,7 +20,7 @@ function Linked({ items, links, warm }) {
     return <span className="text-[11px] text-[#64748B]">None linked</span>;
 }
 
-export default function PurposeTable({ rows }) {
+export default function PurposeTable({ rows, onEdit, onHistory }) {
     return (
         <div className={`${dkCard} overflow-hidden`}>
             <div className="overflow-x-auto">
@@ -30,9 +30,9 @@ export default function PurposeTable({ rows }) {
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
                         {rows.map((p) => (
-                            <tr key={p.id} className="align-top hover:bg-[#F8FAFC]">
+                            <tr key={p.id} className={`align-top hover:bg-[#F8FAFC] ${p.active ? "" : "bg-[#F8FAFC]/70"}`}>
                                 <td className="max-w-[280px] px-4 py-3">
-                                    <p className="font-semibold text-[#0F172A]">{p.name}</p>
+                                    <p className="font-semibold text-[#0F172A]">{p.name} <span className="ml-1 text-[10px] font-medium text-[#475569]">v{p.version}</span></p>
                                     <p className="font-mono text-[10px] text-[#475569]">{p.code || "-"}</p>
                                     <p className="mt-1 text-[11px] leading-relaxed text-[#475569]"><Shown value={p.description} /></p>
                                 </td>
@@ -50,14 +50,15 @@ export default function PurposeTable({ rows }) {
                                 <td className="px-4 py-3">
                                     <div className="flex flex-wrap gap-1">
                                         {p.mandatory && <span className={`${chip} ${WARM}`}>Mandatory</span>}
+                                        <span className={`${chip} ${p.active ? "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]"}`}>{p.active ? "Active" : "Archived"}</span>
+                                        {p.prohibitedForChildren && <span className={`${chip} ${NEUTRAL}`}>Not for children</span>}
                                         <Shown value={p.risk}><span className={`${chip} ${riskTone(p.risk)}`}>{p.risk}</span></Shown>
                                     </div>
                                 </td>
                                 <td className="px-4 py-3">
                                     <div className="flex flex-col items-start gap-1.5">
-                                        <button type="button" disabled title="Not in API: there is no endpoint for purpose history yet." className="h-7 rounded-lg border border-[#E2E8F0] px-3 text-[11px] font-semibold text-[#334155] disabled:cursor-not-allowed disabled:opacity-50">History</button>
-                                        <button type="button" disabled title="Not in API: there is no endpoint to edit a purpose yet." className="h-7 rounded-lg border border-[#E2E8F0] px-3 text-[11px] font-semibold text-[#334155] disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
-                                        <NotInApi />
+                                        <button type="button" onClick={() => onHistory?.(p)} className="h-7 rounded-lg border border-[#E2E8F0] px-3 text-[11px] font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">History</button>
+                                        <button type="button" onClick={() => onEdit?.(p)} disabled={!p.active} title={p.active ? undefined : "Archived versions cannot be edited. Edit the current version."} className="h-7 rounded-lg border border-[#E2E8F0] px-3 text-[11px] font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
                                     </div>
                                 </td>
                             </tr>
