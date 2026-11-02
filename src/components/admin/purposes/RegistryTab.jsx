@@ -1,7 +1,6 @@
 import { dkCard, dkPrimary, dkTh } from "../consent/styles.js";
-import { NotInApi } from "./NotInApi.jsx";
 
-export default function RegistryTab({ title, intro, addLabel, onAdd, columns, rows, emptyText, loading }) {
+export default function RegistryTab({ title, intro, addLabel, onAdd, onEdit, columns, rows, emptyText, loading }) {
     return (
         <div className={`${dkCard} overflow-hidden`}>
             <div className="flex flex-wrap items-start justify-between gap-3 px-5 py-4">
@@ -25,8 +24,7 @@ export default function RegistryTab({ title, intro, addLabel, onAdd, columns, ro
                             <tr key={r.id} className="align-top hover:bg-[#F8FAFC]">
                                 {columns.map((c) => <td key={c.label} className="px-4 py-3">{c.render(r)}</td>)}
                                 <td className="px-4 py-3 text-right">
-                                    <button type="button" disabled title="Not in API: there is no endpoint to edit this yet." className="text-[11px] font-semibold text-[#334155] disabled:cursor-not-allowed disabled:opacity-50">Edit</button>
-                                    <span className="ml-1.5"><NotInApi /></span>
+                                    <button type="button" onClick={() => onEdit?.(r)} className="text-[11px] font-semibold text-[#0E7490] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">Edit</button>
                                 </td>
                             </tr>
                         ))}
