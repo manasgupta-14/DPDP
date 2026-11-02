@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getCategories, getProcessors, getPurposes } from "../../api/consent.js";
 import { dkAlert, dkBtn, dkCard, dkPage, dkSuccess } from "../../components/admin/consent/styles.js";
-import { NotInApi, Shown } from "../../components/admin/purposes/NotInApi.jsx";
+import { Shown } from "../../components/admin/purposes/NotInApi.jsx";
 import PurposeFormModal from "../../components/admin/purposes/PurposeFormModal.jsx";
+import PurposeHistoryModal from "../../components/admin/purposes/PurposeHistoryModal.jsx";
 import PurposeTable from "../../components/admin/purposes/PurposeTable.jsx";
 import { CategoryModal, ProcessorModal } from "../../components/admin/purposes/RegistryModals.jsx";
 import RegistryTab from "../../components/admin/purposes/RegistryTab.jsx";
@@ -31,12 +32,13 @@ export default function Purposes() {
     const [refreshing, setRefreshing] = useState(false);
     const [errors, setErrors] = useState([]);
     const [modal, setModal] = useState(null);
+    const [showArchived, setShowArchived] = useState(false);
     const [flash, setFlash] = useState("");
     const [reloadKey, setReloadKey] = useState(0);
 
     useEffect(() => {
         let active = true;
-        Promise.all([getPurposes(), getCategories(), getProcessors()]).then(([p, c, r]) => {
+        Promise.all([getPurposes({ includeInactive: true }), getCategories(), getProcessors()]).then(([p, c, r]) => {
             if (!active) return;
             if (p.ok) setPurposes(p.data);
             if (c.ok) setCategories(c.data);
@@ -61,18 +63,18 @@ export default function Purposes() {
     };
 
     const q = (query || "").trim().toLowerCase();
-    const filteredPurposes = useMemo(() => purposes.filter((p) => matches(q, [p.name, p.code, p.description, p.legalBasis, p.risk])), [purposes, q]);
+    const filteredPurposes = useMemo(() => purposes.filter((p) => (showArchived || p.active) && matches(q, [p.name, p.code, p.description, p.legalBasis, p.risk])), [purposes, q, showArchived]);
     const filteredCategories = useMemo(() => categories.filter((c) => matches(q, [c.name, c.code, c.sensitivity, c.description])), [categories, q]);
     const filteredProcessors = useMemo(() => processors.filter((p) => matches(q, [p.name, p.code, p.relationship, p.country])), [processors, q]);
 
     const categoryUse = useMemo(() => {
         const map = new Map();
-        purposes.forEach((p) => p.categories.forEach((c) => map.set(c.id, (map.get(c.id) || 0) + 1)));
+        purposes.filter((p) => p.active).forEach((p) => p.categories.forEach((c) => map.set(c.id, (map.get(c.id) || 0) + 1)));
         return map;
     }, [purposes]);
     const processorUse = useMemo(() => {
         const map = new Map();
-        purposes.forEach((p) => p.processors.forEach((c) => map.set(c.id, (map.get(c.id) || 0) + 1)));
+        purposes.filter((p) => p.active).forEach((p) => p.processors.forEach((c) => map.set(c.id, (map.get(c.id) || 0) + 1)));
         return map;
     }, [purposes]);
 
@@ -90,7 +92,7 @@ export default function Purposes() {
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                     </button>
                     {tab === "purposes" && (
-                        <button type="button" onClick={() => setModal("purpose")} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#0F766E] px-4 text-xs font-semibold text-white transition hover:bg-[#115E59] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">{addLabel}</button>
+                        <button type="button" onClick={() => setModal({ type: "purpose" })} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-[#0F766E] px-4 text-xs font-semibold text-white transition hover:bg-[#115E59] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">{addLabel}</button>
                     )}
                 </div>
             </div>
@@ -118,8 +120,14 @@ export default function Purposes() {
                 </div>
             ) : (
                 <>
-                    <PurposeTable rows={filteredPurposes} />
-                    <p className="text-xs text-[#64748B]">Showing {filteredPurposes.length} of {purposes.length}. History, Edit, Active and Prohibited for children are marked <NotInApi /> because no endpoint or field exists for them yet.</p>
+                    <PurposeTable rows={filteredPurposes} onEdit={(item) => setModal({ type: "purpose", item })} onHistory={(item) => setModal({ type: "history", item })} />
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs text-[#64748B]">Showing {filteredPurposes.length} of {purposes.length}. Editing a purpose saves a new version and archives the old one.</p>
+                        <label className="flex items-center gap-2 text-xs text-[#475569]">
+                            <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="accent-[#0F766E]" />
+                            Show archived versions
+                        </label>
+                    </div>
                 </>
             ))}
 
@@ -128,7 +136,8 @@ export default function Purposes() {
                     title="Data categories"
                     intro="The kinds of personal data this organisation holds, graded by sensitivity."
                     addLabel="Add category"
-                    onAdd={() => setModal("category")}
+                    onAdd={() => setModal({ type: "category" })}
+                    onEdit={(item) => setModal({ type: "category", item })}
                     loading={loading}
                     rows={filteredCategories}
                     emptyText={categories.length === 0 ? "No data categories yet. Use Add category to create the first one." : "No categories match your search."}
@@ -145,7 +154,8 @@ export default function Purposes() {
                     title="Data processors"
                     intro="Third parties that process personal data on this organisation's instructions."
                     addLabel="Add processor"
-                    onAdd={() => setModal("processor")}
+                    onAdd={() => setModal({ type: "processor" })}
+                    onEdit={(item) => setModal({ type: "processor", item })}
                     loading={loading}
                     rows={filteredProcessors}
                     emptyText={processors.length === 0 ? "No data processors yet. Use Add processor to create the first one." : "No processors match your search."}
@@ -158,9 +168,10 @@ export default function Purposes() {
                 />
             )}
 
-            {modal === "purpose" && <PurposeFormModal existing={purposes} categories={categories} processors={processors} onClose={() => setModal(null)} onCreated={done} />}
-            {modal === "category" && <CategoryModal existing={categories} onClose={() => setModal(null)} onCreated={done} />}
-            {modal === "processor" && <ProcessorModal existing={processors} onClose={() => setModal(null)} onCreated={done} />}
+            {modal?.type === "purpose" && <PurposeFormModal key={modal.item?.id ?? "new"} purpose={modal.item} existing={purposes} categories={categories} processors={processors} onClose={() => setModal(null)} onCreated={done} />}
+            {modal?.type === "history" && <PurposeHistoryModal purpose={modal.item} onClose={() => setModal(null)} />}
+            {modal?.type === "category" && <CategoryModal key={modal.item?.id ?? "new"} item={modal.item} existing={categories} onClose={() => setModal(null)} onCreated={done} />}
+            {modal?.type === "processor" && <ProcessorModal key={modal.item?.id ?? "new"} item={modal.item} existing={processors} onClose={() => setModal(null)} onCreated={done} />}
         </div>
     );
 }
