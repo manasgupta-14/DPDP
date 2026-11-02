@@ -10,7 +10,9 @@ export const ADMIN_SECTIONS = [
     {
         label: "Consent",
         items: [
-            { to: "/dashboard/consent", label: "Consent management", icon: "consent" },
+            { to: "/dashboard/consent", label: "Consent records", icon: "consent" },
+            { to: "/dashboard/data-principals", label: "Data principals", icon: "adduser" },
+            { to: "/dashboard/purposes", label: "Purposes", icon: "inventory" },
             { to: "/dashboard/notice", label: "Privacy notice builder", icon: "notice" },
             { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks" },
             { to: "/dashboard/inventory", label: "Data inventory", icon: "inventory" },

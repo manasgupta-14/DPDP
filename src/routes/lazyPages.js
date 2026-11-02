@@ -9,6 +9,8 @@ export const Dashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
 export const RolesPermissions = lazy(() => import("../pages/admin/RolesPermissions.jsx"));
 export const RoleEditor = lazy(() => import("../pages/admin/RoleEditor.jsx"));
 export const ModulePage = lazy(() => import("../pages/admin/ModulePage.jsx"));
+export const Purposes = lazy(() => import("../pages/admin/Purposes.jsx"));
+export const DataPrincipals = lazy(() => import("../pages/admin/DataPrincipals.jsx"));
 export const OrgUnits = lazy(() => import("../pages/admin/OrgUnits.jsx"));
 export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
 export const DpiaDetail = lazy(() => import("../pages/dpia/DpiaDetail.jsx"));
