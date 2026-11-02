@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { getConsentRecords, getPurposes } from "../../api/consent.js";
+import { getConsentRecord, getConsentRecords, getPurposes } from "../../api/consent.js";
 import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModal.jsx";
 import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
 import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/consent/styles.js";
@@ -26,6 +26,7 @@ export default function ConsentManagement() {
     const [page, setPage] = useState(1);
     const [openId, setOpenId] = useState(null);
     const [reloadKey, setReloadKey] = useState(0);
+    const [detail, setDetail] = useState({ id: null, record: null, error: "" });
 
     useEffect(() => {
         const timer = setTimeout(() => setFilters(draft), draft.reference === filters.reference ? 0 : 400);
@@ -60,6 +61,18 @@ export default function ConsentManagement() {
         };
     }, [reloadKey]);
 
+    useEffect(() => {
+        if (!openId) return undefined;
+        let active = true;
+        getConsentRecord(openId).then((res) => {
+            if (!active) return;
+            setDetail({ id: openId, record: res.ok ? res.data : null, error: res.ok ? "" : res.error });
+        });
+        return () => {
+            active = false;
+        };
+    }, [openId, reloadKey]);
+
     const reload = useCallback(() => {
         setRefreshing(true);
         setReloadKey((k) => k + 1);
@@ -74,7 +87,12 @@ export default function ConsentManagement() {
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page, pages);
     const slice = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
-    const selected = records.find((r) => r.id === openId) || null;
+    const listed = records.find((r) => r.id === openId) || null;
+    const fetched = detail.id === openId ? detail : null;
+    // Detail GET /api/Consent/record/{id} se aaya data upar, list ka data fallback + versions history ke liye.
+    const selected = listed && fetched?.record
+        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: fetched.record.purposes.length ? fetched.record.purposes : listed.purposes }
+        : listed;
     const hasFilters = Object.values(draft).some(Boolean);
 
     const setFilter = (key) => (e) => {
@@ -172,7 +190,7 @@ export default function ConsentManagement() {
                 </div>
             )}
 
-            {selected && <ConsentDetailModal record={selected} onClose={() => setOpenId(null)} />}
+            {selected && <ConsentDetailModal record={selected} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
         </div>
     );
 }
