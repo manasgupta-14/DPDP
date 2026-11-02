@@ -6,12 +6,15 @@ const CHANNEL_WEB = 0;
 
 const byNewest = (a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime();
 
-export async function getPurposes() {
+// Edit karne par backend purana version inactive karke naya version banata hai, isliye default mein sirf active versions.
+export async function getPurposes({ includeInactive = false } = {}) {
     const res = await apiFetch("/api/Consent/purposes");
-    return res.ok ? { ...res, data: asArray(res.data).map(normalizePurpose) } : res;
+    if (!res.ok) return res;
+    const all = asArray(res.data).map(normalizePurpose);
+    return { ...res, data: includeInactive ? all : all.filter((p) => p.active) };
 }
 
-export async function addPurpose({ code, shortName, isMandatory, description, legalBasis, retentionPeriod, riskLevel, doesConsentLapse, isActive, isProhibitedForChildren, categoryIds, processorIds }) {
+export function purposeBody({ code, shortName, isMandatory, description, legalBasis, retentionPeriod, riskLevel, doesConsentLapse, isActive, isProhibitedForChildren, categoryIds, processorIds }) {
     const body = { code: code.trim().replace(/\s+/g, "_"), shortName: shortName.trim(), isMandatory: !!isMandatory };
     if (description !== undefined) body.description = description.trim();
     if (legalBasis !== undefined) body.legalBasis = legalBasis.trim();
@@ -22,7 +25,11 @@ export async function addPurpose({ code, shortName, isMandatory, description, le
     if (isProhibitedForChildren !== undefined) body.isProhibitedForChildren = !!isProhibitedForChildren;
     if (categoryIds) body.categoryIds = categoryIds;
     if (processorIds) body.processorIds = processorIds;
-    const res = await apiFetch("/api/Consent/add-purpose", { method: "POST", body });
+    return body;
+}
+
+export async function addPurpose(fields) {
+    const res = await apiFetch("/api/Consent/add-purpose", { method: "POST", body: purposeBody(fields) });
     return res.ok ? { ...res, data: { message: res.data?.message ?? res.data?.Message ?? "", purposeId: res.data?.purposeId ?? res.data?.PurposeId ?? "" } } : res;
 }
 
@@ -47,7 +54,7 @@ export async function withdrawConsent(recordId) {
 async function fetchHistory(dataPrincipalId, knownPurposes, { withRecordId = false } = {}) {
     const [hist, list] = await Promise.all([
         apiFetch(`/api/Consent/history/${encodeURIComponent(dataPrincipalId)}`),
-        knownPurposes ? Promise.resolve({ ok: true, data: knownPurposes }) : getPurposes(),
+        knownPurposes ? Promise.resolve({ ok: true, data: knownPurposes }) : getPurposes({ includeInactive: true }),
     ]);
     if (!hist.ok) return hist;
     const purposes = list.ok ? list.data : [];
@@ -110,4 +117,10 @@ export async function addProcessor({ code, legalName, relationship, country, dat
     const body = { code: code.trim().replace(/\s+/g, "_"), legalName: legalName.trim(), relationship, country: country.trim().toUpperCase(), dataLeavesIndia: !!dataLeavesIndia };
     const res = await apiFetch("/api/Consent/processors", { method: "POST", body });
     return res.ok ? { ...res, data: { message: res.data?.message ?? "", id: res.data?.processorId ?? "" } } : res;
+}
+
+export async function getConsentRecord(id) {
+    const res = await apiFetch(`/api/Consent/record/${encodeURIComponent(id)}`);
+    if (!res.ok && res.status === 404) return { ...res, error: "Consent record not found." };
+    return res.ok ? { ...res, data: normalizeConsentRecord(res.data) } : res;
 }
