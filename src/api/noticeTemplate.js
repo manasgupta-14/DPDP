@@ -11,6 +11,7 @@ const bodyOf = (f) => ({
     purposes: f.purposes,
     logoUrl: f.logoUrl.trim(),
     primaryColor: f.primaryColor.trim(),
+    layout: (f.layout || "").trim() || "Standard",
 });
 
 export async function getTemplates() {
