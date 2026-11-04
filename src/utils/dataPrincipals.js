@@ -23,24 +23,3 @@ export function validatePrincipal(f) {
     if (!PRINCIPAL_LOCALES.some((l) => l.value === f.preferredLocale)) errors.preferredLocale = "Locale must be mr-IN, en-IN, or hi-IN.";
     return errors;
 }
-
-// The backend has no endpoint that lists data principals (only POST /api/dataprincipal/add), so the
-// users added from this screen are remembered in this browser, and shown on the Data principals page.
-const KEY = "pg.dataPrincipals.added";
-
-export function loadAdded() {
-    try {
-        const list = JSON.parse(localStorage.getItem(KEY) || "[]");
-        return Array.isArray(list) ? list : [];
-    } catch {
-        return [];
-    }
-}
-
-export function rememberAdded(entry) {
-    try {
-        localStorage.setItem(KEY, JSON.stringify([entry, ...loadAdded()].slice(0, 500)));
-    } catch {
-        /* storage full or blocked: the user is still saved in the database */
-    }
-}

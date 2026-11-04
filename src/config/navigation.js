@@ -13,14 +13,15 @@ export const ADMIN_SECTIONS = [
             { to: "/dashboard/consent", label: "Consent records", icon: "consent" },
             { to: "/dashboard/data-principals", label: "Data principals", icon: "adduser" },
             { to: "/dashboard/purposes", label: "Purposes", icon: "inventory" },
+            { to: "/dashboard/notices", label: "Notices", icon: "notice" },
             { to: "/dashboard/notice", label: "Notice templates", icon: "notice" },
             { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks" },
             { to: "/dashboard/inventory", label: "Data inventory", icon: "inventory" },
         ],
     },
     {
-        label: "DSAR",
-        items: [{ to: "/dashboard/dsar", label: "DSAR", icon: "rights" }],
+        label: "Rights Requests",
+        items: [{ to: "/dashboard/rights-requests", label: "Rights Requests", icon: "rights" }],
     },
     {
         label: "Governance",
@@ -55,6 +56,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/tasks", label: "My Tasks", icon: "tasks" },
             { to: "/user/consent", label: "My Consents", icon: "consent" },
+            { to: "/user/notices", label: "Privacy notices", icon: "notice" },
             { to: "/user/reports", label: "My Security Reports", icon: "shield" },
         ],
     },

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { addDataPrincipal } from "../../../api/dataPrincipals.js";
-import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, rememberAdded, validatePrincipal } from "../../../utils/dataPrincipals.js";
+import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, validatePrincipal } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { NotInApi } from "../purposes/NotInApi.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
 const label = "block text-sm font-medium text-[#334155]";
-const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN" };
+const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "" };
 
 function Row({ title, error, hint, children }) {
     return (
@@ -43,19 +43,6 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
         });
         setBusy(false);
         if (!res.ok) return setApiError(res.error);
-        rememberAdded({
-            id: res.data.dataPrincipalId,
-            referenceId: res.data.referenceId,
-            mobile: form.mobile.trim(),
-            email: form.email.trim(),
-            consumerNo: form.consumerNo.trim(),
-            fullName: form.fullName.trim(),
-            dateOfBirth: form.dateOfBirth,
-            cls: form.cls,
-            preferredLocale: form.preferredLocale,
-            source: "Single add",
-            addedAt: new Date().toISOString(),
-        });
         onAdded?.(res.data);
         onClose();
     };
@@ -84,6 +71,9 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     </Row>
                     <Row title="Preferred locale" error={errors.preferredLocale}>
                         <select value={form.preferredLocale} onChange={set("preferredLocale")} disabled={busy} className={field}>{PRINCIPAL_LOCALES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
+                    </Row>
+                    <Row title={<>Org unit <NotInApi /></>} hint="The add API has no org unit field, so it cannot be saved here. Org unit counts on the hierarchy page stay 0.">
+                        <select value="" disabled className={field}><option value="">Not assigned</option></select>
                     </Row>
                 </div>
 

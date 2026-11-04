@@ -7,7 +7,7 @@ const LINKS_BEFORE = [{ label: "Home", href: "/" }];
 
 const COMMON_LINKS = [
     { label: "Consent", href: "/consent" },
-    { label: "DSAR", href: "/dsar" },
+    { label: "Rights Requests", href: "/rights-requests" },
     { label: "Breach", href: "/breach" },
     { label: "Audit Trail", href: "/audit" },
 ];

@@ -1,6 +1,7 @@
 import Icon from "../../shared/Icon.jsx";
 import { panel } from "../../shared/ui.js";
 import { formatDate } from "../../../utils/noticeTemplate.js";
+import { NotInApi } from "../purposes/NotInApi.jsx";
 
 const th = "px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-wider text-[#475569]";
 const action = "h-8 rounded-lg border border-[#E2E8F0] bg-white px-3 text-xs font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]";
@@ -18,17 +19,17 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                 </button>
             </div>
             <div className="overflow-x-auto border-t border-[#E2E8F0]">
-                <table className="w-full min-w-[820px] text-xs text-[#334155]">
+                <table className="w-full min-w-[900px] text-xs text-[#334155]">
                     <thead className="bg-[#F8FAFC]">
-                        <tr>{["Template", "Code", "Purposes", "Created", ""].map((h, i) => <th key={i} className={th}>{h}</th>)}</tr>
+                        <tr>{["Template", "Code", "Purposes", "Layout", "Created", ""].map((h, i) => <th key={i} className={th}>{h}</th>)}</tr>
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
                         {loading ? (
-                            <tr><td colSpan={5} className="px-5 py-8"><div className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" /></td></tr>
+                            <tr><td colSpan={6} className="px-5 py-8"><div className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" /></td></tr>
                         ) : error ? (
-                            <tr><td colSpan={5} className="px-5 py-10 text-center text-xs text-[#B91C1C]">{error}</td></tr>
+                            <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-[#B91C1C]">{error}</td></tr>
                         ) : templates.length === 0 ? (
-                            <tr><td colSpan={5} className="px-5 py-10 text-center text-xs text-[#475569]">No notice templates yet. Use New template to create the first one.</td></tr>
+                            <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-[#475569]">No notice templates yet. Use New template to create the first one.</td></tr>
                         ) : templates.map((t) => (
                             <tr key={t.id} className="align-top hover:bg-[#F8FAFC]">
                                 <td className="max-w-[300px] px-4 py-3">
@@ -43,6 +44,7 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                                         </div>
                                     )}
                                 </td>
+                                <td className="whitespace-nowrap px-4 py-3">{t.layout === undefined ? <NotInApi /> : t.layout || "-"}</td>
                                 <td className="whitespace-nowrap px-4 py-3">{formatDate(t.createdAt)}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex justify-end gap-2">

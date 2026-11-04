@@ -7,6 +7,7 @@ const pick = (obj, keys) => {
 };
 
 export const DEFAULT_COLOR = "#0F62FE";
+export const DEFAULT_LAYOUT = "Standard";
 
 export const toCode = (v) => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 export const norm = (v) => String(v || "").trim().toLowerCase();
@@ -16,12 +17,14 @@ export function normalizeTemplate(t) {
     const purposes = pick(t, ["purposes"]);
     const logoUrl = pick(t, ["logoUrl"]);
     const primaryColor = pick(t, ["primaryColor"]);
+    const layout = pick(t, ["layout"]);
     return {
         id: String(pick(t, ["id", "templateId"]) ?? ""),
         code: String(pick(t, ["code"]) ?? ""),
         name: String(pick(t, ["name"]) ?? "Template"),
         description: String(pick(t, ["description"]) ?? ""),
         purposes: Array.isArray(purposes) ? purposes.map(String) : [],
+        layout: layout === undefined ? undefined : String(layout ?? ""),
         createdAt: pick(t, ["createdAt"]) ?? null,
         logoUrl: logoUrl === undefined ? undefined : String(logoUrl ?? ""),
         primaryColor: primaryColor === undefined ? undefined : String(primaryColor ?? ""),

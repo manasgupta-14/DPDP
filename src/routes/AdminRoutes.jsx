@@ -1,8 +1,8 @@
 import { Navigate, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute.jsx";
-import { AddUsers, AdminLayout, AdminProfile, AdminTasks, BulkImport, Campaigns, Dashboard, DataPrincipals, DpiaDetail, DpiaForm, DpiaList, GrievanceDetail, GrievanceList, ModulePage, OrgUnits, Purposes, RoleEditor, RolesPermissions, Staff } from "./lazyPages.js";
+import { AddUsers, AdminLayout, AdminProfile, AdminTasks, BulkImport, Campaigns, Dashboard, DataPrincipals, DpiaDetail, DpiaForm, DpiaList, GrievanceDetail, GrievanceList, ModulePage, NoticeEditor, Notices, OrgUnits, PrivacyRequestDetail, Purposes, RoleEditor, RolesPermissions, Staff } from "./lazyPages.js";
 
-const MODULE_SLUGS = ["timeline", "consent", "notice", "dsar", "inventory", "breach", "checklist", "audit"];
+const MODULE_SLUGS = ["timeline", "consent", "notice", "rights-requests", "inventory", "breach", "checklist", "audit"];
 
 export default function adminRoutes() {
     return (
@@ -25,6 +25,8 @@ export default function adminRoutes() {
             <Route path="roles/:id/edit" element={<RoleEditor mode="edit" />} />
             <Route path="data-principals" element={<DataPrincipals />} />
             <Route path="purposes" element={<Purposes />} />
+            <Route path="notices" element={<Notices />} />
+            <Route path="notices/:id" element={<NoticeEditor />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="my-tasks" element={<AdminTasks />} />
             <Route path="admin" element={<AdminProfile />} />
@@ -33,10 +35,12 @@ export default function adminRoutes() {
             <Route path="dpia" element={<DpiaList />} />
             <Route path="dpia/new" element={<DpiaForm />} />
             <Route path="dpia/:id" element={<DpiaDetail />} />
+            <Route path="rights-requests/:id" element={<PrivacyRequestDetail />} />
             {MODULE_SLUGS.map((slug) => (
                 <Route key={slug} path={slug} element={<ModulePage />} />
             ))}
-            <Route path="rights" element={<Navigate to="/dashboard/dsar" replace />} />
+            <Route path="dsar" element={<Navigate to="/dashboard/rights-requests" replace />} />
+            <Route path="rights" element={<Navigate to="/dashboard/rights-requests" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
     );

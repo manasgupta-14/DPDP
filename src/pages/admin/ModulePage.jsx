@@ -19,7 +19,7 @@ export default function ModulePage() {
     if (slug === "inventory") return <Suspense fallback={<PageLoader />}><DataInventory /></Suspense>;
     if (slug === "audit") return <Suspense fallback={<PageLoader />}><AuditTrail /></Suspense>;
     if (slug === "notice") return <Suspense fallback={<PageLoader />}><NoticeTemplates /></Suspense>;
-    if (slug === "dsar") return <Suspense fallback={<PageLoader />}><PrivacyRequests /></Suspense>;
+    if (slug === "rights-requests") return <Suspense fallback={<PageLoader />}><PrivacyRequests /></Suspense>;
     const info = MODULE_INFO[slug];
     if (!info) return <Navigate to="/dashboard" replace />;
     const icon = ADMIN_NAV.find((n) => n.to.endsWith(`/${slug}`))?.icon || "grid";
