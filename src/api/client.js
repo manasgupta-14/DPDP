@@ -17,6 +17,7 @@ function extractError(data, status) {
     if (status === 401) return "Your session has expired. Please sign in again.";
     if (status === 403) return "You do not have permission to do this.";
     if (status === 404) return "This API endpoint was not found on the backend. Rebuild and restart the backend, then try again.";
+    if (status === 502 || status === 503 || status === 504) return "Cannot reach the backend. Start the backend (https://localhost:7139), wait until it is running, then try again.";
     if (status >= 500) return "Server error. Please try again in a moment.";
     return "Something went wrong. Please try again.";
 }
