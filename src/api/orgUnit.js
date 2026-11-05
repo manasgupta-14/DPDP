@@ -19,3 +19,22 @@ export function createOrgUnit({ name, kind, code, parentId }) {
 export function deactivateOrgUnit(id) {
     return apiFetch(`/api/OrgUnit/${seg(id)}/deactivate`, { method: "PUT" });
 }
+
+export function activateOrgUnit(id) {
+    return apiFetch(`/api/OrgUnit/${seg(id)}/activate`, { method: "PUT" });
+}
+
+export function updateOrgUnit(id, { name, code }) {
+    return apiFetch(`/api/OrgUnit/${seg(id)}`, {
+        method: "PUT",
+        body: { name: name.trim(), unitCode: code.trim() },
+    });
+}
+
+export async function deleteOrgUnit(id) {
+    const res = await apiFetch(`/api/OrgUnit/${seg(id)}`, { method: "DELETE" });
+    if (!res.ok && res.status === 404) {
+        return { ...res, error: "This unit could not be deleted. It may not exist, or it still has child units. Remove or move the child units first." };
+    }
+    return res;
+}

@@ -9,6 +9,11 @@ export async function getAllGrievances() {
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeGrievance) } : res;
 }
 
+export async function getMyGrievances() {
+    const res = await apiFetch("/api/Grievance/my-grievances");
+    return res.ok ? { ...res, data: asArray(res.data).map(normalizeGrievance) } : res;
+}
+
 export async function getGrievance(id) {
     const res = await apiFetch(`/api/Grievance/${seg(id)}`);
     if (res.ok) return { ...res, data: normalizeGrievance(res.data) };
@@ -21,11 +26,16 @@ export async function raiseGrievance({ subject, description, category }) {
         method: "POST",
         body: { subject: subject.trim(), description: description.trim(), category },
     });
-    return res.ok ? { ...res, data: { ticketId: res.data?.ticketId ?? res.data?.TicketId ?? "" } } : res;
+    if (!res.ok) return res;
+    return { ...res, data: { ticketId: res.data?.ticketId ?? res.data?.TicketId ?? "" } };
 }
 
 export function assignGrievance(id) {
     return apiFetch(`/api/Grievance/${seg(id)}/assign`, { method: "PATCH" });
+}
+
+export function resolveGrievance(id) {
+    return apiFetch(`/api/Grievance/${seg(id)}/resolve`, { method: "PATCH" });
 }
 
 export function replyGrievance(id, { messageText, isInternal }) {

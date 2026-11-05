@@ -20,7 +20,7 @@ export default function DeactivateDialog({ unit, onDone, onClose }) {
         <div className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Deactivate {unit.name}?</h2>
             <p className="mt-2 text-sm text-[#475569]">
-                <span className="font-mono text-[#0F172A]">{unit.code}</span> will be marked inactive and you will not be able to add children to it. It stays in the tree for records and audit. This screen cannot reactivate it.
+                <span className="font-mono text-[#0F172A]">{unit.code}</span> will be marked inactive and you will not be able to add children to it. It stays in the tree for records and audit. You can activate it again later.
             </p>
             <div className="mt-4"><Alert>{error}</Alert></div>
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

@@ -1,10 +1,15 @@
 export const NOTICE_VERSION = "1.0";
 
+// Backend ko bheji jaane wali language (ConsentRecord.Language)
+export const NOTICE_LOCALE = { en: "en-IN", hi: "hi-IN" };
+
 export const NOTICE_TEXT = {
     en: {
         label: "English",
         title: "Your privacy choices",
-        intro: "Your organisation would like your permission to use your personal data (such as your name, email address and phone number) for the purposes below. Each purpose is separate and optional. Choosing \"Don't allow\" will not stop you from using this dashboard.",
+        intro: "Your organisation would like your permission to use your personal details, such as your name, phone number and email address. Each item below is separate. If you choose \"Don't allow\", that detail will not be used and will not be shared. Choosing \"Don't allow\" will not stop you from using this dashboard.",
+        required: "Required",
+        requiredNote: "Needed to run your account, so this is always on.",
         purposes: "Purposes",
         allow: "Allow",
         deny: "Don't allow",
@@ -15,13 +20,18 @@ export const NOTICE_TEXT = {
         save: "Save my choices",
         saving: "Saving...",
         later: "Decide later",
-        pickOne: "Choose Allow or Don't allow for at least one purpose.",
+        pickOne: "Choose Allow or Don't allow for every item.",
+        dataUsed: "Data used",
+        keptFor: "Kept for",
+        sharedWith: "Shared with",
         version: (v) => `Privacy notice v${v}`,
     },
     hi: {
         label: "हिन्दी",
         title: "आपकी गोपनीयता के विकल्प",
-        intro: "आपका संगठन नीचे दिए गए उद्देश्यों के लिए आपके व्यक्तिगत डेटा (जैसे नाम, ईमेल पता और फ़ोन नंबर) का उपयोग करने के लिए आपकी अनुमति चाहता है। हर उद्देश्य अलग और वैकल्पिक है। \"अनुमति नहीं\" चुनने से आपका इस डैशबोर्ड का उपयोग बंद नहीं होगा।",
+        intro: "आपका संगठन आपके व्यक्तिगत विवरण, जैसे नाम, फ़ोन नंबर और ईमेल पते का उपयोग करने के लिए आपकी अनुमति चाहता है। नीचे हर चीज़ अलग है। \"अनुमति नहीं\" चुनने पर वह जानकारी इस्तेमाल या साझा नहीं की जाएगी। इससे आपका इस डैशबोर्ड का उपयोग बंद नहीं होगा।",
+        required: "ज़रूरी",
+        requiredNote: "आपका खाता चलाने के लिए ज़रूरी है, इसलिए यह हमेशा चालू रहता है।",
         purposes: "उद्देश्य",
         allow: "अनुमति दें",
         deny: "अनुमति नहीं",
@@ -32,7 +42,10 @@ export const NOTICE_TEXT = {
         save: "मेरे विकल्प सहेजें",
         saving: "सहेजा जा रहा है...",
         later: "बाद में तय करूँगा",
-        pickOne: "कम से कम एक उद्देश्य के लिए \"अनुमति दें\" या \"अनुमति नहीं\" चुनें।",
+        pickOne: "हर चीज़ के लिए \"अनुमति दें\" या \"अनुमति नहीं\" चुनें।",
+        dataUsed: "उपयोग होने वाला डेटा",
+        keptFor: "कितने समय तक रखा जाएगा",
+        sharedWith: "किसके साथ साझा होगा",
         version: (v) => `गोपनीयता सूचना v${v}`,
     },
 };

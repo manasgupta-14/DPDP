@@ -18,6 +18,8 @@ export default function AppRoutes() {
                 {ADMIN_REGISTER_ENABLED && <Route path="/admin/register" element={<Register />} />}
             </Route>
 
+            <Route path="/admin/imports" element={<Navigate to="/dashboard/imports" replace />} />
+
             {adminRoutes()}
             {dpoRoutes()}
             {userRoutes()}

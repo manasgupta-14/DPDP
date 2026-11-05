@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { getConsentHistory, submitConsent } from "../../api/consent.js";
-import { getDataInventory } from "../../api/dataInventory.js";
+import { getMyConsent, getPurposes, recordConsent } from "../../api/consent.js";
 import { getProfile } from "../../auth/authStore.js";
 import Alert from "../shared/Alert.jsx";
 import Modal from "../shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../shared/ui.js";
-import { NOTICE_TEXT, NOTICE_VERSION } from "../../config/consentNotice.js";
-import { CONSENT_STATUS } from "../../utils/consent.js";
+import { NOTICE_LOCALE, NOTICE_TEXT, NOTICE_VERSION } from "../../config/consentNotice.js";
+import { CONSENT_STATUS, questionFor } from "../../utils/consent.js";
 
 function Choice({ active, tone, onClick, children }) {
     const on = tone === "allow" ? "border-[#0F766E] bg-[#0F766E] text-white" : "border-[#B91C1C] bg-[#B91C1C] text-white";
@@ -23,34 +22,58 @@ function Choice({ active, tone, onClick, children }) {
     );
 }
 
+const norm = (s) => String(s || "").trim().toLowerCase();
+
+// Purpose tab "answered" mana jayega jab pichle consent record me uski id ya uska naam mil jaye.
+const answeredIn = (latest) => {
+    const list = latest?.purposes ?? [];
+    return { ids: new Set(list.map((p) => p.purposeId)), names: new Set(list.map((p) => norm(p.name))) };
+};
+const isAnswered = (purpose, sets) => sets.ids.has(purpose.id) || sets.names.has(norm(purpose.name));
+
+// Login ke baad: agar user ne abhi tak consent nahi diya (ya naya purpose add hua hai) toh yeh popup aata hai.
+// User har purpose par Allow / Don't allow chunta hai. Allow = data use ho sakta hai, Don't allow = nahi.
 export default function ConsentGate() {
     const userId = getProfile()?.userId;
-    const [pending, setPending] = useState([]);
+    const [purposes, setPurposes] = useState([]); // sabhi purposes
+    const [previous, setPrevious] = useState(null); // user ka pichla consent (agar hai)
     const [open, setOpen] = useState(false);
     const [lang, setLang] = useState("en");
     const [choices, setChoices] = useState({});
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const saving = useRef(false); // double click par dobara save na ho
     const t = NOTICE_TEXT[lang];
 
     useEffect(() => {
         if (!userId) return undefined;
         let active = true;
-        Promise.all([getConsentHistory(userId), getDataInventory()]).then(([hist, inv]) => {
-            if (!active || !hist.ok || !inv.ok) return;
-            const answered = new Set(hist.data.map((c) => c.inventoryId));
-            const items = inv.data.filter((i) => !answered.has(String(i.id)));
-            if (items.length) {
-                setPending(items);
-                setOpen(true);
-            }
+        getPurposes({ includeInactive: true }).then(async (full) => {
+            // Archived (purane) versions ko dobara nahi poochna; history match ke liye poori list use hoti hai.
+            const list = full.ok ? { ...full, data: full.data.filter((p) => p.active) } : full;
+            if (!list.ok || list.data.length === 0) return;
+            const mine = await getMyConsent(userId, full.data);
+            if (!active || !mine.ok) return;
+            const latest = mine.data;
+            // User ne pehle consent wapas le liya hai: dobara pareshan nahi karna, My Consents se wo khud de sakta hai.
+            if (latest && latest.status === CONSENT_STATUS.withdrawn) return;
+            const answered = answeredIn(latest);
+            const pending = list.data.filter((p) => !isAnswered(p, answered));
+            if (pending.length === 0) return;
+            setPurposes(list.data);
+            setPrevious(latest);
+            setOpen(true);
         });
         return () => {
             active = false;
         };
     }, [userId]);
 
-    if (!open || pending.length === 0) return null;
+    if (!open || purposes.length === 0) return null;
+
+    const answered = answeredIn(previous);
+    const pending = purposes.filter((p) => !isAnswered(p, answered));
+    const needAnswer = pending.filter((p) => !p.mandatory);
 
     const choose = (id, value) => {
         setError("");
@@ -58,34 +81,35 @@ export default function ConsentGate() {
     };
 
     const save = async () => {
-        const decided = pending.filter((i) => choices[i.id]);
-        if (!decided.length) {
+        if (saving.current) return;
+        if (needAnswer.some((p) => !choices[p.id])) {
             setError(t.pickOne);
             return;
         }
+        // Naya record sab purposes ka hota hai: purane faisle jaise the waise, naye purposes par abhi ka choice.
+        const beforeOf = (p) => (previous?.purposes ?? []).find((x) => x.purposeId === p.id || norm(x.name) === norm(p.name))?.allowed;
+        const decisions = purposes.map((p) => ({
+            purposeId: p.id,
+            allow: p.mandatory ? true : isAnswered(p, answered) ? !!beforeOf(p) : choices[p.id] === "allow",
+        }));
+
+        saving.current = true;
         setBusy(true);
         setError("");
-        const res = await submitConsent({
-            dataPrincipalId: userId,
-            preferences: decided.map((item) => ({
-                dataInventoryId: item.id,
-                status: choices[item.id] === "allow" ? CONSENT_STATUS.granted : CONSENT_STATUS.denied,
-            })),
-        });
+        const res = await recordConsent({ dataPrincipalId: userId, decisions, language: NOTICE_LOCALE[lang] });
+        saving.current = false;
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
             return;
         }
-        const done = new Set(decided.map((i) => i.id));
-        setPending((p) => p.filter((i) => !done.has(i.id)));
         setChoices({});
         setOpen(false);
     };
 
     return (
         <Modal title={t.title} onClose={() => !busy && setOpen(false)}>
-            <div className={`${panel} space-y-5 p-5 sm:p-6`}>
+            <div className={`${panel} max-h-[88vh] space-y-5 overflow-y-auto p-5 sm:p-6`}>
                 <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
                     <div>
                         <h2 className="text-xl font-semibold">{t.title}</h2>
@@ -113,14 +137,26 @@ export default function ConsentGate() {
                     <ul className="mt-2 space-y-3">
                         {pending.map((item) => (
                             <li key={item.id} className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                                <p className="font-semibold text-[#0F172A]">{item.name}</p>
-                                {item.category && <p className="text-xs text-[#64748B]">{item.category}</p>}
-                                {item.purpose && <p className="mt-1.5 break-words text-sm text-[#334155]">{item.purpose}</p>}
-                                {item.retentionDays && <p className="mt-1.5 text-xs text-[#64748B]">{t.retention(item.retentionDays)}</p>}
-                                <div className="mt-3 flex gap-2" role="group" aria-label={item.name}>
-                                    <Choice tone="allow" active={choices[item.id] === "allow"} onClick={() => choose(item.id, "allow")}>{t.allow}</Choice>
-                                    <Choice tone="deny" active={choices[item.id] === "deny"} onClick={() => choose(item.id, "deny")}>{t.deny}</Choice>
-                                </div>
+                                <p className="font-semibold text-[#0F172A]">{questionFor(item, lang)}</p>
+                                {item.description && <p className="mt-1 text-xs leading-5 text-[#475569]">{item.description}</p>}
+                                {(item.categories.length > 0 || item.processors.length > 0 || item.retention) && (
+                                    <dl className="mt-2 space-y-0.5 text-xs text-[#475569]">
+                                        {item.categories.length > 0 && <div><dt className="inline font-semibold text-[#334155]">{t.dataUsed}: </dt><dd className="inline">{item.categories.map((c) => c.name).join(", ")}</dd></div>}
+                                        {item.retention && <div><dt className="inline font-semibold text-[#334155]">{t.keptFor}: </dt><dd className="inline">{item.retention}</dd></div>}
+                                        {item.processors.length > 0 && <div><dt className="inline font-semibold text-[#334155]">{t.sharedWith}: </dt><dd className="inline">{item.processors.map((p) => p.name).join(", ")}</dd></div>}
+                                    </dl>
+                                )}
+                                {item.mandatory ? (
+                                    <p className="mt-1.5 text-xs text-[#64748B]">
+                                        <span className="mr-2 inline-flex rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E] ring-1 ring-[#0F766E]/25">{t.required}</span>
+                                        {t.requiredNote}
+                                    </p>
+                                ) : (
+                                    <div className="mt-3 flex gap-2" role="group" aria-label={item.name}>
+                                        <Choice tone="allow" active={choices[item.id] === "allow"} onClick={() => choose(item.id, "allow")}>{t.allow}</Choice>
+                                        <Choice tone="deny" active={choices[item.id] === "deny"} onClick={() => choose(item.id, "deny")}>{t.deny}</Choice>
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>

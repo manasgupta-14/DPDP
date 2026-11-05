@@ -10,15 +10,18 @@ export const ADMIN_SECTIONS = [
     {
         label: "Consent",
         items: [
-            { to: "/dashboard/consent", label: "Consent management", icon: "consent" },
-            { to: "/dashboard/notice", label: "Privacy notice builder", icon: "notice" },
+            { to: "/dashboard/consent", label: "Consent records", icon: "consent" },
+            { to: "/dashboard/data-principals", label: "Data principals", icon: "adduser" },
+            { to: "/dashboard/purposes", label: "Purposes", icon: "inventory" },
+            { to: "/dashboard/notices", label: "Notices", icon: "notice" },
+            { to: "/dashboard/notice", label: "Notice templates", icon: "notice" },
             { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks" },
             { to: "/dashboard/inventory", label: "Data inventory", icon: "inventory" },
         ],
     },
     {
-        label: "DSAR",
-        items: [{ to: "/dashboard/dsar", label: "DSAR", icon: "rights" }],
+        label: "Rights Requests",
+        items: [{ to: "/dashboard/rights-requests", label: "Rights Requests", icon: "rights" }],
     },
     {
         label: "Governance",
@@ -34,7 +37,9 @@ export const ADMIN_SECTIONS = [
         label: "Administration",
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
+            { to: "/dashboard/staff", label: "Staff", icon: "adduser" },
             { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
+            { to: "/dashboard/imports", label: "Bulk import", icon: "upload" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
         ],
@@ -51,13 +56,14 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/tasks", label: "My Tasks", icon: "tasks" },
             { to: "/user/consent", label: "My Consents", icon: "consent" },
+            { to: "/user/notices", label: "Privacy notices", icon: "notice" },
             { to: "/user/reports", label: "My Security Reports", icon: "shield" },
         ],
     },
     {
         label: "Help center",
         items: [
-            { to: "/user/grievance", label: "Raise a grievance", icon: "rights" },
+            { to: "/user/grievance", label: "Grievance", icon: "rights" },
             { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
         ],
     },

@@ -1,225 +1,196 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { getOrganizationConsents } from "../../api/consent.js";
-import { getDataInventory } from "../../api/dataInventory.js";
-import Alert from "../../components/shared/Alert.jsx";
+import { getConsentRecord, getConsentRecords, getPurposes } from "../../api/consent.js";
+import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModal.jsx";
+import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
+import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/consent/styles.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { field, ghostBtn, panel } from "../../components/shared/ui.js";
-import { getSession } from "../../auth/authStore.js";
-import { formatDate, timeOf } from "../../utils/breach.js";
-import { CONSENT_STATUS, CONSENT_TONE, isDenied, isGranted, shortId } from "../../utils/consent.js";
+import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, STATUS_LABEL, withVersions } from "../../utils/consent.js";
 
 const PAGE_SIZE = 10;
-const th = "px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]";
+const EMPTY_FILTERS = { reference: "", status: "", purpose: "", channel: "", from: "", to: "" };
 
-function Stat({ label, value, tone }) {
-    return (
-        <div className={`${panel} pg-card p-4`}>
-            <p className="text-xs font-medium text-[#64748B]">{label}</p>
-            <p className={`mt-1 text-2xl font-bold tracking-tight ${tone}`}>{value}</p>
-        </div>
-    );
-}
-
-function StatusPill({ status }) {
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${CONSENT_TONE[status] || CONSENT_TONE.Granted}`}>{status}</span>;
+function Filter({ label, children }) {
+    return <label className="min-w-0 text-[11px] font-medium text-[#475569]">{label}{children}</label>;
 }
 
 export default function ConsentManagement() {
     const { query } = useOutletContext() || { query: "" };
-    const [consents, setConsents] = useState([]);
-    const [team, setTeam] = useState([]);
-    const [inventory, setInventory] = useState([]);
+    const [records, setRecords] = useState([]);
+    const [purposes, setPurposes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
-    const [status, setStatus] = useState("");
-    const [inventoryId, setInventoryId] = useState("");
-    const [principalId, setPrincipalId] = useState("");
+    const [draft, setDraft] = useState(EMPTY_FILTERS);
+    const [filters, setFilters] = useState(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
+    const [openId, setOpenId] = useState(null);
+    const [reloadKey, setReloadKey] = useState(0);
+    const [detail, setDetail] = useState({ id: null, record: null, error: "" });
 
-    const apply = useCallback(([cons, inv]) => {
-        if (cons.ok) {
-            setConsents([...cons.data].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)));
-            setTeam(cons.team || []);
-            setError(cons.error || "");
-        } else {
-            setError(cons.error);
-        }
-        if (inv.ok) setInventory(inv.data);
-        else if (cons.ok) setError(inv.error);
-        setLoading(false);
-        setRefreshing(false);
-    }, []);
-
-    const load = useCallback(async () => {
-        setRefreshing(true);
-        apply(await Promise.all([getOrganizationConsents(), getDataInventory()]));
-    }, [apply]);
+    useEffect(() => {
+        const timer = setTimeout(() => setFilters(draft), draft.reference === filters.reference ? 0 : 400);
+        return () => clearTimeout(timer);
+    }, [draft, filters.reference]);
 
     useEffect(() => {
         let active = true;
-        Promise.all([getOrganizationConsents(), getDataInventory()]).then((res) => {
-            if (active) apply(res);
+        getConsentRecords(filters).then((res) => {
+            if (!active) return;
+            if (res.ok) {
+                setRecords(withVersions(res.data));
+                setError("");
+            } else {
+                setError(res.error);
+            }
+            setLoading(false);
+            setRefreshing(false);
         });
         return () => {
             active = false;
         };
-    }, [apply]);
+    }, [filters, reloadKey]);
 
-    const people = useMemo(() => {
-        const list = [...team];
-        const ownId = getSession()?.userId;
-        if (ownId && !list.some((m) => String(m.id) === String(ownId))) list.push({ id: String(ownId), name: "You" });
-        return list.map((m) => ({ id: String(m.id), name: m.name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [team]);
+    useEffect(() => {
+        let active = true;
+        getPurposes().then((res) => {
+            if (active && res.ok) setPurposes(res.data);
+        });
+        return () => {
+            active = false;
+        };
+    }, [reloadKey]);
 
-    const nameOf = useMemo(() => new Map(people.map((p) => [p.id, p.name])), [people]);
-    const inventoryOf = useMemo(() => new Map(inventory.map((i) => [String(i.id), i])), [inventory]);
+    useEffect(() => {
+        if (!openId) return undefined;
+        let active = true;
+        getConsentRecord(openId).then((res) => {
+            if (!active) return;
+            setDetail({ id: openId, record: res.ok ? res.data : null, error: res.ok ? "" : res.error });
+        });
+        return () => {
+            active = false;
+        };
+    }, [openId, reloadKey]);
 
-    const rows = useMemo(
-        () => consents.map((c) => ({
-            ...c,
-            userName: nameOf.get(c.principalId) || `User ${shortId(c.principalId)}`,
-            dataName: inventoryOf.get(c.inventoryId)?.name || `Data point ${shortId(c.inventoryId)}`,
-            dataCategory: inventoryOf.get(c.inventoryId)?.category || "",
-        })),
-        [consents, nameOf, inventoryOf],
-    );
-
-    const counts = useMemo(() => ({
-        total: rows.length,
-        granted: rows.filter(isGranted).length,
-        denied: rows.filter(isDenied).length,
-        withdrawn: rows.filter((c) => c.status === CONSENT_STATUS.withdrawn).length,
-        users: new Set(rows.filter(isGranted).map((c) => c.principalId)).size,
-    }), [rows]);
+    const reload = useCallback(() => {
+        setRefreshing(true);
+        setReloadKey((k) => k + 1);
+    }, []);
 
     const filtered = useMemo(() => {
         const q = (query || "").trim().toLowerCase();
-        return rows.filter((c) => {
-            if (status && c.status !== status) return false;
-            if (inventoryId && c.inventoryId !== inventoryId) return false;
-            if (principalId && c.principalId !== principalId) return false;
-            if (!q) return true;
-            return [c.userName, c.dataName, c.dataCategory, c.noticeVersion, c.status].some((v) => v && String(v).toLowerCase().includes(q));
-        });
-    }, [rows, query, status, inventoryId, principalId]);
+        if (!q) return records;
+        return records.filter((r) => [r.reference, r.receiptId, r.principalId, r.status, r.channel, ...r.purposes.map((p) => p.name)].some((v) => v && String(v).toLowerCase().includes(q)));
+    }, [records, query]);
 
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page, pages);
     const slice = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+    const listed = records.find((r) => r.id === openId) || null;
+    const fetched = detail.id === openId ? detail : null;
+    // Detail GET /api/Consent/record/{id} se aaya data upar, list ka data fallback + versions history ke liye.
+    const selected = listed && fetched?.record
+        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: fetched.record.purposes.length ? fetched.record.purposes : listed.purposes }
+        : listed;
+    const hasFilters = Object.values(draft).some(Boolean);
 
-    const onFilter = (setter) => (e) => {
-        setter(e.target.value);
+    const setFilter = (key) => (e) => {
+        setDraft((f) => ({ ...f, [key]: e.target.value }));
         setPage(1);
     };
 
+    const clear = () => {
+        setDraft(EMPTY_FILTERS);
+        setFilters(EMPTY_FILTERS);
+        setPage(1);
+    };
+
+    const exportCsv = () => downloadCsv(consentsToCsv(filtered), `consent-register-${new Date().toISOString().slice(0, 10)}.csv`);
+
     return (
-        <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
-            <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className={`${dkPage} space-y-5`} style={{ animation: "pg-rise .6s ease-out both" }}>
+            <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Consent management</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Who has agreed to or declined what, under which privacy notice, and when it was withdrawn. Users give and withdraw their own consent from their My Consents page.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-[#0F172A]">Consent records</h1>
+                    <p className="mt-1 text-xs text-[#475569]">Every consent artifact taken, in any channel. Each one is signed and independently verifiable.</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2.5">
-                    <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
+                <div className="flex items-center gap-2">
+                    <button type="button" onClick={reload} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                        {refreshing ? "Refreshing..." : "Refresh"}
+                    </button>
+                    <button type="button" onClick={exportCsv} disabled={loading || filtered.length === 0} className={dkBtn}>
+                        <Icon name="download" className="h-4 w-4" />
+                        Export register (CSV)
                     </button>
                 </div>
             </div>
 
-            <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <Stat label="Total records" value={counts.total} tone="text-[#0F172A]" />
-                <Stat label="Active consents" value={counts.granted} tone="text-[#16A34A]" />
-                <Stat label="Denied" value={counts.denied} tone="text-[#D97706]" />
-                <Stat label="Withdrawn" value={counts.withdrawn} tone="text-[#DC2626]" />
-                <Stat label="Users with active consent" value={counts.users} tone="text-[#0E7490]" />
-            </section>
-
-            <Alert tone="info">Under Section 6 of the DPDP Act, 2023, only the Data Principal (the user) can give or withdraw consent, so this page is view-only. Once a consent is withdrawn, stop using that data for that purpose.</Alert>
-            {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
-
-            <div className="flex flex-wrap items-end gap-3">
-                <label className="text-xs font-medium text-[#475569]">
-                    Status
-                    <select value={status} onChange={onFilter(setStatus)} className={`${field} min-w-[150px] py-2`}>
-                        <option value="">All statuses</option>
-                        <option value={CONSENT_STATUS.granted}>Granted</option>
-                        <option value={CONSENT_STATUS.denied}>Denied</option>
-                        <option value={CONSENT_STATUS.withdrawn}>Withdrawn</option>
-                    </select>
-                </label>
-                <label className="text-xs font-medium text-[#475569]">
-                    User
-                    <select value={principalId} onChange={onFilter(setPrincipalId)} className={`${field} min-w-[170px] py-2`}>
-                        <option value="">All users</option>
-                        {people.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                </label>
-                <label className="text-xs font-medium text-[#475569]">
-                    Data point
-                    <select value={inventoryId} onChange={onFilter(setInventoryId)} className={`${field} min-w-[190px] py-2`}>
-                        <option value="">All data points</option>
-                        {inventory.map((i) => <option key={i.id} value={String(i.id)}>{i.name}</option>)}
-                    </select>
-                </label>
-                <p className="ml-auto pb-2.5 text-xs text-[#64748B]">Showing {filtered.length} of {rows.length}</p>
-            </div>
-
-            <div className={`${panel} overflow-hidden`}>
-                {loading ? (
-                    <div className="space-y-3 p-5" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>
-                ) : filtered.length === 0 ? (
-                    <div className="px-5 py-12 text-center">
-                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-6 w-6" /></span>
-                        <p className="mt-3 font-semibold">{rows.length === 0 ? "No consent records yet" : "No records match these filters"}</p>
-                        <p className="mt-1 text-sm text-[#475569]">{rows.length === 0 ? "Consent records appear here once users respond from their My Consents page." : "Try a different status, user or data point."}</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full min-w-[720px] text-sm">
-                            <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
-                                <tr>
-                                    <th className={th}>User</th>
-                                    <th className={th}>Data point</th>
-                                    <th className={th}>Status</th>
-                                    <th className={th}>Notice</th>
-                                    <th className={th}>Recorded</th>
-                                    <th className={th}>Withdrawn</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
-                                {slice.map((c) => (
-                                    <tr key={c.id} className="align-top">
-                                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">{c.userName}</td>
-                                        <td className="px-5 py-3.5">
-                                            <p className="font-medium text-[#0F172A]">{c.dataName}</p>
-                                            {c.dataCategory && <p className="text-xs text-[#64748B]">{c.dataCategory}</p>}
-                                        </td>
-                                        <td className="px-5 py-3.5"><StatusPill status={c.status} /></td>
-                                        <td className="px-5 py-3.5 text-[#334155]">v{c.noticeVersion}</td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.submittedAt)}</td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap text-[#334155]">{formatDate(c.withdrawnAt)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </div>
-
-            {!loading && filtered.length > PAGE_SIZE && (
-                <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-[#64748B]">Page {current} of {pages}</p>
-                    <div className="flex gap-2">
-                        <button type="button" onClick={() => setPage(current - 1)} disabled={current === 1} className={`${ghostBtn} px-3 py-1.5`}>Previous</button>
-                        <button type="button" onClick={() => setPage(current + 1)} disabled={current === pages} className={`${ghostBtn} px-3 py-1.5`}>Next</button>
-                    </div>
+            {error && (
+                <div role="alert" className={dkAlert}>
+                    <span className="min-w-0 break-words">{error}</span>
+                    <button type="button" onClick={reload} className="shrink-0 font-semibold underline">Retry</button>
                 </div>
             )}
 
+            <section aria-label="Filters" className={`${dkCard} p-4`}>
+                <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[1.3fr_1fr_1.4fr_1fr_1fr_1fr_auto]">
+                    <Filter label="Consent reference">
+                        <input type="text" value={draft.reference} onChange={setFilter("reference")} placeholder="CNS-2026-000123" className={dkInput} />
+                    </Filter>
+                    <Filter label="Status">
+                        <select value={draft.status} onChange={setFilter("status")} className={dkInput}>
+                            <option value="">Any status</option>
+                            {RECORD_STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
+                        </select>
+                    </Filter>
+                    <Filter label="Purpose">
+                        <select value={draft.purpose} onChange={setFilter("purpose")} className={dkInput}>
+                            <option value="">Any purpose</option>
+                            {purposes.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+                        </select>
+                    </Filter>
+                    <Filter label="Channel">
+                        <select value={draft.channel} onChange={setFilter("channel")} className={dkInput}>
+                            <option value="">Any channel</option>
+                            {CHANNEL_OPTIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                        </select>
+                    </Filter>
+                    <Filter label="From">
+                        <input type="date" value={draft.from} max={draft.to || undefined} onChange={setFilter("from")} className={dkInput} />
+                    </Filter>
+                    <Filter label="To">
+                        <input type="date" value={draft.to} min={draft.from || undefined} onChange={setFilter("to")} className={dkInput} />
+                    </Filter>
+                    <button type="button" onClick={clear} disabled={!hasFilters} className="h-9 px-2 text-xs font-semibold text-[#0E7490] hover:underline disabled:cursor-not-allowed disabled:text-[#475569] disabled:no-underline">Clear filters</button>
+                </div>
+                <p className="mt-3 text-[11px] text-[#64748B]">Filters run on <span className="font-mono">GET /api/Consent/records</span>. Notice, signature, purposes and given date come from the API; anything it does not return shows <span className="italic">Not in API</span>.</p>
+            </section>
+
+            {loading ? (
+                <div className={`${dkCard} space-y-2 p-4`} aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>
+            ) : filtered.length === 0 ? (
+                <div className={`${dkCard} px-5 py-12 text-center`}>
+                    <p className="text-sm font-semibold text-[#0F172A]">{hasFilters || query ? "No records match these filters" : "No consent records yet"}</p>
+                    <p className="mt-1 text-xs text-[#475569]">{hasFilters || query ? "Try changing or clearing the filters." : "Consent records appear here once users answer the consent popup or their My Consents page."}</p>
+                </div>
+            ) : (
+                <ConsentTable rows={slice} onOpen={(r) => setOpenId(r.id)} />
+            )}
+
+            {!loading && filtered.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#475569]">
+                    <p>Showing {slice.length} of {filtered.length}{filtered.length !== records.length ? ` (${records.length} loaded)` : ""} · Page {current} of {pages}</p>
+                    {pages > 1 && (
+                        <div className="flex gap-2">
+                            <button type="button" onClick={() => setPage(current - 1)} disabled={current === 1} className={dkBtn}>Previous</button>
+                            <button type="button" onClick={() => setPage(current + 1)} disabled={current === pages} className={dkBtn}>Next</button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {selected && <ConsentDetailModal record={selected} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
         </div>
     );
 }

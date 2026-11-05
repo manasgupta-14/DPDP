@@ -4,7 +4,7 @@ import Icon from "../../shared/Icon.jsx";
 const rowBtn =
     "rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50";
 
-export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle, onAdd, onDeactivate }) {
+export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle, onAdd, onDeactivate, onEdit, onActivate, onDelete, busy }) {
     const hasChildren = unit.children.length > 0;
     const open = forceOpen || !collapsed;
     const atLimit = depth >= MAX_DEPTH;
@@ -40,15 +40,20 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                 <span className="font-semibold text-[#0F172A]">{unit.principals}</span> {unit.principals === 1 ? "principal" : "principals"}
             </span>
 
-            <div className="flex min-w-[170px] flex-wrap items-center justify-end gap-2">
+            <div className="flex min-w-[240px] flex-wrap items-center justify-end gap-2">
+                <button type="button" onClick={onEdit} className={rowBtn}>Edit</button>
                 {unit.active ? (
                     <>
                         <button type="button" onClick={onAdd} disabled={atLimit} title={atLimit ? `Maximum depth of ${MAX_DEPTH} levels reached` : undefined} className={rowBtn}>Add child</button>
                         <button type="button" onClick={onDeactivate} className={rowBtn}>Deactivate</button>
                     </>
                 ) : (
-                    <span className="rounded-full bg-[#D97706]/10 px-2.5 py-1 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">Inactive</span>
+                    <>
+                        <span className="rounded-full bg-[#D97706]/10 px-2.5 py-1 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">Inactive</span>
+                        <button type="button" onClick={onActivate} disabled={busy} className={rowBtn}>{busy ? "Activating..." : "Activate"}</button>
+                    </>
                 )}
+                <button type="button" onClick={onDelete} className={`${rowBtn} hover:!border-[#DC2626] hover:!text-[#DC2626]`}>Delete</button>
             </div>
         </li>
     );

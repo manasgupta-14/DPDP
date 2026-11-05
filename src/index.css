@@ -9,6 +9,20 @@
   animation: pg-pop 0.25s ease-out both;
 }
 
+@keyframes pg-rise {
+  0% { opacity: 0; transform: translateY(22px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pg-fill {
+  0% { width: 0; }
+  100% { width: 100%; }
+}
+
+.pg-fill {
+  animation: pg-fill 2s ease-in-out both;
+}
+
 .pg-card {
   transition: translate 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
@@ -21,6 +35,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pg-pop { animation: none; }
+  .pg-fill { animation: none; width: 100%; }
   .pg-card, .pg-card:hover { transition: none; translate: none; }
 }
 

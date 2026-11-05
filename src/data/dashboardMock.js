@@ -22,7 +22,7 @@ export const SUMMARY = {
 export const READINESS = [
     { label: "Consent management", value: 40 },
     { label: "Privacy notice", value: 30 },
-    { label: "DSAR", value: 25 },
+    { label: "Rights Requests", value: 25 },
     { label: "Data inventory", value: 55 },
     { label: "Breach response", value: 15 },
     { label: "Audit trail", value: 10 },
@@ -59,7 +59,7 @@ export const MODULE_INFO = {
     timeline: { title: "Act & Rules timeline", text: "Statutory phases and commencement dates in one view." },
     consent: { title: "Consent management", text: "Purposes, consent records and withdrawals." },
     notice: { title: "Privacy notice builder", text: "Draft and version your privacy notices." },
-    dsar: { title: "DSAR", text: "Data Subject Access Requests: access, correction, erasure and grievance." },
+    "rights-requests": { title: "Rights Requests", text: "Data Subject Access Requests: access, correction, erasure and grievance." },
     inventory: { title: "Data inventory", text: "Where personal data lives and why it is processed." },
     breach: { title: "Breach management", text: "Incident details, timelines and tasks." },
     checklist: { title: "Compliance checklist", text: "Internal tasks mapped to requirements." },

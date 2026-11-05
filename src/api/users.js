@@ -48,3 +48,26 @@ export async function getOrganizationUsers() {
 export async function toggleUserStatus(userId) {
     return apiFetch(`/api/User/toggle-status/${encodeURIComponent(userId)}`, { method: "PATCH" });
 }
+
+export async function updateUser(userId, { fullName, email, phoneNumber, roleId }) {
+    const res = await apiFetch(`/api/User/edit/${encodeURIComponent(userId)}`, {
+        method: "PUT",
+        body: {
+            fullName: fullName.trim(),
+            email: email.trim().toLowerCase(),
+            phoneNumber: phoneNumber.trim(),
+            roleId,
+        },
+    });
+
+    if (!res.ok) {
+        let error = res.error.replace(/^Database error:\s*/i, "");
+        if (res.status === 403) {
+            error = "You do not have the Users.Edit permission to update users.";
+        } else if (/inner exception|duplicate|unique/i.test(error)) {
+            error = "Could not update this user. The email may already be in use.";
+        }
+        return { ok: false, status: res.status, error };
+    }
+    return { ok: true, data: res.data };
+}

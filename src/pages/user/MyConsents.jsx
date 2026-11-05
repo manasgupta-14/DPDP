@@ -1,126 +1,88 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getConsentHistory, grantConsent, withdrawConsent } from "../../api/consent.js";
-import { getDataInventory } from "../../api/dataInventory.js";
+import { getConsentHistory, getPurposes, recordConsent, withdrawConsent } from "../../api/consent.js";
 import { getProfile } from "../../auth/authStore.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
-import Modal from "../../components/shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate, timeOf } from "../../utils/breach.js";
-import { NOTICE_VERSION } from "../../config/consentNotice.js";
-import { CONSENT_TONE, isGranted, shortId } from "../../utils/consent.js";
+import { CONSENT_STATUS, PURPOSE_STATE, questionFor, STATUS_LABEL, allowedPurposes, notAllowedPurposes } from "../../utils/consent.js";
 
-function Pill({ status }) {
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${CONSENT_TONE[status]}`}>{status}</span>;
+const PILL = {
+    [PURPOSE_STATE.allowed]: "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25",
+    [PURPOSE_STATE.denied]: "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25",
+    [PURPOSE_STATE.withdrawn]: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
+    [PURPOSE_STATE.expired]: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
+    Required: "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/25",
+    "Not answered": "bg-[#F1F5F9] text-[#475569] ring-[#CBD5E1]",
+};
+
+function Pill({ label }) {
+    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${PILL[label] || PILL["Not answered"]}`}>{label}</span>;
 }
 
-function GrantDialog({ item, principalId, onClose, onDone }) {
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
-
-    const agree = async () => {
-        setBusy(true);
-        setError("");
-        const res = await grantConsent({ dataPrincipalId: principalId, dataInventoryId: item.id });
-        setBusy(false);
-        if (!res.ok) {
-            setError(res.error);
-            return;
-        }
-        onDone(`You gave consent for "${item.name}".`);
-        onClose();
-    };
-
-    return (
-        <div className={`${panel} space-y-4 p-5 sm:p-6`}>
-            <h2 className="pr-8 text-lg font-semibold">Give consent</h2>
-            <Alert>{error}</Alert>
-            <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-                <p className="font-semibold text-[#0F172A]">{item.name}</p>
-                {item.category && <p className="text-xs text-[#64748B]">{item.category}</p>}
-                {item.purpose && <p className="mt-2 text-sm text-[#334155]">{item.purpose}</p>}
-                {item.retentionDays && <p className="mt-2 text-xs text-[#64748B]">Kept for {item.retentionDays} days.</p>}
-            </div>
-            <p className="text-sm text-[#475569]">By continuing you agree that your organisation may process this data for the purpose above, under privacy notice v{NOTICE_VERSION}. You can withdraw this consent any time.</p>
-            <div className="flex gap-2.5">
-                <button type="button" onClick={agree} disabled={busy} className={`${primaryBtn} flex-1`}>{busy ? "Saving..." : "I agree"}</button>
-                <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
-            </div>
-        </div>
-    );
+// Is purpose ke liye user ka abhi ka haal
+function stateOf(purpose, entry) {
+    if (purpose.mandatory) return "Required";
+    return entry ? entry.state : "Not answered";
 }
 
-function WithdrawButton({ record, onDone, name }) {
-    const [confirming, setConfirming] = useState(false);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState("");
-
-    const run = async () => {
-        setBusy(true);
-        setError("");
-        const res = await withdrawConsent({ recordId: record.recordId, inventoryId: record.inventoryId });
-        setBusy(false);
-        if (!res.ok) {
-            setError(res.error);
-            setConfirming(false);
-            return;
-        }
-        onDone(`You withdrew consent for "${name}".`);
-    };
-
-    if (confirming) {
-        return (
-            <div className="flex items-center gap-2 text-sm">
-                <button type="button" onClick={run} disabled={busy} className="font-semibold text-[#B91C1C] hover:underline disabled:opacity-60">{busy ? "Withdrawing..." : "Yes, withdraw"}</button>
-                <button type="button" onClick={() => setConfirming(false)} disabled={busy} className="font-semibold text-[#475569] hover:underline">Cancel</button>
-            </div>
-        );
-    }
+function Summary({ allowed, blocked }) {
     return (
-        <div className="flex flex-col items-end gap-1">
-            <button type="button" onClick={() => { setError(""); setConfirming(true); }} className={`${ghostBtn} px-3 py-1.5 text-[#B91C1C]`}>Withdraw</button>
-            {error && <span role="alert" className="max-w-[200px] text-right text-xs text-[#DC2626]">{error}</span>}
+        <div className="grid gap-4 sm:grid-cols-2">
+            <div className={`${panel} p-5`}>
+                <p className="text-sm font-semibold text-[#15803D]">You allowed ({allowed.length})</p>
+                {allowed.length === 0 ? (
+                    <p className="mt-1.5 text-sm text-[#475569]">Nothing yet. Your details are not being used.</p>
+                ) : (
+                    <ul className="mt-2 flex flex-wrap gap-1.5">{allowed.map((p) => <li key={p.id} className="rounded-md bg-[#16A34A]/10 px-2 py-1 text-xs font-medium text-[#15803D] ring-1 ring-[#16A34A]/25">{p.name}</li>)}</ul>
+                )}
+            </div>
+            <div className={`${panel} p-5`}>
+                <p className="text-sm font-semibold text-[#B91C1C]">You did not allow ({blocked.length})</p>
+                {blocked.length === 0 ? (
+                    <p className="mt-1.5 text-sm text-[#475569]">You have allowed everything.</p>
+                ) : (
+                    <ul className="mt-2 flex flex-wrap gap-1.5">{blocked.map((p) => <li key={p.id} className="rounded-md bg-[#DC2626]/10 px-2 py-1 text-xs font-medium text-[#B91C1C] ring-1 ring-[#DC2626]/25">{p.name}</li>)}</ul>
+                )}
+                {blocked.length > 0 && <p className="mt-2 text-xs text-[#64748B]">These details are not used or shared.</p>}
+            </div>
         </div>
     );
 }
 
 export default function MyConsents() {
     const principalId = getProfile()?.userId;
-    const [history, setHistory] = useState([]);
-    const [inventory, setInventory] = useState([]);
+    const [purposes, setPurposes] = useState([]);
+    const [history, setHistory] = useState([]); // versions, naya pehle
     const [loading, setLoading] = useState(!!principalId);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
-    const [inventoryError, setInventoryError] = useState("");
     const [notice, setNotice] = useState("");
-    const [granting, setGranting] = useState(null);
+    const [busyId, setBusyId] = useState("");
+    const [confirmWithdraw, setConfirmWithdraw] = useState(false);
 
-    const apply = useCallback(([hist, inv]) => {
+    const apply = useCallback(([hist, list]) => {
         if (hist.ok) {
-            setHistory([...hist.data].sort((a, b) => timeOf(b.submittedAt) - timeOf(a.submittedAt)));
+            setHistory([...hist.data].sort((a, b) => b.version - a.version || timeOf(b.submittedAt) - timeOf(a.submittedAt)));
             setError("");
         } else {
             setError(hist.error);
         }
-        if (inv.ok) {
-            setInventory(inv.data);
-            setInventoryError("");
-        } else {
-            setInventoryError(inv.error);
-        }
+        if (list.ok) setPurposes(list.data);
+        else setError((e) => e || list.error);
         setLoading(false);
         setRefreshing(false);
     }, []);
 
     const load = useCallback(async () => {
         setRefreshing(true);
-        apply(await Promise.all([getConsentHistory(principalId), getDataInventory()]));
+        apply(await Promise.all([getConsentHistory(principalId), getPurposes()]));
     }, [apply, principalId]);
 
     useEffect(() => {
         if (!principalId) return undefined;
         let active = true;
-        Promise.all([getConsentHistory(principalId), getDataInventory()]).then((res) => {
+        Promise.all([getConsentHistory(principalId), getPurposes()]).then((res) => {
             if (active) apply(res);
         });
         return () => {
@@ -128,18 +90,44 @@ export default function MyConsents() {
         };
     }, [apply, principalId]);
 
-    const nameOf = useMemo(() => new Map(inventory.map((i) => [String(i.id), i])), [inventory]);
+    const latest = history[0] || null;
+    const entryOf = useMemo(() => new Map((latest?.purposes ?? []).map((p) => [p.purposeId, p])), [latest]);
+    const withdrawn = latest?.status === CONSENT_STATUS.withdrawn;
 
-    const latestByData = useMemo(() => {
-        const map = new Map();
-        history.forEach((c) => {
-            if (!map.has(c.inventoryId)) map.set(c.inventoryId, c);
-        });
-        return map;
-    }, [history]);
+    const allowed = purposes.filter((p) => p.mandatory || entryOf.get(p.id)?.allowed);
+    const blocked = purposes.filter((p) => !p.mandatory && latest && !entryOf.get(p.id)?.allowed);
 
-    const saved = (message) => {
-        setNotice(message);
+    // Ek purpose badalna = naya version jisme baaki purposes ke faisle jaise the waise rehte hain
+    const setOne = async (purpose, allow) => {
+        setBusyId(purpose.id);
+        setNotice("");
+        setError("");
+        const decisions = purposes.map((p) => ({
+            purposeId: p.id,
+            allow: p.mandatory ? true : p.id === purpose.id ? allow : !!entryOf.get(p.id)?.allowed,
+        }));
+        const res = await recordConsent({ dataPrincipalId: principalId, decisions, language: latest?.language || "en-IN" });
+        setBusyId("");
+        if (!res.ok) {
+            setError(res.error);
+            return;
+        }
+        setNotice(allow ? `You allowed "${purpose.name}".` : `You stopped allowing "${purpose.name}". It will not be used.`);
+        load();
+    };
+
+    const withdrawAll = async () => {
+        setBusyId("all");
+        setNotice("");
+        setError("");
+        const res = await withdrawConsent(latest.id);
+        setBusyId("");
+        setConfirmWithdraw(false);
+        if (!res.ok) {
+            setError(res.error);
+            return;
+        }
+        setNotice("You withdrew all your consent. None of your details will be used.");
         load();
     };
 
@@ -152,7 +140,7 @@ export default function MyConsents() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">My consents</h1>
-                    <p className="mt-1 text-sm text-[#475569]">See what personal data your organisation processes, give your consent, or withdraw it whenever you want. Withdrawing is one click and takes effect straight away.</p>
+                    <p className="mt-1 text-sm text-[#475569]">See which of your details your organisation may use and which you did not allow. You can change any choice whenever you want. Every change is recorded as a new version.</p>
                 </div>
                 <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
                     <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -162,42 +150,60 @@ export default function MyConsents() {
 
             {notice && <Alert tone="success">{notice}</Alert>}
             {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
-            {inventoryError && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{`Could not load the list of data points. ${inventoryError}`}</Alert>}
+            {withdrawn && <Alert tone="info">You have withdrawn your consent. Nothing is being used. You can allow individual items again below.</Alert>}
 
-            <section aria-label="Data points" className="space-y-3">
-                <h2 className="text-lg font-semibold">Data your organisation processes</h2>
+            {!loading && latest && <Summary allowed={withdrawn ? [] : allowed} blocked={withdrawn ? purposes.filter((p) => !p.mandatory) : blocked} />}
+
+            <section aria-label="Purposes" className="space-y-3">
+                <h2 className="text-lg font-semibold">Your choices</h2>
                 {loading ? (
-                    <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
-                ) : inventory.length === 0 ? (
+                    <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
+                ) : purposes.length === 0 ? (
                     <div className={`${panel} px-5 py-12 text-center`}>
                         <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-6 w-6" /></span>
                         <p className="mt-3 font-semibold">Nothing to consent to yet</p>
-                        <p className="mt-1 text-sm text-[#475569]">When your organisation adds data points, they will appear here.</p>
+                        <p className="mt-1 text-sm text-[#475569]">Your organisation has not asked for any permissions yet. When it does, they will appear here.</p>
                     </div>
                 ) : (
                     <ul className="space-y-3">
-                        {inventory.map((item) => {
-                            const latest = latestByData.get(String(item.id));
-                            const active = latest && isGranted(latest);
+                        {purposes.map((p) => {
+                            const entry = entryOf.get(p.id);
+                            const label = withdrawn && !p.mandatory ? PURPOSE_STATE.withdrawn : stateOf(p, entry);
+                            const isOn = !withdrawn && (p.mandatory || !!entry?.allowed);
                             return (
-                                <li key={item.id} className={`${panel} flex flex-wrap items-center justify-between gap-4 p-5`}>
+                                <li key={p.id} className={`${panel} flex flex-wrap items-center justify-between gap-4 p-5`}>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2.5">
-                                            <p className="font-semibold text-[#0F172A]">{item.name}</p>
-                                            {latest ? <Pill status={latest.status} /> : <span className="inline-flex rounded-full bg-[#F1F5F9] px-2.5 py-0.5 text-xs font-semibold text-[#475569] ring-1 ring-[#CBD5E1]">Not given</span>}
+                                            <p className="font-semibold text-[#0F172A]">{questionFor(p)}</p>
+                                            <Pill label={label} />
                                         </div>
-                                        {item.category && <p className="text-xs text-[#64748B]">{item.category}</p>}
-                                        {item.purpose && <p className="mt-1.5 break-words text-sm text-[#334155]">{item.purpose}</p>}
+                                        {p.mandatory && <p className="mt-1 text-xs text-[#64748B]">Needed to run your account, so this is always on.</p>}
                                     </div>
-                                    {active ? (
-                                        <WithdrawButton record={latest} name={item.name} onDone={saved} />
-                                    ) : (
-                                        <button type="button" onClick={() => { setNotice(""); setGranting(item); }} className={primaryBtn}>{latest ? "Give consent again" : "Give consent"}</button>
+                                    {!p.mandatory && (
+                                        isOn ? (
+                                            <button type="button" onClick={() => setOne(p, false)} disabled={!!busyId} className={`${ghostBtn} px-3 py-1.5 text-[#B91C1C]`}>{busyId === p.id ? "Saving..." : "Stop allowing"}</button>
+                                        ) : (
+                                            <button type="button" onClick={() => setOne(p, true)} disabled={!!busyId} className={primaryBtn}>{busyId === p.id ? "Saving..." : "Allow"}</button>
+                                        )
                                     )}
                                 </li>
                             );
                         })}
                     </ul>
+                )}
+
+                {!loading && latest && !withdrawn && (
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                        {confirmWithdraw ? (
+                            <>
+                                <span className="text-sm text-[#334155]">Withdraw all your consent?</span>
+                                <button type="button" onClick={withdrawAll} disabled={!!busyId} className="text-sm font-semibold text-[#B91C1C] hover:underline disabled:opacity-60">{busyId === "all" ? "Withdrawing..." : "Yes, withdraw all"}</button>
+                                <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={!!busyId} className="text-sm font-semibold text-[#475569] hover:underline">Cancel</button>
+                            </>
+                        ) : (
+                            <button type="button" onClick={() => setConfirmWithdraw(true)} className={`${ghostBtn} text-[#B91C1C]`}>Withdraw all consent</button>
+                        )}
+                    </div>
                 )}
             </section>
 
@@ -205,34 +211,28 @@ export default function MyConsents() {
                 <section aria-label="Consent history" className="space-y-3">
                     <h2 className="text-lg font-semibold">My consent history</h2>
                     <div className={`${panel} overflow-x-auto`}>
-                        <table className="w-full min-w-[640px] text-sm">
+                        <table className="w-full min-w-[720px] text-sm">
                             <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
                                 <tr>
-                                    {["Data point", "Status", "Notice", "Recorded", "Withdrawn"].map((h) => (
+                                    {["Version", "Status", "Allowed", "Not allowed", "Recorded"].map((h) => (
                                         <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
                                 {history.map((c) => (
-                                    <tr key={c.id}>
-                                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">{nameOf.get(c.inventoryId)?.name || `Data point ${shortId(c.inventoryId)}`}</td>
-                                        <td className="px-5 py-3.5"><Pill status={c.status} /></td>
-                                        <td className="px-5 py-3.5 text-[#334155]">v{c.noticeVersion}</td>
+                                    <tr key={c.id} className="align-top">
+                                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">v{c.version}</td>
+                                        <td className="px-5 py-3.5 text-[#334155]">{STATUS_LABEL[c.status] || c.status}</td>
+                                        <td className="px-5 py-3.5 text-[#15803D]">{allowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
+                                        <td className="px-5 py-3.5 text-[#B91C1C]">{notAllowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
                                         <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.submittedAt)}</td>
-                                        <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.withdrawnAt)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 </section>
-            )}
-
-            {granting && (
-                <Modal title="Give consent" onClose={() => setGranting(null)}>
-                    <GrantDialog item={granting} principalId={principalId} onClose={() => setGranting(null)} onDone={saved} />
-                </Modal>
             )}
         </div>
     );

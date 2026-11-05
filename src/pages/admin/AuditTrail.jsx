@@ -1,6 +1,7 @@
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getAuditLogs } from "../../api/audit.js";
+import AuditDetailModal from "../../components/admin/audit/AuditDetailModal.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
@@ -27,18 +28,6 @@ function ActionBadge({ action }) {
 function OutcomeBadge({ outcome }) {
     const tone = isSuccess(outcome) ? OUTCOME_TONE.success : OUTCOME_TONE.other;
     return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${tone}`}>{outcome || "-"}</span>;
-}
-
-function Details({ log }) {
-    return (
-        <dl className="grid gap-x-8 gap-y-3 px-5 py-4 text-xs sm:grid-cols-2 sm:px-6">
-            <div className="min-w-0"><dt className="text-[#64748B]">Sequence number</dt><dd className="mt-0.5 font-mono text-[#0F172A]">{log.seq ?? "-"}</dd></div>
-            <div className="min-w-0"><dt className="text-[#64748B]">Entity</dt><dd className="mt-0.5 break-all font-mono text-[#0F172A]">{log.entity || "-"}</dd></div>
-            <div className="min-w-0"><dt className="text-[#64748B]">Done by</dt><dd className="mt-0.5 break-all text-[#0F172A]">{log.actorEmail || "System or unknown"}{log.actorRole ? ` (${log.actorRole})` : ""}</dd></div>
-            <div className="min-w-0"><dt className="text-[#64748B]">Outcome</dt><dd className="mt-0.5 text-[#0F172A]">{log.outcome || "-"}</dd></div>
-            <div className="min-w-0 sm:col-span-2"><dt className="text-[#64748B]">Entry hash</dt><dd className="mt-0.5 break-all font-mono text-[#0F172A]">{log.hash || "-"}</dd></div>
-        </dl>
-    );
 }
 
 function Skeleton() {
@@ -139,6 +128,8 @@ export default function AuditTrail() {
         URL.revokeObjectURL(url);
     };
 
+    const opened = open === null ? null : logs.find((l) => l.id === open) || null;
+
     const statCount = 3 + (counts.delete > 0 ? 1 : 0) + (counts.failed > 0 ? 1 : 0);
 
     return (
@@ -231,38 +222,27 @@ export default function AuditTrail() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#E2E8F0]">
-                                {slice.map((l) => {
-                                    const expanded = open === l.id;
-                                    return (
-                                        <Fragment key={l.id}>
-                                            <tr className={expanded ? "bg-[#F8FAFC]" : "hover:bg-[#F8FAFC]"}>
-                                                <td className="whitespace-nowrap px-5 py-3">
-                                                    <button type="button" onClick={() => setOpen(expanded ? null : l.id)} aria-expanded={expanded} aria-label={`${expanded ? "Hide" : "Show"} details for event ${l.seq}`} className="flex items-center gap-2 rounded-md text-left font-mono text-xs text-[#0F172A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
-                                                        <Icon name="chevron" className={`h-4 w-4 text-[#64748B] transition-transform ${expanded ? "rotate-180" : "-rotate-90"}`} />
-                                                        {l.seq ?? "-"}
-                                                    </button>
-                                                </td>
-                                                <td className="whitespace-nowrap px-3 py-3 text-[#334155]">{when(l.time)}</td>
-                                                <td className="px-3 py-3"><ActionBadge action={l.action} /></td>
-                                                <td className="px-3 py-3">
-                                                    <p className="font-medium text-[#0F172A]">{l.table || "-"}</p>
-                                                    {l.key && <p className="max-w-[220px] truncate font-mono text-[11px] text-[#64748B]" title={l.key}>{l.key}</p>}
-                                                </td>
-                                                <td className="px-3 py-3">
-                                                    <p className="text-[#0F172A]">{l.actorEmail || "System"}</p>
-                                                    {l.actorRole && <p className="text-xs text-[#64748B]">{l.actorRole}</p>}
-                                                </td>
-                                                <td className="px-3 py-3"><OutcomeBadge outcome={l.outcome} /></td>
-                                                <td className="px-3 py-3 font-mono text-xs text-[#334155]" title={l.hash}>{shortHash(l.hash)}</td>
-                                            </tr>
-                                            {expanded && (
-                                                <tr>
-                                                    <td colSpan={7} className="border-t border-[#E2E8F0] bg-[#F8FAFC] p-0"><Details log={l} /></td>
-                                                </tr>
-                                            )}
-                                        </Fragment>
-                                    );
-                                })}
+                                {slice.map((l) => (
+                                    <tr key={l.id} onClick={() => setOpen(l.id)} className="cursor-pointer hover:bg-[#F8FAFC]">
+                                        <td className="whitespace-nowrap px-5 py-3">
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); setOpen(l.id); }} aria-haspopup="dialog" aria-label={`View details for event ${l.seq}`} className="rounded-md text-left font-mono text-xs text-[#0F172A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                                                {l.seq ?? "-"}
+                                            </button>
+                                        </td>
+                                        <td className="whitespace-nowrap px-3 py-3 text-[#334155]">{when(l.time)}</td>
+                                        <td className="px-3 py-3"><ActionBadge action={l.action} /></td>
+                                        <td className="px-3 py-3">
+                                            <p className="font-medium text-[#0F172A]">{l.entityType || "-"}</p>
+                                            {l.entityId && <p className="max-w-[220px] truncate font-mono text-[11px] text-[#64748B]" title={l.entityId}>{l.entityId}</p>}
+                                        </td>
+                                        <td className="px-3 py-3">
+                                            <p className="text-[#0F172A]">{l.actorEmail || "System"}</p>
+                                            {l.actorRole && <p className="text-xs text-[#64748B]">{l.actorRole}</p>}
+                                        </td>
+                                        <td className="px-3 py-3"><OutcomeBadge outcome={l.outcome} /></td>
+                                        <td className="px-3 py-3 font-mono text-xs text-[#334155]" title={l.hash}>{shortHash(l.hash)}</td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
@@ -278,6 +258,8 @@ export default function AuditTrail() {
                     </div>
                 )}
             </div>
+
+            {opened && <AuditDetailModal log={opened} onClose={() => setOpen(null)} />}
         </div>
     );
 }
