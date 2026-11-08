@@ -62,7 +62,7 @@ function HistoryItem({ r }) {
     return (
         <li className={`${panel} p-5`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-[#0F172A]">{typeLabel(r.type)}</p>
+                <p className="font-semibold text-[#0F172A]">{typeLabel(r.type)}{r.referenceId && <span className="ml-2 font-mono text-xs font-normal text-[#64748B]">{r.referenceId}</span>}</p>
                 <StatusBadge status={r.status} />
             </div>
             <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[#334155]">{r.details}</p>
@@ -118,8 +118,8 @@ export default function PrivacySettings() {
         };
     }, [principalId]);
 
-    const submitted = (requestId) => {
-        setNotice(requestId ? `Request submitted. Reference: ${String(requestId).slice(0, 8)}` : "Request submitted.");
+    const submitted = () => {
+        setNotice("Request submitted. You can follow its status under History.");
         setView("history");
         load();
     };
@@ -142,7 +142,7 @@ export default function PrivacySettings() {
             <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F766E]">Help center</p>
                 <h1 className="mt-1 text-3xl font-bold tracking-tight">Privacy settings</h1>
-                <p className="mt-1 text-sm text-[#475569]">Use your rights under the DPDP Act: ask to access, correct or erase your data, or raise a grievance.</p>
+                <p className="mt-1 text-sm text-[#475569]">Use your rights under the DPDP Act: ask to access, correct, update, erase or export your data.</p>
             </div>
 
             {!principalId && <Alert>Your session has no user ID, so requests cannot be linked to you. Please sign in again.</Alert>}

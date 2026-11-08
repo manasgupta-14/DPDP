@@ -106,7 +106,7 @@ export default function Dashboard() {
                     <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#0F766E]">Analytics &amp; reporting</p>
                     <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#0F172A] sm:text-3xl">Compliance Dashboard</h1>
                     <p className="mt-1 text-sm text-[#475569]">
-                        {d?.org ? `${d.org} · ` : ""}Live compliance posture across consent, campaigns, DSAR and breach workflows.
+                        {d?.org ? `${d.org} · ` : ""}Live compliance posture across consent, campaigns, Rights Requests and breach workflows.
                     </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">

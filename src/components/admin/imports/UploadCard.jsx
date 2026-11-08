@@ -98,7 +98,7 @@ export default function UploadCard({ kinds, onStaged }) {
                         <span className="min-w-0 flex-1 truncate text-[#64748B]">{picked ? picked.name : "No file chosen"}</span>
                         {picked && <button type="button" onClick={removeFile} className="px-2 text-xs font-semibold text-[#0F766E] hover:underline">Remove</button>}
                     </div>
-                    <p className="mt-1 text-xs text-[#64748B]">Header names must be lower-case: mobile, email, consumer_no, display_name, full_name, date_of_birth, class, preferred_locale. Each row needs at least one of mobile (10 digits), email or consumer_no, plus class (adult, child or person_with_disability) and preferred_locale (mr-IN, en-IN or hi-IN).</p>
+                    <p className="mt-1 text-xs text-[#64748B]">Header names must be lower-case: mobile, email, consumer_no, display_name, full_name, date_of_birth, class, preferred_locale and the optional org_unit_code (unit code from the Organisation hierarchy, e.g. noida-circle). Each row needs at least one of mobile (10 digits), email or consumer_no, plus class (adult, child or person_with_disability) and preferred_locale (mr-IN, en-IN or hi-IN).</p>
                 </div>
 
                 <label className={label}>

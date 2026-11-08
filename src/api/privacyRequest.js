@@ -1,50 +1,57 @@
 import { apiFetch } from "./client.js";
-import { getMyTeam } from "./breach.js";
-import { getSession } from "../auth/authStore.js";
 import { asArray } from "../utils/breach.js";
 import { normalizeRequest } from "../utils/privacyRequest.js";
 
+const first = (o, ...keys) => {
+    for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
+    return undefined;
+};
+
+// POST /api/PrivacyRequest/raise
 export async function raisePrivacyRequest({ dataPrincipalId, requestType, requestDetails }) {
     const res = await apiFetch("/api/PrivacyRequest/raise", {
         method: "POST",
         body: { dataPrincipalId, requestType, requestDetails: requestDetails.trim() },
     });
     if (!res.ok) return res;
-    return { ...res, data: { message: res.data?.message ?? res.data?.Message, requestId: res.data?.requestId ?? res.data?.RequestId } };
+    return { ...res, data: { message: first(res.data, "message", "Message"), requestId: first(res.data, "requestId", "RequestId") } };
 }
 
+// GET /api/PrivacyRequest/my-requests/{dataPrincipalId}
 export async function getMyPrivacyRequests(dataPrincipalId) {
     const res = await apiFetch(`/api/PrivacyRequest/my-requests/${encodeURIComponent(dataPrincipalId)}`);
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeRequest) } : res;
 }
 
-export async function getAllPrivacyRequests() {
-    const team = await getMyTeam();
-    if (!team.ok) return team;
+// GET /api/PrivacyRequest?search=&status=&type=&overdueOnly=&page=&pageSize=   (admin list, filtered + paged on the server)
+export async function getPrivacyRequests({ search = "", status = "", type = "", overdueOnly = false, page = 1, pageSize = 10 } = {}) {
+    const q = new URLSearchParams();
+    if (search.trim()) q.set("search", search.trim());
+    if (status) q.set("status", status);
+    if (type) q.set("type", type);
+    if (overdueOnly) q.set("overdueOnly", "true");
+    q.set("page", String(page));
+    q.set("pageSize", String(pageSize));
 
-    const ids = new Set(team.data.map((m) => String(m.id)));
-    const ownId = getSession()?.userId;
-    if (ownId) ids.add(String(ownId));
-
-    const results = await Promise.all([...ids].map((id) => getMyPrivacyRequests(id)));
-    const failed = results.filter((r) => !r.ok);
-    if (failed.length === results.length && results.length > 0) return failed[0];
-
-    const seen = new Set();
-    const data = results
-        .filter((r) => r.ok)
-        .flatMap((r) => r.data)
-        .filter((r) => (seen.has(r.id) ? false : seen.add(r.id)));
-
+    const res = await apiFetch(`/api/PrivacyRequest?${q.toString()}`);
+    if (!res.ok) return res;
+    const rows = asArray(first(res.data, "data", "Data"));
     return {
-        ok: true,
-        status: 200,
-        error: failed.length ? `${failed.length} of ${results.length} users' requests could not be loaded. Showing the rest.` : null,
-        data,
-        team: team.data,
+        ...res,
+        data: {
+            items: rows.map(normalizeRequest),
+            totalCount: Number(first(res.data, "totalCount", "TotalCount") ?? rows.length),
+        },
     };
 }
 
+// GET /api/PrivacyRequest/{id}/detail   (PII is masked by the backend)
+export async function getPrivacyRequestDetail(id) {
+    const res = await apiFetch(`/api/PrivacyRequest/${encodeURIComponent(id)}/detail`);
+    return res.ok ? { ...res, data: normalizeRequest(res.data) } : res;
+}
+
+// PUT /api/PrivacyRequest/resolve/{id}
 export async function resolvePrivacyRequest(id, { status, resolutionRemarks }) {
     return apiFetch(`/api/PrivacyRequest/resolve/${encodeURIComponent(id)}`, {
         method: "PUT",

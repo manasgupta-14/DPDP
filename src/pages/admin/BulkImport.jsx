@@ -3,10 +3,11 @@ import { useOutletContext } from "react-router-dom";
 import { getBatches } from "../../api/imports.js";
 import BatchList from "../../components/admin/imports/BatchList.jsx";
 import BatchReview from "../../components/admin/imports/BatchReview.jsx";
+import AddDataPrincipalModal from "../../components/admin/principals/AddDataPrincipalModal.jsx";
 import UploadCard from "../../components/admin/imports/UploadCard.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
-import { ghostBtn } from "../../components/shared/ui.js";
+import { ghostBtn, primaryBtn } from "../../components/shared/ui.js";
 import { IMPORT_KINDS, IMPORT_STATUSES } from "../../utils/bulkImport.js";
 
 export default function BulkImport() {
@@ -17,6 +18,7 @@ export default function BulkImport() {
     const [error, setError] = useState("");
     const [activeId, setActiveId] = useState(null);
     const [notice, setNotice] = useState(null);
+    const [addingUser, setAddingUser] = useState(false);
 
     const apply = useCallback((res) => {
         if (res.ok) {
@@ -63,10 +65,15 @@ export default function BulkImport() {
                     <h1 className="text-3xl font-bold tracking-tight">Bulk import</h1>
                     <p className="mt-1.5 max-w-3xl text-[15px] text-[#475569]">Migrate an existing consumer base from a CSV. Rows are staged and validated first, and nothing is written to consumer records until you execute the batch.</p>
                 </div>
-                <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
-                    <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                    {refreshing ? "Refreshing..." : "Refresh"}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
+                        <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                        {refreshing ? "Refreshing..." : "Refresh"}
+                    </button>
+                    <button type="button" onClick={() => setAddingUser(true)} className={primaryBtn}>
+                        <span aria-hidden className="text-base leading-none">+</span> Add new user
+                    </button>
+                </div>
             </header>
 
             {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
@@ -84,6 +91,8 @@ export default function BulkImport() {
                     {notice.text}
                 </Alert>
             )}
+
+            {addingUser && <AddDataPrincipalModal onClose={() => setAddingUser(false)} onAdded={(d) => setNotice({ id: "", text: `User added${d.referenceId ? ` (${d.referenceId})` : ""}. It is now a data principal.` })} />}
 
             <UploadCard kinds={IMPORT_KINDS} onStaged={staged} />
             <BatchList batches={batches} kinds={IMPORT_KINDS} statuses={IMPORT_STATUSES} loading={loading} query={query} onOpen={(id) => { setActiveId(id); setNotice(null); }} />
