@@ -58,3 +58,55 @@ export async function resolvePrivacyRequest(id, { status, resolutionRemarks }) {
         body: { status, resolutionRemarks: resolutionRemarks.trim() },
     });
 }
+
+// ---------------- Naya backend (PrivacyRequest list + detail) ----------------
+// GET /api/PrivacyRequest?search=&status=&type=&overdueOnly=&page=&pageSize=  -> { totalCount, data: [...] }
+// GET /api/PrivacyRequest/{id}/detail
+// status / type backend enum ke naam hain, jaise "InProgress", "Erasure" (dekho utils/rightsRequest.js)
+
+const pickV = (o, ...keys) => {
+    for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
+    return null;
+};
+
+function normalizeRow(r) {
+    return {
+        id: String(pickV(r, "requestId", "RequestId") ?? ""),
+        reference: String(pickV(r, "referenceId", "ReferenceId") ?? ""),
+        principalId: String(pickV(r, "dataPrincipalId", "DataPrincipalId") ?? ""),
+        principalName: String(pickV(r, "principalName", "PrincipalName") ?? ""),
+        principalEmail: String(pickV(r, "principalEmail", "PrincipalEmail") ?? ""),
+        principalMobile: String(pickV(r, "principalMobile", "PrincipalMobile") ?? ""),
+        type: String(pickV(r, "requestType", "RequestType") ?? ""),
+        details: String(pickV(r, "requestDetails", "RequestDetails") ?? ""),
+        status: String(pickV(r, "status", "Status") ?? ""),
+        remarks: String(pickV(r, "resolutionRemarks", "ResolutionRemarks") ?? ""),
+        createdAt: pickV(r, "createdAt", "CreatedAt"),
+        deadline: pickV(r, "targetResolutionDate", "TargetResolutionDate"),
+        resolvedAt: pickV(r, "resolvedAt", "ResolvedAt"),
+        overdue: !!pickV(r, "isOverdue", "IsOverdue"),
+    };
+}
+
+export async function getPrivacyRequestList({ search = "", status = "", type = "", overdueOnly = false, page = 1, pageSize = 10 } = {}) {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (search.trim()) params.set("search", search.trim());
+    if (status) params.set("status", status);
+    if (type) params.set("type", type);
+    if (overdueOnly) params.set("overdueOnly", "true");
+    const res = await apiFetch(`/api/PrivacyRequest?${params}`);
+    if (!res.ok) return res;
+    return {
+        ...res,
+        data: {
+            total: Number(pickV(res.data, "totalCount", "TotalCount") ?? 0),
+            rows: asArray(pickV(res.data, "data", "Data")).map(normalizeRow),
+        },
+    };
+}
+
+export async function getPrivacyRequestDetail(id) {
+    const res = await apiFetch(`/api/PrivacyRequest/${encodeURIComponent(id)}/detail`);
+    if (!res.ok) return res.status === 404 ? { ...res, error: "This request was not found." } : res;
+    return { ...res, data: normalizeRow(res.data) };
+}

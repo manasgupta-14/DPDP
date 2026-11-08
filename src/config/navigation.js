@@ -56,7 +56,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/tasks", label: "My Tasks", icon: "tasks" },
             { to: "/user/consent", label: "My Consents", icon: "consent" },
-            { to: "/user/notices", label: "Privacy notices", icon: "notice" },
+            { to: "/user/notices", label: "My notices", icon: "notice" },
             { to: "/user/reports", label: "My Security Reports", icon: "shield" },
         ],
     },
@@ -65,6 +65,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/grievance", label: "Grievance", icon: "rights" },
             { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
+            { to: "/user/privacy-notices", label: "Privacy notices", icon: "notice" },
         ],
     },
 ];

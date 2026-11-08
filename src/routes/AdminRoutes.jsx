@@ -24,6 +24,7 @@ export default function adminRoutes() {
             <Route path="roles/:id" element={<RoleEditor mode="view" />} />
             <Route path="roles/:id/edit" element={<RoleEditor mode="edit" />} />
             <Route path="data-principals" element={<DataPrincipals />} />
+            <Route path="principals" element={<DataPrincipals />} />
             <Route path="purposes" element={<Purposes />} />
             <Route path="notices" element={<Notices />} />
             <Route path="notices/:id" element={<NoticeEditor />} />
