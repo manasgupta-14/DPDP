@@ -26,3 +26,31 @@ export async function getMyPendingCampaigns() {
 export async function respondToCampaign(campaignId, responseStatus) {
     return apiFetch("/api/Campaign/respond", { method: "POST", body: { campaignId, responseStatus } });
 }
+
+// GET /api/Campaign/audiences?type=internal  -> staff (Users)
+// GET /api/Campaign/audiences?type=customer  -> customers (Data Principals)
+// Response: [{ id, fullName, email, userType }]
+export async function getAudienceList(type) {
+    const res = await apiFetch(`/api/Campaign/audiences?type=${encodeURIComponent(type)}`);
+    if (!res.ok) return res;
+    return {
+        ...res,
+        data: asArray(res.data)
+            .map((m) => ({
+                id: String(m?.id ?? m?.Id ?? ""),
+                name: String(m?.fullName ?? m?.FullName ?? ""),
+                email: String(m?.email ?? m?.Email ?? ""),
+                userType: String(m?.userType ?? m?.UserType ?? ""),
+            }))
+            .filter((m) => m.id),
+    };
+}
+
+// POST /api/Campaign/link-audience  { campaignId, selectedIds: [guid], isInternalUserMapping }
+// Backend us type (staff ya customer) ki purani list hata ke yeh nayi list save karta hai.
+export async function linkAudience({ campaignId, selectedIds, isInternalUserMapping }) {
+    return apiFetch("/api/Campaign/link-audience", {
+        method: "POST",
+        body: { campaignId, selectedIds, isInternalUserMapping: !!isInternalUserMapping },
+    });
+}

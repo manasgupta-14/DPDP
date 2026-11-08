@@ -12,6 +12,7 @@ export const ADMIN_SECTIONS = [
         items: [
             { to: "/dashboard/consent", label: "Consent management", icon: "consent" },
             { to: "/dashboard/notice", label: "Privacy notice builder", icon: "notice" },
+            { to: "/dashboard/notices", label: "Privacy notices", icon: "notice" },
             { to: "/dashboard/campaigns", label: "Campaigns", icon: "tasks" },
             { to: "/dashboard/inventory", label: "Data inventory", icon: "inventory" },
         ],
@@ -35,6 +36,7 @@ export const ADMIN_SECTIONS = [
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
             { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
+            { to: "/dashboard/principals", label: "Data principals", icon: "inventory" },
             { to: "/dashboard/imports", label: "Bulk import", icon: "upload" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
             { to: "/dashboard/admin", label: "Admin", icon: "gear" },
@@ -60,6 +62,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/grievance", label: "Grievance", icon: "rights" },
             { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
+            { to: "/user/notices", label: "Privacy notices", icon: "notice" },
         ],
     },
 ];
