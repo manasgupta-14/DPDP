@@ -9,8 +9,9 @@ const AuditTrail = lazy(() => import("./AuditTrail.jsx"));
 const BreachManagement = lazy(() => import("./BreachManagement.jsx"));
 const ConsentManagement = lazy(() => import("./ConsentManagement.jsx"));
 const DataInventory = lazy(() => import("./DataInventory.jsx"));
-const NoticeTemplates = lazy(() => import("./NoticeTemplates.jsx"));
-const PrivacyRequests = lazy(() => import("./PrivacyRequests.jsx"));
+// DSAR ab naye backend ki list/detail API wale page par chalta hai. Purana PrivacyRequests.jsx waise hi rakha hai.
+const NoticeBuilder = lazy(() => import("./NoticeBuilder.jsx"));
+const RightsRequests = lazy(() => import("./RightsRequests.jsx"));
 
 export default function ModulePage() {
     const slug = useLocation().pathname.split("/").pop();
@@ -18,8 +19,8 @@ export default function ModulePage() {
     if (slug === "consent") return <Suspense fallback={<PageLoader />}><ConsentManagement /></Suspense>;
     if (slug === "inventory") return <Suspense fallback={<PageLoader />}><DataInventory /></Suspense>;
     if (slug === "audit") return <Suspense fallback={<PageLoader />}><AuditTrail /></Suspense>;
-    if (slug === "notice") return <Suspense fallback={<PageLoader />}><NoticeTemplates /></Suspense>;
-    if (slug === "dsar") return <Suspense fallback={<PageLoader />}><PrivacyRequests /></Suspense>;
+    if (slug === "notice") return <Suspense fallback={<PageLoader />}><NoticeBuilder /></Suspense>;
+    if (slug === "dsar") return <Suspense fallback={<PageLoader />}><RightsRequests /></Suspense>;
     const info = MODULE_INFO[slug];
     if (!info) return <Navigate to="/dashboard" replace />;
     const icon = ADMIN_NAV.find((n) => n.to.endsWith(`/${slug}`))?.icon || "grid";

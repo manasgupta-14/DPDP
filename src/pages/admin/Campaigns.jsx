@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
 import { getRoleOptions } from "../../api/roles.js";
+import AudienceModal from "../../components/admin/campaign/AudienceModal.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
@@ -15,6 +16,9 @@ import {
     dayEndISO,
     formatDay,
     isConsent,
+    TARGET_AUDIENCE,
+    TARGET_AUDIENCE_OPTIONS,
+    targetAudienceLabel,
     todayInput,
     typeLabel,
 } from "../../utils/campaign.js";
@@ -23,7 +27,8 @@ const EMPTY = () => ({
     title: "",
     description: "",
     campaignType: "",
-    targetRole: "",
+    targetAudience: "",
+    targetRole: "All",
     dataInventoryId: "",
     startDate: todayInput(),
     endDate: todayInput(7),
@@ -34,7 +39,8 @@ function validate(f) {
     if (f.title.trim().length < 5) e.title = "Use at least 5 characters.";
     if (f.description.trim().length < 10) e.description = "Use at least 10 characters.";
     if (!f.campaignType) e.campaignType = "Select a campaign type.";
-    if (!f.targetRole) e.targetRole = "Select who should see this.";
+    if (!f.targetAudience) e.targetAudience = "Select who should receive this.";
+    if (Number(f.targetAudience) === TARGET_AUDIENCE.allStaff && !f.targetRole) e.targetRole = "Select which staff role should see this.";
     if (isConsent(f.campaignType) && !f.dataInventoryId) e.dataInventoryId = "Select the data this consent is for.";
     if (!f.startDate) e.startDate = "Select a start date.";
     if (!f.endDate) e.endDate = "Select an end date.";
@@ -86,7 +92,9 @@ function CreateForm({ onCreated, onDone }) {
             title: form.title.trim(),
             description: form.description.trim(),
             campaignType: form.campaignType,
-            targetRole: form.targetRole,
+            targetAudience: Number(form.targetAudience),
+            // Role filter sirf "All staff" ke liye kaam karta hai, baaki sab ke liye "All"
+            targetRole: Number(form.targetAudience) === TARGET_AUDIENCE.allStaff ? form.targetRole : "All",
             startDate: dayStartISO(form.startDate),
             endDate: dayEndISO(form.endDate),
             dataInventoryId: consent ? form.dataInventoryId : null,
@@ -94,9 +102,11 @@ function CreateForm({ onCreated, onDone }) {
         setBusy(false);
 
         if (!res.ok) return setApiError(res.error);
+        const specific = Number(form.targetAudience) === TARGET_AUDIENCE.specific;
+        const created = { id: res.data?.campaignId ?? res.data?.CampaignId ?? null, title: form.title.trim() };
         setForm(EMPTY());
         setSuccess("Campaign created and set live for the selected audience.");
-        onCreated?.();
+        onCreated?.(specific && created.id ? created : null);
         onDone?.();
     };
 
@@ -131,14 +141,27 @@ function CreateForm({ onCreated, onDone }) {
                         <span className="mt-1 block text-xs text-[#DC2626]">{errors.campaignType}</span>
                     </label>
                     <label className="block text-sm font-medium text-[#334155]">
-                        Audience
-                        <select value={form.targetRole} onChange={set("targetRole")} className={field} aria-invalid={!!errors.targetRole}>
+                        Who receives it
+                        <select value={form.targetAudience} onChange={set("targetAudience")} className={field} aria-invalid={!!errors.targetAudience}>
                             <option value="" disabled>Select audience</option>
+                            {TARGET_AUDIENCE_OPTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
+                        </select>
+                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.targetAudience}</span>
+                    </label>
+                </div>
+
+                {Number(form.targetAudience) === TARGET_AUDIENCE.allStaff && (
+                    <label className="block text-sm font-medium text-[#334155]">
+                        Staff role
+                        <select value={form.targetRole} onChange={set("targetRole")} className={field} aria-invalid={!!errors.targetRole}>
                             {audiences.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
                         <span className="mt-1 block text-xs text-[#DC2626]">{errors.targetRole}</span>
                     </label>
-                </div>
+                )}
+                {Number(form.targetAudience) === TARGET_AUDIENCE.specific && (
+                    <p className="rounded-xl bg-[#F8FAFC] px-3 py-2 text-xs text-[#475569] ring-1 ring-[#E2E8F0]">After you create the campaign, a list opens where you pick the exact staff members or customers.</p>
+                )}
 
                 {consent && (
                     <label className="block text-sm font-medium text-[#334155]">
@@ -241,7 +264,7 @@ function StatsPanel({ campaign, onClose }) {
     );
 }
 
-function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, selectedId }) {
+function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, onAssign, selectedId }) {
     return (
         <div className={`${panel} overflow-hidden`}>
             <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
@@ -271,10 +294,13 @@ function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, selecte
                                             <p className="font-medium">{c.title}</p>
                                             <p className="text-xs text-[#64748B]">{typeLabel(c.type)}{c.inventory?.name ? ` · ${c.inventory.name}` : ""}</p>
                                         </td>
-                                        <td className="px-3 py-3 text-[#334155]">{c.audience || "-"}</td>
+                                        <td className="px-3 py-3 text-[#334155]">{targetAudienceLabel(c.targetAudience, c.audience)}</td>
                                         <td className="whitespace-nowrap px-3 py-3 text-[#334155]">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
                                         <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${st.tone}`}>{st.label}</span></td>
-                                        <td className="px-5 py-3 text-right"><button type="button" disabled={!c.id} onClick={() => onSelect(c)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">View stats</button></td>
+                                        <td className="whitespace-nowrap px-5 py-3 text-right">
+                                            <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-[#0E7490] hover:underline disabled:opacity-50">Assign audience</button>
+                                            <button type="button" disabled={!c.id} onClick={() => onSelect(c)} className="text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">View stats</button>
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -294,6 +320,8 @@ export default function Campaigns() {
     const [error, setError] = useState("");
     const [selected, setSelected] = useState(null);
     const [creating, setCreating] = useState(false);
+    const [assigning, setAssigning] = useState(null);
+    const [flash, setFlash] = useState("");
 
     const load = useCallback(async () => {
         setError("");
@@ -323,13 +351,22 @@ export default function Campaigns() {
                 </div>
                 <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>+ Create new campaign</button>
             </div>
-            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} selectedId={selected?.id} />
+            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
+            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} onAssign={(c) => { setFlash(""); setAssigning(c); }} selectedId={selected?.id} />
             {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
             {creating && (
                 <Modal title="Create new campaign" onClose={() => setCreating(false)}>
-                    <CreateForm onCreated={load} onDone={() => setCreating(false)} />
+                    <CreateForm
+                        onCreated={(created) => {
+                            load();
+                            // "Specific people" chuna tha to campaign bante hi audience list khol do
+                            if (created) setAssigning(created);
+                        }}
+                        onDone={() => setCreating(false)}
+                    />
                 </Modal>
             )}
+            {assigning && <AudienceModal key={assigning.id} campaign={assigning} onClose={() => setAssigning(null)} onLinked={setFlash} />}
         </div>
     );
 }

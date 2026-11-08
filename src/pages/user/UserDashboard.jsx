@@ -77,7 +77,7 @@ export default function UserDashboard() {
                 <Link to="/user/privacy" className={`${panel} block p-6 transition hover:-translate-y-0.5 hover:border-[#0F766E]/40`}>
                     <p className="text-sm text-[#475569]">Privacy requests raised</p>
                     <p className="mt-1 text-4xl font-bold tracking-tight">{summary.loading ? "-" : summary.data ? summary.data.requestsRaised : "-"}</p>
-                    <p className="mt-2 text-sm text-[#64748B]">Access, correction, erasure, grievance</p>
+                    <p className="mt-2 text-sm text-[#64748B]">Access, correction, erasure and more</p>
                 </Link>
             </section>
 

@@ -1,9 +1,10 @@
 import { apiFetch } from "./client.js";
-import { getBatchDetails, getBatches } from "./imports.js";
-import { BATCH_STATUS, ROW_STATUS } from "../utils/bulkImport.js";
+
+const arr = (v) => (Array.isArray(v) ? v : []);
+const val = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 
 // POST /api/dataprincipal/add  (DataPrincipalDto)
-// Backend DTO: mobile, email, consumerNo, fullName, dateOfBirth (yyyy-MM-dd), class, preferredLocale.
+// Backend DTO: mobile, email, consumerNo, fullName, dateOfBirth (yyyy-MM-dd), class, preferredLocale. There is NO orgUnitId in DataPrincipalDto, so it is not sent.
 // Backend itself rejects a request that has neither mobile nor email. Display name is NOT in this DTO (only the CSV bulk import has it).
 // Response: { message, referenceId, dataPrincipalId }
 export async function addDataPrincipal({ mobile, email, consumerNo, fullName, dateOfBirth, cls, preferredLocale }) {
@@ -30,48 +31,76 @@ export async function addDataPrincipal({ mobile, email, consumerNo, fullName, da
     };
 }
 
-// Backend has no "list data principals" endpoint, but every user created by a bulk import is still described by the Import API:
-//   GET /api/Import/batches                        -> all batches of this organisation
-//   GET /api/Import/batches/{id}?status=Executed   -> the rows that were really written to the data principal table (paged)
-// So the data principals created by bulk import are rebuilt from the executed rows of every batch that has been executed.
-// Not available this way: the PSD-xxxxxxxx reference id (it is generated while executing and not stored on the row).
-const ROWS_PAGE = 200;
-const MAX_PAGES = 25;
+// GET /api/dataprincipal?search=&classType=&page=&pageSize=
+//   -> { totalCount, data: [{ dataPrincipalId, referenceId, name, mobile, email, consumerNo, class,
+//                             preferredLocale, requiresGuardianConsent, status, createdAt, source }] }
+// Name, mobile, email and consumer no. come back already masked by the backend.
+// (Backend always returns status "Active" and source "Manual", so those two are not shown.)
+export async function listDataPrincipals({ search = "", classType = "", page = 1, pageSize = 10 } = {}) {
+    const qs = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    if (search) qs.set("search", search);
+    if (classType) qs.set("classType", classType);
 
-async function executedRows(batch) {
-    const rows = [];
-    for (let page = 1; page <= MAX_PAGES; page += 1) {
-        const res = await getBatchDetails(batch.id, { status: ROW_STATUS.EXECUTED, page, pageSize: ROWS_PAGE });
-        if (!res.ok) return res;
-        rows.push(...res.data.rows);
-        if (res.data.rows.length < ROWS_PAGE) break;
-    }
-    return { ok: true, data: rows };
+    const res = await apiFetch(`/api/dataprincipal?${qs.toString()}`);
+    if (!res.ok) return res;
+
+    const d = res.data || {};
+    const rows = arr(val(d, "data")).map((r) => ({
+        id: String(val(r, "dataPrincipalId") ?? ""),
+        referenceId: String(val(r, "referenceId") ?? ""),
+        name: String(val(r, "name") ?? ""),
+        mobile: String(val(r, "mobile") ?? ""),
+        email: String(val(r, "email") ?? ""),
+        consumerNo: String(val(r, "consumerNo") ?? ""),
+        cls: String(val(r, "class") ?? ""),
+        locale: String(val(r, "preferredLocale") ?? ""),
+        guardian: !!val(r, "requiresGuardianConsent"),
+        createdAt: val(r, "createdAt") ?? null,
+    }));
+    return { ...res, data: { total: Number(val(d, "totalCount") ?? rows.length), rows } };
 }
 
-export async function getImportedDataPrincipals() {
-    const list = await getBatches();
-    if (!list.ok) return list;
-    // Staged / Failed batches wrote nothing. Executing may already have written some rows.
-    const done = list.data.filter((b) => [BATCH_STATUS.COMPLETED, BATCH_STATUS.COMPLETED_WITH_ERRORS, BATCH_STATUS.EXECUTING].includes(b.status));
-    const results = await Promise.all(done.map(async (b) => ({ batch: b, res: await executedRows(b) })));
-    const failed = results.filter((r) => !r.res.ok);
-    if (done.length > 0 && failed.length === done.length) return failed[0].res;
-
-    const data = results
-        .filter((r) => r.res.ok)
-        .flatMap(({ batch, res }) => res.data.map((r) => ({
-            id: `import:${batch.id}:${r.n}`,
-            referenceId: "",
-            mobile: r.mobile,
-            email: r.email,
-            consumerNo: r.consumerNo,
-            fullName: r.name,
-            dateOfBirth: r.dateOfBirth,
-            cls: r.cls,
-            preferredLocale: r.locale,
-            source: batch.fileName ? `Bulk import: ${batch.fileName}` : "Bulk import",
-            addedAt: batch.completedAt || batch.createdAt,
-        })));
-    return { ok: true, status: 200, error: null, data, skipped: failed.length };
+// GET /api/dataprincipal/{id}/360-view  ->  { record, identifiers[], rightsRequests[], activeConsents[] }
+// Name, email, mobile and consumer no. come back already masked by the backend.
+export async function getDataPrincipal360(id) {
+    const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}/360-view`);
+    if (!res.ok) {
+        if (res.status === 404) return { ...res, error: "Data principal not found in your organisation." };
+        if (res.status === 400) return { ...res, error: "That is not a valid data principal id." };
+        return res;
+    }
+    const d = res.data || {};
+    const r = val(d, "record") || {};
+    return {
+        ...res,
+        data: {
+            record: {
+                referenceId: String(val(r, "referenceId") ?? ""),
+                name: String(val(r, "name") ?? ""),
+                cls: String(val(r, "class") ?? ""),
+                status: String(val(r, "status") ?? ""),
+                preferredLanguage: String(val(r, "preferredLanguage") ?? ""),
+                registeredDate: val(r, "registeredDate") ?? null,
+            },
+            identifiers: arr(val(d, "identifiers")).map((i) => ({
+                kind: String(val(i, "kind") ?? ""),
+                value: String(val(i, "value") ?? ""),
+                isPrimary: !!val(i, "isPrimary"),
+                isVerified: !!val(i, "isVerified"),
+            })),
+            rightsRequests: arr(val(d, "rightsRequests")).map((q) => ({
+                id: String(val(q, "requestId") ?? ""),
+                reference: String(val(q, "reference") ?? ""),
+                right: String(val(q, "rightExercised") ?? ""),
+                status: String(val(q, "status") ?? ""),
+                raisedOn: val(q, "raisedOn") ?? null,
+                deadline: val(q, "deadline") ?? null,
+            })),
+            consents: arr(val(d, "activeConsents")).map((c) => ({
+                purposeName: String(val(c, "purposeName") ?? ""),
+                grantedOn: val(c, "grantedOn") ?? null,
+                status: String(val(c, "status") ?? ""),
+            })),
+        },
+    };
 }

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createTemplate, updateTemplate } from "../../../api/noticeTemplate.js";
-import { DEFAULT_COLOR, isHex, norm, toCode } from "../../../utils/noticeTemplate.js";
+import { DEFAULT_COLOR, DEFAULT_LAYOUT, isHex, norm, toCode } from "../../../utils/noticeTemplate.js";
 import Alert from "../../shared/Alert.jsx";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
@@ -19,6 +19,7 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
         purposes: template?.purposes ?? [],
         logoUrl: template?.logoUrl ?? "",
         primaryColor: template?.primaryColor || DEFAULT_COLOR,
+        layout: template?.layout || DEFAULT_LAYOUT,
     });
     const [codeTouched, setCodeTouched] = useState(false);
     const [errors, setErrors] = useState({});
@@ -52,6 +53,7 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
         if (!form.description.trim()) found.description = "Describe what this notice is for.";
         if (form.purposes.length === 0) found.purposes = "Select at least one purpose.";
         if (!isHex(form.primaryColor)) found.primaryColor = "Use a hex colour like #0F62FE.";
+        if (form.layout.trim().length > 50) found.layout = "Use at most 50 characters.";
         const others = editing ? templates.filter((t) => t.id !== template.id) : templates;
         if (others.some((t) => norm(t.code) === norm(code))) found.code = "A template with this code already exists.";
         else if (others.some((t) => norm(t.name) === norm(form.name))) found.name = "A template with this name already exists.";
@@ -132,6 +134,13 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
                                 <span className={err}>{errors.primaryColor}</span>
                             </label>
                         </div>
+                        <label className="block text-sm font-medium text-[#334155]">
+                            Layout
+                            <input list="notice-template-layouts" value={form.layout} onChange={set("layout")} maxLength={50} disabled={busy} placeholder="Standard" className={field} aria-invalid={!!errors.layout} />
+                            <datalist id="notice-template-layouts"><option value="Standard" /></datalist>
+                            <span className={hint}>Saved with the template and returned by the API. The backend does not list allowed layouts, so Standard is the default.</span>
+                            <span className={err}>{errors.layout}</span>
+                        </label>
                         {editing && (template.logoUrl === undefined || template.primaryColor === undefined) && (
                             <p className="rounded-lg border border-[#D97706]/30 bg-[#D97706]/10 px-3 py-2 text-xs text-[#B45309]">The API does not return the saved logo and colour. Saving sends the values shown here, so re-enter them if this template already had its own.</p>
                         )}
