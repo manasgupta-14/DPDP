@@ -24,38 +24,33 @@ function Choice({ active, tone, onClick, children }) {
 
 const norm = (s) => String(s || "").trim().toLowerCase();
 
-// Purpose tab "answered" mana jayega jab pichle consent record me uski id ya uska naam mil jaye.
 const answeredIn = (latest) => {
     const list = latest?.purposes ?? [];
     return { ids: new Set(list.map((p) => p.purposeId)), names: new Set(list.map((p) => norm(p.name))) };
 };
 const isAnswered = (purpose, sets) => sets.ids.has(purpose.id) || sets.names.has(norm(purpose.name));
 
-// Login ke baad: agar user ne abhi tak consent nahi diya (ya naya purpose add hua hai) toh yeh popup aata hai.
-// User har purpose par Allow / Don't allow chunta hai. Allow = data use ho sakta hai, Don't allow = nahi.
 export default function ConsentGate() {
     const userId = getProfile()?.userId;
-    const [purposes, setPurposes] = useState([]); // sabhi purposes
-    const [previous, setPrevious] = useState(null); // user ka pichla consent (agar hai)
+    const [purposes, setPurposes] = useState([]);
+    const [previous, setPrevious] = useState(null);
     const [open, setOpen] = useState(false);
     const [lang, setLang] = useState("en");
     const [choices, setChoices] = useState({});
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const saving = useRef(false); // double click par dobara save na ho
+    const saving = useRef(false);
     const t = NOTICE_TEXT[lang];
 
     useEffect(() => {
         if (!userId) return undefined;
         let active = true;
         getPurposes({ includeInactive: true }).then(async (full) => {
-            // Archived (purane) versions ko dobara nahi poochna; history match ke liye poori list use hoti hai.
             const list = full.ok ? { ...full, data: full.data.filter((p) => p.active) } : full;
             if (!list.ok || list.data.length === 0) return;
             const mine = await getMyConsent(userId, full.data);
             if (!active || !mine.ok) return;
             const latest = mine.data;
-            // User ne pehle consent wapas le liya hai: dobara pareshan nahi karna, My Consents se wo khud de sakta hai.
             if (latest && latest.status === CONSENT_STATUS.withdrawn) return;
             const answered = answeredIn(latest);
             const pending = list.data.filter((p) => !isAnswered(p, answered));
@@ -86,7 +81,6 @@ export default function ConsentGate() {
             setError(t.pickOne);
             return;
         }
-        // Naya record sab purposes ka hota hai: purane faisle jaise the waise, naye purposes par abhi ka choice.
         const beforeOf = (p) => (previous?.purposes ?? []).find((x) => x.purposeId === p.id || norm(x.name) === norm(p.name))?.allowed;
         const decisions = purposes.map((p) => ({
             purposeId: p.id,

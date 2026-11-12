@@ -15,7 +15,6 @@ export const PERM = {
 };
 
 export const CATEGORIES = ["Data Access", "Data Correction", "Data Erasure", "Consent", "Data Breach", "Other"];
-// Status strings exactly as the backend writes them (GrievanceService / BreachService).
 export const STATUSES = ["Open", "In Progress", "Resolved", "Escalated to Breach"];
 export const SEVERITIES = ["Low", "Medium", "High", "Critical"];
 export const ESC_SEVERITIES = SEVERITIES;
@@ -39,7 +38,6 @@ export function normalizeGrievance(r) {
     };
 }
 
-// ---- Light tones (data principal pages) ----
 export function grievanceStatusToneLight(status) {
     if (sameText(status, "open")) return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
     if (sameText(status, "in progress")) return "bg-[#22D3EE]/15 text-[#0F172A] ring-[#22D3EE]/50";
@@ -50,7 +48,6 @@ export function grievanceStatusToneLight(status) {
 
 export const isClosedStatus = (s) => sameText(s, "resolved") || sameText(s, "closed") || sameText(s, "escalated to breach");
 
-// Timeline built only from what the API returns: creation time + each message.
 export function buildTimeline(ticket) {
     const events = [{ key: "raised", label: "Grievance raised", time: ticket.createdAt, color: "#0F766E" }];
     ticket.messages.forEach((m, i) => {

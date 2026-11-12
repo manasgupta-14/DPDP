@@ -19,7 +19,6 @@ function StatusPill({ status }) {
         : <span className="inline-flex rounded-full bg-[#D97706]/10 px-2.5 py-0.5 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">{status || "Draft"}</span>;
 }
 
-// ---------- Create ----------
 function CreateModal({ onClose, onCreated }) {
     const [form, setForm] = useState({ code: "", title: "", summary: "", primaryLanguage: "en" });
     const [errors, setErrors] = useState({});
@@ -75,7 +74,6 @@ function CreateModal({ onClose, onCreated }) {
     );
 }
 
-// ---------- Edit / view ----------
 function EditorModal({ id, onClose, onChanged }) {
     const [state, setState] = useState({ loading: true, error: "", notice: null, templates: [], templatesError: "", purposes: [] });
     const [templateId, setTemplateId] = useState("");
@@ -219,7 +217,6 @@ function EditorModal({ id, onClose, onChanged }) {
     );
 }
 
-// ---------- Page ----------
 export default function Notices() {
     const { query = "" } = useOutletContext() || {};
     const [state, setState] = useState({ loading: true, rows: [], error: "" });

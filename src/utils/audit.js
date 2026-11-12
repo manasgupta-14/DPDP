@@ -18,7 +18,7 @@ function splitEntity(entity) {
     return { table: text.slice(0, at), key: text.slice(at).trim() };
 }
 
-export const NOT_IN_API = "Not available - the Audit API (GET /api/Audit/logs) does not return this field.";
+export const NOT_IN_API = "-";
 
 function parseKey(key) {
     const text = String(key ?? "").trim();
@@ -29,7 +29,6 @@ function parseKey(key) {
             return Object.entries(obj).map(([name, value]) => ({ name, value: value === null || value === undefined ? "" : String(value) }));
         }
     } catch {
-        // key is not JSON, fall through and show it as plain text
     }
     return [{ name: "", value: text }];
 }

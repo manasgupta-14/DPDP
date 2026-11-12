@@ -1,5 +1,3 @@
-// Naye backend ke PrivacyRequest enums (naam wahi jo backend bhejta / samajhta hai)
-
 export const RIGHT_TYPES = [
     { value: "Access", label: "Access" },
     { value: "Correction", label: "Correction" },

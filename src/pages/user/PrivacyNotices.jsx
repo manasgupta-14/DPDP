@@ -4,7 +4,6 @@ import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
 
-// Data principal ko organisation ke published privacy notices dikhana
 function NoticeReader({ code, lang, purposeNames, onClose }) {
     const [state, setState] = useState({ loading: true, data: null, error: "" });
 

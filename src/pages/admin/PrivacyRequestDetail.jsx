@@ -167,29 +167,16 @@ export default function PrivacyRequestDetail() {
                         </dl>
                     </Card>
 
-                    <Card title="Identity verification" subtitle="Nothing is disclosed until we know who is asking.">
-                        <NotInApi />
-                    </Card>
-
-                    <Card title="Fulfilment tasks" subtitle="One per system that holds this person's data.">
-                        <p className="text-sm text-[#475569]">Task list and "Mark complete": <NotInApi /></p>
-                    </Card>
-
                     <Card title="Move this request on">
                         <div className="space-y-4">
                             <Alert>{formError}</Alert>
-                            <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-4">
                                 <label className="block text-sm font-medium text-[#0F172A]">
                                     Status
                                     <select value={status} onChange={(e) => changeStatus(e.target.value)} className={field}>
                                         {STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
                                     </select>
                                     <span className="mt-1 block text-xs font-normal text-[#64748B]">Shown to the user in their History.</span>
-                                </label>
-                                <label className="block text-sm font-medium text-[#0F172A]">
-                                    Assign to
-                                    <select disabled className={field}><option>Not in API</option></select>
-                                    <span className="mt-1 block text-xs font-normal text-[#64748B]">The analyst who owns it.</span>
                                 </label>
                             </div>
                             <label className="block text-sm font-medium text-[#0F172A]">
@@ -230,7 +217,7 @@ export default function PrivacyRequestDetail() {
                         </div>
                     </Card>
 
-                    <Card title="Timeline" subtitle="Actions the API has recorded on this request.">
+                    <Card title="Timeline" subtitle="Actions recorded on this request.">
                         <ol className="space-y-4">
                             {timeline.map((e) => (
                                 <li key={e.title} className="flex gap-3">
@@ -243,7 +230,6 @@ export default function PrivacyRequestDetail() {
                                 </li>
                             ))}
                         </ol>
-                        <p className="mt-4 border-t border-[#F1F5F9] pt-3 text-xs text-[#64748B]">Identity, task dispatch and assignment events: <NotInApi /></p>
                     </Card>
                 </div>
             </div>

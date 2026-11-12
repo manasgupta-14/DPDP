@@ -13,7 +13,6 @@ const LEGAL_BASES = ["Consent (Sec 6)", "Legitimate use (Sec 7)"];
 const RISK_LEVELS = ["Low risk", "Medium risk", "High risk"];
 const RETENTION_UNITS = ["days", "months", "years"];
 
-// Backend retention ko text ("1 year") ki tarah rakhta hai. Samajh aaye to number + unit, nahi to text jaisa ka waisa.
 function parseRetention(text) {
     const m = String(text ?? "").trim().toLowerCase().match(/^(\d+(?:\.\d+)?)\s*(day|week|month|year)s?$/);
     if (!m) return null;

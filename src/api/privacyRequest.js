@@ -7,7 +7,6 @@ const first = (o, ...keys) => {
     return undefined;
 };
 
-// POST /api/PrivacyRequest/raise
 export async function raisePrivacyRequest({ dataPrincipalId, requestType, requestDetails }) {
     const res = await apiFetch("/api/PrivacyRequest/raise", {
         method: "POST",
@@ -17,13 +16,11 @@ export async function raisePrivacyRequest({ dataPrincipalId, requestType, reques
     return { ...res, data: { message: first(res.data, "message", "Message"), requestId: first(res.data, "requestId", "RequestId") } };
 }
 
-// GET /api/PrivacyRequest/my-requests/{dataPrincipalId}
 export async function getMyPrivacyRequests(dataPrincipalId) {
     const res = await apiFetch(`/api/PrivacyRequest/my-requests/${encodeURIComponent(dataPrincipalId)}`);
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeRequest) } : res;
 }
 
-// GET /api/PrivacyRequest?search=&status=&type=&overdueOnly=&page=&pageSize=   (admin list, filtered + paged on the server)
 export async function getPrivacyRequests({ search = "", status = "", type = "", overdueOnly = false, page = 1, pageSize = 10 } = {}) {
     const q = new URLSearchParams();
     if (search.trim()) q.set("search", search.trim());
@@ -45,13 +42,11 @@ export async function getPrivacyRequests({ search = "", status = "", type = "", 
     };
 }
 
-// GET /api/PrivacyRequest/{id}/detail   (PII is masked by the backend)
 export async function getPrivacyRequestDetail(id) {
     const res = await apiFetch(`/api/PrivacyRequest/${encodeURIComponent(id)}/detail`);
     return res.ok ? { ...res, data: normalizeRequest(res.data) } : res;
 }
 
-// PUT /api/PrivacyRequest/resolve/{id}
 export async function resolvePrivacyRequest(id, { status, resolutionRemarks }) {
     return apiFetch(`/api/PrivacyRequest/resolve/${encodeURIComponent(id)}`, {
         method: "PUT",
@@ -59,10 +54,6 @@ export async function resolvePrivacyRequest(id, { status, resolutionRemarks }) {
     });
 }
 
-// ---------------- Naya backend (PrivacyRequest list + detail) ----------------
-// GET /api/PrivacyRequest?search=&status=&type=&overdueOnly=&page=&pageSize=  -> { totalCount, data: [...] }
-// GET /api/PrivacyRequest/{id}/detail
-// status / type backend enum ke naam hain, jaise "InProgress", "Erasure" (dekho utils/rightsRequest.js)
 
 const pickV = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
@@ -105,7 +96,7 @@ export async function getPrivacyRequestList({ search = "", status = "", type = "
     };
 }
 
-export async function getPrivacyRequestDetail(id) {
+export async function getRightsRequestDetail(id) {
     const res = await apiFetch(`/api/PrivacyRequest/${encodeURIComponent(id)}/detail`);
     if (!res.ok) return res.status === 404 ? { ...res, error: "This request was not found." } : res;
     return { ...res, data: normalizeRow(res.data) };

@@ -18,7 +18,6 @@ export const AUDIENCES = [
     { value: "All", label: "Everyone" },
 ];
 
-// Backend enum AudienceType: Specific = 1, AllDataPrincipals = 2, AllInternalUsers = 3, Everyone = 4
 export const TARGET_AUDIENCE = { specific: 1, allCustomers: 2, allStaff: 3, everyone: 4 };
 
 export const TARGET_AUDIENCE_OPTIONS = [
@@ -93,7 +92,6 @@ export function normalizeStats(s) {
         accepted: num(["acceptedCount"]),
         rejected: num(["rejectedCount"]),
         completed: num(["completedCount"]),
-        // Backend ab acceptanceRate nahi bhejta, isliye khud calculate karte hain
         rate: num(["acceptanceRate"]) || (num(["totalResponses"]) ? Math.round((num(["acceptedCount"]) / num(["totalResponses"])) * 10000) / 100 : 0),
     };
 }

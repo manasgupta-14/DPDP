@@ -2,7 +2,6 @@ import { useState } from "react";
 import { addDataPrincipal } from "../../../api/dataPrincipals.js";
 import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, validatePrincipal } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
-import { NotInApi } from "../purposes/NotInApi.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
 const label = "block text-sm font-medium text-[#334155]";
@@ -62,18 +61,12 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     <Row title="Email" error={errors.email}><input type="email" value={form.email} onChange={set("email")} placeholder="name@example.com" disabled={busy} className={field} /></Row>
                     <Row title="Consumer no."><input value={form.consumerNo} onChange={set("consumerNo")} maxLength={50} placeholder="CN-10021" disabled={busy} className={field} /></Row>
                     <Row title="Full name"><input value={form.fullName} onChange={set("fullName")} maxLength={150} placeholder="Jayesh Suresh Mane" disabled={busy} className={field} /></Row>
-                    <Row title={<>Display name <NotInApi /></>} hint="The add API has no display name. Only the CSV bulk import carries it.">
-                        <input value={form.displayName} disabled placeholder="Jayesh Mane" className={field} />
-                    </Row>
                     <Row title="Date of birth" error={errors.dateOfBirth}><input type="date" value={form.dateOfBirth} onChange={set("dateOfBirth")} max={new Date().toISOString().slice(0, 10)} disabled={busy} className={field} /></Row>
                     <Row title="Class" error={errors.cls} hint={GUARDIAN_CLASSES.includes(form.cls) ? "Guardian consent will be required (DPDP rule)." : undefined}>
                         <select value={form.cls} onChange={set("cls")} disabled={busy} className={field}>{PRINCIPAL_CLASSES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}</select>
                     </Row>
                     <Row title="Preferred locale" error={errors.preferredLocale}>
                         <select value={form.preferredLocale} onChange={set("preferredLocale")} disabled={busy} className={field}>{PRINCIPAL_LOCALES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
-                    </Row>
-                    <Row title={<>Org unit <NotInApi /></>} hint="The add API has no org unit field, so it cannot be saved here. Org unit counts on the hierarchy page stay 0.">
-                        <select value="" disabled className={field}><option value="">Not assigned</option></select>
                     </Row>
                 </div>
 

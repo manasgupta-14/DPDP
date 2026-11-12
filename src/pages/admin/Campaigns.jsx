@@ -93,7 +93,6 @@ function CreateForm({ onCreated, onDone }) {
             description: form.description.trim(),
             campaignType: form.campaignType,
             targetAudience: Number(form.targetAudience),
-            // Role filter sirf "All staff" ke liye kaam karta hai, baaki sab ke liye "All"
             targetRole: Number(form.targetAudience) === TARGET_AUDIENCE.allStaff ? form.targetRole : "All",
             startDate: dayStartISO(form.startDate),
             endDate: dayEndISO(form.endDate),
@@ -359,7 +358,6 @@ export default function Campaigns() {
                     <CreateForm
                         onCreated={(created) => {
                             load();
-                            // "Specific people" chuna tha to campaign bante hi audience list khol do
                             if (created) setAssigning(created);
                         }}
                         onDone={() => setCreating(false)}
