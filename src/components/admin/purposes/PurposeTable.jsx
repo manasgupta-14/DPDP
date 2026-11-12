@@ -16,7 +16,7 @@ const sensitive = (item) => /high|critical/i.test(item.raw?.sensitivity || "");
 
 function Linked({ items, links, warm }) {
     if (items.length > 0) return <div className="flex flex-wrap gap-1">{items.map((i) => <span key={i.id} className={`${chip} ${warm && sensitive(i) ? WARM : NEUTRAL}`}>{i.name}</span>)}</div>;
-    if (links > 0) return <span className="text-[11px] italic text-[#475569]">{links} linked (names not in API)</span>;
+    if (links > 0) return <span className="text-[11px] italic text-[#475569]">{links} linked</span>;
     return <span className="text-[11px] text-[#64748B]">None linked</span>;
 }
 

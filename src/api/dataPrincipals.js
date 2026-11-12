@@ -3,10 +3,6 @@ import { apiFetch } from "./client.js";
 const arr = (v) => (Array.isArray(v) ? v : []);
 const val = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 
-// POST /api/dataprincipal/add  (DataPrincipalDto)
-// Backend DTO: mobile, email, consumerNo, fullName, dateOfBirth (yyyy-MM-dd), class, preferredLocale. There is NO orgUnitId in DataPrincipalDto, so it is not sent.
-// Backend itself rejects a request that has neither mobile nor email. Display name is NOT in this DTO (only the CSV bulk import has it).
-// Response: { message, referenceId, dataPrincipalId }
 export async function addDataPrincipal({ mobile, email, consumerNo, fullName, dateOfBirth, cls, preferredLocale }) {
     const body = { class: cls, preferredLocale };
     if (mobile) body.mobile = mobile;
@@ -17,7 +13,6 @@ export async function addDataPrincipal({ mobile, email, consumerNo, fullName, da
 
     const res = await apiFetch("/api/dataprincipal/add", { method: "POST", body });
     if (!res.ok) {
-        // Backend sends plain-text 400 messages here, which apiFetch cannot parse as JSON.
         const error = res.status === 400 && !res.data ? "Mobile or email is required." : res.error;
         return { ...res, error };
     }
@@ -31,11 +26,6 @@ export async function addDataPrincipal({ mobile, email, consumerNo, fullName, da
     };
 }
 
-// GET /api/dataprincipal?search=&classType=&page=&pageSize=
-//   -> { totalCount, data: [{ dataPrincipalId, referenceId, name, mobile, email, consumerNo, class,
-//                             preferredLocale, requiresGuardianConsent, status, createdAt, source }] }
-// Name, mobile, email and consumer no. come back already masked by the backend.
-// (Backend always returns status "Active" and source "Manual", so those two are not shown.)
 export async function listDataPrincipals({ search = "", classType = "", page = 1, pageSize = 10 } = {}) {
     const qs = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
     if (search) qs.set("search", search);
@@ -60,8 +50,6 @@ export async function listDataPrincipals({ search = "", classType = "", page = 1
     return { ...res, data: { total: Number(val(d, "totalCount") ?? rows.length), rows } };
 }
 
-// GET /api/dataprincipal/{id}/360-view  ->  { record, identifiers[], rightsRequests[], activeConsents[] }
-// Name, email, mobile and consumer no. come back already masked by the backend.
 export async function getDataPrincipal360(id) {
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}/360-view`);
     if (!res.ok) {

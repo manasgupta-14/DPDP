@@ -1,17 +1,6 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
 
-// Privacy Notices (versioned):
-//   GET  /api/Notice/all                    -> [{ id, code, title, status, purposesCount, version, sha256Hash, createdAt }]
-//   POST /api/Notice/create                 { code, title, summary, primaryLanguage }  -> { noticeId }
-//   GET  /api/Notice/{id}                   -> { id, code, status, version, sha256Hash, layout, primaryColor, logoUrl, purposesJson, translations }
-//   PUT  /api/Notice/{id}                   { noticeTemplateId, purposes: [code], translations: [{ languageCode, title, summary, isTranslated }] }
-//   PUT  /api/Notice/{id}/publish
-//   POST /api/Notice/{id}/create-version    -> { noticeId }  (sirf Published notice ka)
-// Data principal side:
-//   GET  /api/dataprincipal/notice/all?lang=en
-//   GET  /api/dataprincipal/notice/{code}?lang=en
-// Templates aur purposes ke liye: GET /api/NoticeTemplate/all, GET /api/NoticeTemplate/checkbox-list
 
 export const NOTICE_LANGUAGES = [
     { code: "en", label: "English" },
@@ -109,7 +98,6 @@ export async function createNoticeVersion(id) {
     return res.ok ? { ...res, data: { id: str(res.data, "noticeId", "NoticeId") } } : res;
 }
 
-// Notice editor ke liye: templates aur purposes
 export async function getNoticeTemplatesLite() {
     const res = await apiFetch("/api/NoticeTemplate/all");
     if (!res.ok) return res;
@@ -135,10 +123,8 @@ export async function getPurposeOptions() {
     return { ...res, data: [...seen.values()] };
 }
 
-// ---------- Data principal (user) side ----------
 export async function getPublishedNotices(lang = "en") {
     const res = await apiFetch(`/api/dataprincipal/notice/all?lang=${seg(lang)}`);
-    // Backend koi notice na ho to 404 deta hai, use khaali list maante hain
     if (!res.ok) return res.status === 404 ? { ok: true, status: 200, error: null, data: [] } : res;
     return {
         ...res,

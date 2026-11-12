@@ -5,7 +5,6 @@ import { panel } from "../../shared/ui.js";
 
 const names = (list) => (Array.isArray(list) && list.length ? list.join(", ") : "");
 
-// Exactly what the consumer sees in the chosen language. A language that is not translated falls back to English.
 export default function NoticePreviewPane({ form, purposes }) {
     const [lang, setLang] = useState("en");
     const tr = form.translations?.[lang];

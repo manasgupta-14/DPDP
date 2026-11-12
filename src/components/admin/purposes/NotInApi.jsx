@@ -1,7 +1,7 @@
 import { NOT_IN_API, NOT_IN_API_HINT, NOT_SET } from "../../../utils/consent.js";
 
 export function NotInApi({ label = NOT_IN_API, title = NOT_IN_API_HINT }) {
-    return <span title={title} className="cursor-help whitespace-nowrap rounded border border-dashed border-[#94A3B8] bg-[#F1F5F9] px-1 py-px text-[10px] italic text-[#475569]">{label}</span>;
+    return <span title={title || undefined} className="text-[#94A3B8]">{label}</span>;
 }
 
 export function Shown({ value, children }) {

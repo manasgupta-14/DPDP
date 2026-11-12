@@ -75,7 +75,6 @@ function TemplateForm({ template, purposes, onClose, onSaved }) {
         onSaved(editing ? "Notice template updated." : `Notice template "${form.name.trim()}" created.`);
     };
 
-    // purposes jo template mein hain par list mein nahi (purana code), unko bhi dikhana
     const options = [...purposes, ...form.purposes.filter((c) => !purposes.some((p) => p.code === c)).map((c) => ({ code: c, name: c }))];
 
     return (
@@ -161,7 +160,7 @@ export default function NoticeBuilder() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
     const [flash, setFlash] = useState("");
-    const [modal, setModal] = useState(null); // { kind: "form"|"delete", item }
+    const [modal, setModal] = useState(null);
 
     const apply = useCallback(([t, p]) => {
         if (t.ok) setTemplates(t.data);

@@ -1,4 +1,3 @@
-// Same rules the backend applies in BulkImportService (stage), so a single user is checked exactly like a CSV row.
 export const PRINCIPAL_CLASSES = [
     { value: "adult", label: "Adult" },
     { value: "child", label: "Child" },
@@ -15,7 +14,7 @@ export function validatePrincipal(f) {
     const errors = {};
     const mobile = f.mobile.trim();
     const email = f.email.trim();
-    if (!mobile && !email) errors.identifier = "Enter a mobile number or an email. The backend needs at least one of them.";
+    if (!mobile && !email) errors.identifier = "Enter a mobile number or an email.";
     if (mobile && !/^\d{10}$/.test(mobile)) errors.mobile = "Mobile number must be exactly 10 digits.";
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
     if (f.dateOfBirth && (Number.isNaN(Date.parse(f.dateOfBirth)) || new Date(f.dateOfBirth) > new Date())) errors.dateOfBirth = "Enter a valid date of birth.";

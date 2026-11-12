@@ -1,7 +1,3 @@
-// Shapes below follow the backend DTOs exactly (PrivacyGuard/DTOs/CreateNoticeDto.cs):
-//   NoticeListDto   { id, code, title, status, purposesCount, version, sha256Hash, createdAt }
-//   NoticeDetailDto { id, code, status, version, sha256Hash, layout, primaryColor, logoUrl,
-//                     purposesJson (a JSON *string*), translations[{ languageCode, title, summary, isTranslated }] }
 const pick = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 
 export const LANGUAGES = [
@@ -23,7 +19,6 @@ export const formatDate = (value) => {
     return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 };
 
-// Backend stores purposes as a JSON string of purpose codes, e.g. "[\"MARKETING\",\"ANALYTICS\"]".
 export function parsePurposes(json) {
     if (Array.isArray(json)) return json.map(String);
     try {
@@ -47,8 +42,6 @@ export function normalizeNoticeListItem(raw) {
     };
 }
 
-// The backend does not store the primary language or the chosen template id on a notice,
-// so `hint` (kept in this browser by api/notices.js) fills those two gaps.
 export function normalizeNoticeDetail(raw, hint = {}) {
     const translations = (Array.isArray(pick(raw, "translations")) ? pick(raw, "translations") : []).map((t) => ({
         language: String(pick(t, "languageCode") ?? ""),

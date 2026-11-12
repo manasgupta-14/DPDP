@@ -29,3 +29,10 @@ export async function updateDataInventory(id, payload) {
     if (!res.ok && res.status === 404) return { ...res, error: "This data point was not found. It may have been removed." };
     return res;
 }
+
+export async function deleteDataInventory(id) {
+    const res = await apiFetch(`/api/DataInventory/${seg(id)}`, { method: "DELETE" });
+    if (!res.ok && res.status === 404) return { ...res, error: "This data point was not found. It may have been removed." };
+    if (!res.ok && res.status >= 500) return { ...res, error: "This data point could not be deleted. It may still be linked to a campaign." };
+    return res;
+}

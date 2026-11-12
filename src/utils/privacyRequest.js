@@ -1,7 +1,5 @@
 import { toDate } from "./audit.js";
 
-// Values below mirror the backend enums (PrivacyRequestType / PrivacyRequestStatus) exactly.
-// The backend parses them with Enum.TryParse, so anything else is silently ignored.
 export const REQUEST_TYPES = [
     { value: "Access", label: "Access my data", hint: "Get a copy of the personal data the organisation holds about you." },
     { value: "Correction", label: "Correct my data", hint: "Ask for wrong data to be fixed." },
@@ -12,7 +10,6 @@ export const REQUEST_TYPES = [
     { value: "ProcessingSummary", label: "Processing summary", hint: "Ask what data is processed about you, why, and who it is shared with." },
 ];
 
-// Numeric order of the C# enums (my-requests returns the raw entity, so enums arrive as numbers).
 const TYPE_BY_INDEX = ["Access", "Correction", "Completion", "Update", "Erasure", "Portability", "ProcessingSummary"];
 const STATUS_BY_INDEX = ["Submitted", "IdentityPending", "Verified", "InProgress", "AwaitingPrincipal", "PartiallyFulfilled", "Fulfilled", "Rejected", "Withdrawn", "Expired"];
 
@@ -66,7 +63,6 @@ const enumName = (value, names) => {
     return value == null ? "" : String(value);
 };
 
-// Handles both response shapes: the raw entity (my-requests), the list row DTO and the detail DTO.
 export function normalizeRequest(r, index = 0) {
     const created = toDate(pick(r, "createdAt", "CreatedAt"));
     const target = toDate(pick(r, "targetResolutionDate", "TargetResolutionDate"));

@@ -8,7 +8,6 @@ const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px
 
 const sameText = (a, b) => String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
 
-// The team list only returns the role *name*, so the role id is found by matching it against the role dropdown.
 const roleIdFor = (user, roles) => roles.find((r) => sameText(r.name, user.role))?.id ?? "";
 
 export default function EditUserModal({ user, users, roles, rolesLoading, rolesError, onClose, onSaved }) {

@@ -20,7 +20,6 @@ function Pill({ label }) {
     return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${PILL[label] || PILL["Not answered"]}`}>{label}</span>;
 }
 
-// Is purpose ke liye user ka abhi ka haal
 function stateOf(purpose, entry) {
     if (purpose.mandatory) return "Required";
     return entry ? entry.state : "Not answered";
@@ -53,7 +52,7 @@ function Summary({ allowed, blocked }) {
 export default function MyConsents() {
     const principalId = getProfile()?.userId;
     const [purposes, setPurposes] = useState([]);
-    const [history, setHistory] = useState([]); // versions, naya pehle
+    const [history, setHistory] = useState([]);
     const [loading, setLoading] = useState(!!principalId);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
@@ -97,7 +96,6 @@ export default function MyConsents() {
     const allowed = purposes.filter((p) => p.mandatory || entryOf.get(p.id)?.allowed);
     const blocked = purposes.filter((p) => !p.mandatory && latest && !entryOf.get(p.id)?.allowed);
 
-    // Ek purpose badalna = naya version jisme baaki purposes ke faisle jaise the waise rehte hain
     const setOne = async (purpose, allow) => {
         setBusyId(purpose.id);
         setNotice("");

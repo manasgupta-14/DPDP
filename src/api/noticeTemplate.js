@@ -1,7 +1,6 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
 
-// /api/NoticeTemplate: all, {id}, create, PUT {id}, DELETE {id}, checkbox-list
 const seg = (id) => encodeURIComponent(id);
 
 const pick = (o, ...keys) => {
@@ -9,10 +8,9 @@ const pick = (o, ...keys) => {
     return null;
 };
 
-// Backend permission NoticeTemplates.View / NoticeTemplates.Manage abhi DataSeeder mein nahi hai, isliye 403 aata hai.
 const forbidden = (res) =>
     res.status === 403
-        ? { ...res, error: "Access denied. Your role does not have the NoticeTemplates.View / NoticeTemplates.Manage permission. Add these permissions in the backend DataSeeder and assign them to your role." }
+        ? { ...res, error: "You do not have permission to manage notice templates. Ask an admin to give your role this permission." }
         : res;
 
 function normalizeTemplate(t) {
@@ -59,7 +57,6 @@ export async function deleteTemplate(id) {
     return forbidden(await apiFetch(`/api/NoticeTemplate/${seg(id)}`, { method: "DELETE" }));
 }
 
-// Purpose checkboxes: [{ code, name }]. Backend saare versions bhejta hai, isliye code se unique karte hain.
 export async function getPurposeCheckboxes() {
     const res = await apiFetch("/api/NoticeTemplate/checkbox-list");
     if (!res.ok) return res;

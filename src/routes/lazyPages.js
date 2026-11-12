@@ -36,4 +36,5 @@ export const Login = lazy(() => import("../pages/public/Login.jsx"));
 export const Register = lazy(() => import("../pages/public/Register.jsx"));
 export const GrievanceList = lazy(() => import("../pages/grievance/GrievanceList.jsx"));
 export const GrievanceDetail = lazy(() => import("../pages/grievance/GrievanceDetail.jsx"));
-export const PrivacyRequestDetail = lazy(() => import("../pages/admin/PrivacyRequestDetail.jsx"));
+export const PrivacyRequestDetail = lazy(() => import("../pages/admin/PrivacyRequestDetail.jsx"));export const Reports = lazy(() => import("../pages/admin/Reports.jsx"));
+export const Retention = lazy(() => import("../pages/admin/Retention.jsx"));

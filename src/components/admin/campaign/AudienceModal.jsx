@@ -4,7 +4,6 @@ import Alert from "../../shared/Alert.jsx";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
-// "Link Audience to Campaign": staff ya customers ko checkbox se chun ke campaign se jodna
 const TABS = [
     { key: "internal", label: "Internal Users (Staff)", isInternal: true },
     { key: "customer", label: "Data Principals (Customers)", isInternal: false },
@@ -31,7 +30,6 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
         };
     }, [tab]);
 
-    // Tab badalne par purani selection aur search saaf, taaki galat mapping na ho
     const switchTab = (key) => {
         if (key === tab || busy) return;
         setTab(key);
@@ -58,7 +56,6 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
             return next;
         });
 
-    // Select All: search ke baad jo dikh rahe hain un sab ko chunna / hatana
     const toggleAll = () =>
         setSelected((s) => {
             const next = new Set(s);
