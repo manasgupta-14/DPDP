@@ -82,13 +82,19 @@ export function getProfile() {
 
 const MANAGE_PERMISSIONS = ["users.create", "users.edit", "roles.manage"];
 
+export function isDataPrincipal(session = getSession()) {
+    return session?.userType === "DataPrincipal";
+}
+
 export function isAdmin(session = getSession()) {
+    if (isDataPrincipal(session)) return false;
     const roles = [].concat(session?.role ?? []);
     if (roles.some((r) => /admin/i.test(String(r)))) return true;
     return (session?.permissions ?? []).some((p) => MANAGE_PERMISSIONS.includes(String(p).toLowerCase()));
 }
 
 export function isDpo(session = getSession()) {
+    if (isDataPrincipal(session)) return false;
     const roles = [].concat(session?.role ?? []);
     return roles.some((r) => /^dpo$|data\s*protection\s*officer/i.test(String(r).trim()));
 }

@@ -166,7 +166,7 @@ export default function NoticeEditor() {
         else navigate("/dashboard/notices");
     };
 
-    if (loading && !notice) return <div className="h-64 animate-pulse rounded-2xl bg-[#E2E8F0]/70" aria-busy="true" />;
+    if (loading && !notice) return <div className="h-64 pg-shimmer rounded-2xl" aria-busy="true" />;
     if (!notice || !form) {
         return (
             <div className="space-y-4">

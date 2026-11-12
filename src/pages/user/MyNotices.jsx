@@ -42,9 +42,9 @@ function NoticeModal({ code, initialLang, purposeMap, onClose }) {
                 <div className="space-y-5 p-6 sm:p-7">
                     {loading ? (
                         <div className="space-y-3" aria-busy="true">
-                            <div className="h-7 w-2/3 animate-pulse rounded-lg bg-[#E2E8F0]/70" />
-                            <div className="h-24 animate-pulse rounded-xl bg-[#E2E8F0]/70" />
-                            <div className="h-16 animate-pulse rounded-xl bg-[#E2E8F0]/70" />
+                            <div className="h-7 w-2/3 pg-shimmer rounded-lg" />
+                            <div className="h-24 pg-shimmer rounded-xl" />
+                            <div className="h-16 pg-shimmer rounded-xl" />
                         </div>
                     ) : !res.ok ? (
                         <Alert>{res.error}</Alert>
@@ -182,7 +182,7 @@ export default function MyNotices() {
             {error && <Alert action={<button type="button" onClick={reload} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
 
             {loading ? (
-                <div className="grid gap-4 sm:grid-cols-2" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-44 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
+                <div className="grid gap-4 sm:grid-cols-2" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-44 pg-shimmer rounded-2xl" />)}</div>
             ) : shown.length === 0 && !error ? (
                 <div className={`${panel} px-5 py-12 text-center`}>
                     <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="notice" className="h-6 w-6" /></span>

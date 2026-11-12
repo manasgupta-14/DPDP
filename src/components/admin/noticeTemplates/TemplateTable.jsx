@@ -25,7 +25,7 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
                         {loading ? (
-                            <tr><td colSpan={6} className="px-5 py-8"><div className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" /></td></tr>
+                            <tr><td colSpan={6} className="px-5 py-8"><div className="h-10 pg-shimmer rounded-lg" /></td></tr>
                         ) : error ? (
                             <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-[#B91C1C]">{error}</td></tr>
                         ) : templates.length === 0 ? (

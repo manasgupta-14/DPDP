@@ -24,7 +24,7 @@ function NoticeReader({ code, lang, purposeNames, onClose }) {
         <Modal title="Privacy notice" onClose={onClose}>
             <div className="max-h-[88vh] overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white text-[#0F172A] shadow-xl">
                 {state.loading ? (
-                    <div className="space-y-2 p-6" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2 p-6" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : state.error ? (
                     <div className="p-6"><Alert>{state.error}</Alert></div>
                 ) : (

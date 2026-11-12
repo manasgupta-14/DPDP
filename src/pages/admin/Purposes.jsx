@@ -112,7 +112,7 @@ export default function Purposes() {
             </div>
 
             {tab === "purposes" && (loading ? (
-                <div className={`${dkCard} space-y-2 p-4`} aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-14 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>
+                <div className={`${dkCard} space-y-2 p-4`} aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-14 pg-shimmer rounded-lg" />)}</div>
             ) : filteredPurposes.length === 0 ? (
                 <div className={`${dkCard} px-5 py-12 text-center`}>
                     <p className="text-sm font-semibold text-[#0F172A]">{purposes.length === 0 ? "No purposes yet" : "No purposes match your search"}</p>

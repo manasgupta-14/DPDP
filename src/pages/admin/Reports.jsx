@@ -186,7 +186,7 @@ export default function Reports() {
                 {state.error && <div className="p-5"><Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert></div>}
 
                 {state.loading ? (
-                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : !state.error && state.rows.length === 0 ? (
                     <p className="px-5 py-12 text-center text-sm text-[#475569]">No reports yet. Generate one above.</p>
                 ) : state.rows.length > 0 ? (

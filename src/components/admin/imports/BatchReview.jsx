@@ -96,7 +96,7 @@ export default function BatchReview({ batchId, onBack }) {
         return (
             <div className="space-y-4">
                 <button type="button" onClick={onBack} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0F766E] hover:underline"><span aria-hidden>&larr;</span> Back to bulk import</button>
-                {error ? <Alert action={<button type="button" onClick={refresh} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert> : <div className="h-40 animate-pulse rounded-2xl bg-[#E2E8F0]/70" aria-busy="true" />}
+                {error ? <Alert action={<button type="button" onClick={refresh} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert> : <div className="h-40 pg-shimmer rounded-2xl" aria-busy="true" />}
             </div>
         );
     }
@@ -163,7 +163,7 @@ export default function BatchReview({ batchId, onBack }) {
                 </div>
 
                 {loading ? (
-                    <div className="mt-4 space-y-2" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>
+                    <div className="mt-4 space-y-2" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 pg-shimmer rounded-lg" />)}</div>
                 ) : rows.length === 0 ? (
                     <div className="py-12 text-center">
                         <p className="text-sm font-semibold">{page > 1 ? "No more rows" : "No records found"}</p>
