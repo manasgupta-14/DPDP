@@ -89,7 +89,6 @@ export default function ConsentManagement() {
     const slice = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
     const listed = records.find((r) => r.id === openId) || null;
     const fetched = detail.id === openId ? detail : null;
-    // Detail GET /api/Consent/record/{id} se aaya data upar, list ka data fallback + versions history ke liye.
     const selected = listed && fetched?.record
         ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: fetched.record.purposes.length ? fetched.record.purposes : listed.purposes }
         : listed;
@@ -164,7 +163,6 @@ export default function ConsentManagement() {
                     </Filter>
                     <button type="button" onClick={clear} disabled={!hasFilters} className="h-9 px-2 text-xs font-semibold text-[#0E7490] hover:underline disabled:cursor-not-allowed disabled:text-[#475569] disabled:no-underline">Clear filters</button>
                 </div>
-                <p className="mt-3 text-[11px] text-[#64748B]">Filters run on <span className="font-mono">GET /api/Consent/records</span>. Notice, signature, purposes and given date come from the API; anything it does not return shows <span className="italic">Not in API</span>.</p>
             </section>
 
             {loading ? (

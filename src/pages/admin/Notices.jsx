@@ -1,209 +1,319 @@
-import { useCallback, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { createNotice, createNoticeVersion, listNotices, publishNotice } from "../../api/notices.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useOutletContext } from "react-router-dom";
+import {
+    NOTICE_LANGUAGES, createNotice, createNoticeVersion, getNotice, getNoticeTemplatesLite, getNotices, getPurposeOptions, publishNotice, updateNotice,
+} from "../../api/notice.js";
 import Alert from "../../components/shared/Alert.jsx";
+import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
-import { LANGUAGES, formatDate, isPublished } from "../../utils/noticeApi.js";
+import { formatDate } from "../../utils/breach.js";
 
-const th = "px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-wider text-[#475569]";
-export const PUBLISH_WARNING = "Once published, this notice cannot be edited. Proceed?";
+const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]";
+const td = "px-3 py-3 text-sm text-[#334155]";
+const isPublished = (s) => String(s).toLowerCase() === "published";
 
-export function StatusPill({ status }) {
-    const tone = isPublished(status) ? "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25" : "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25";
-    return (
-        <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${tone}`}>
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
-            {status}
-        </span>
-    );
+function StatusPill({ status }) {
+    return isPublished(status)
+        ? <span className="inline-flex rounded-full bg-[#16A34A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#166534] ring-1 ring-[#16A34A]/25">Published</span>
+        : <span className="inline-flex rounded-full bg-[#D97706]/10 px-2.5 py-0.5 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">{status || "Draft"}</span>;
 }
 
-function CreateDialog({ onClose, onCreated }) {
+function CreateModal({ onClose, onCreated }) {
     const [form, setForm] = useState({ code: "", title: "", summary: "", primaryLanguage: "en" });
     const [errors, setErrors] = useState({});
-    const [apiError, setApiError] = useState("");
     const [busy, setBusy] = useState(false);
-    const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+    const [error, setError] = useState("");
+    const set = (k) => (e) => {
+        setForm((f) => ({ ...f, [k]: e.target.value }));
+        setErrors((er) => ({ ...er, [k]: undefined }));
+    };
 
     const submit = async (e) => {
         e.preventDefault();
-        const next = {};
-        if (!form.code.trim()) next.code = "Enter a unique notice code.";
-        if (!form.title.trim()) next.title = "Enter a primary title.";
-        if (form.code.trim().length > 100) next.code = "Notice code can be at most 100 characters.";
-        if (form.title.trim().length > 500) next.title = "Title can be at most 500 characters.";
-        setErrors(next);
-        if (Object.keys(next).length) return;
+        const found = {};
+        if (!form.code.trim()) found.code = "Code is required.";
+        else if (form.code.trim().length > 100) found.code = "Max 100 characters.";
+        if (!form.title.trim()) found.title = "Title is required.";
+        else if (form.title.trim().length > 500) found.title = "Max 500 characters.";
+        setErrors(found);
+        if (Object.keys(found).length) return;
         setBusy(true);
-        setApiError("");
+        setError("");
         const res = await createNotice(form);
         setBusy(false);
-        if (!res.ok) return setApiError(res.error);
-        onCreated(res.data);
+        if (!res.ok) return setError(res.error);
+        onCreated(res.data.id);
     };
 
     return (
-        <Modal title="Create notice" onClose={onClose}>
-            <form onSubmit={submit} noValidate className={`${panel} space-y-4 p-6`}>
-                <div>
-                    <h2 className="text-lg font-bold">Create notice</h2>
-                    <p className="mt-1 text-xs text-[#64748B]">Version 1 is created as a Draft automatically.</p>
+        <Modal title="New notice" onClose={() => !busy && onClose()}>
+            <form onSubmit={submit} noValidate className={`${panel} space-y-3 p-5 sm:p-6`}>
+                <div className="pr-8">
+                    <h2 className="text-lg font-semibold">New privacy notice</h2>
+                    <p className="mt-1 text-sm text-[#475569]">It starts as a Draft. Next you pick a template, purposes and translations, then publish.</p>
                 </div>
-                <Alert>{apiError}</Alert>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Notice code (unique)
-                    <input value={form.code} onChange={set("code")} className={field} placeholder="PRIV-2026-001" autoFocus />
-                    {errors.code && <span className="mt-1 block text-xs text-[#B91C1C]">{errors.code}</span>}
-                </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Primary title
-                    <input value={form.title} onChange={set("title")} className={field} />
-                    {errors.title && <span className="mt-1 block text-xs text-[#B91C1C]">{errors.title}</span>}
-                </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Summary
-                    <textarea value={form.summary} onChange={set("summary")} rows={3} className={field} />
-                </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Primary language
-                    <select value={form.primaryLanguage} onChange={set("primaryLanguage")} className={field}>
-                        {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label} ({l.code})</option>)}
-                    </select>
-                </label>
-                <div className="flex gap-2.5 pt-1">
-                    <button type="submit" disabled={busy} className={primaryBtn}>{busy ? "Creating..." : "Create draft"}</button>
+                <div className="grid gap-x-4 sm:grid-cols-2">
+                    <label className="block text-sm font-medium text-[#334155]">Code<input value={form.code} onChange={set("code")} disabled={busy} maxLength={100} placeholder="e.g. GENERAL_NOTICE" className={field} /><span className="mt-1 block text-xs text-[#DC2626]">{errors.code}</span></label>
+                    <label className="block text-sm font-medium text-[#334155]">
+                        Primary language
+                        <select value={form.primaryLanguage} onChange={set("primaryLanguage")} disabled={busy} className={field}>
+                            {NOTICE_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+                        </select>
+                    </label>
+                </div>
+                <label className="block text-sm font-medium text-[#334155]">Title<input value={form.title} onChange={set("title")} disabled={busy} maxLength={500} placeholder="e.g. How we use your personal data" className={field} /><span className="mt-1 block text-xs text-[#DC2626]">{errors.title}</span></label>
+                <label className="block text-sm font-medium text-[#334155]">Summary<textarea value={form.summary} onChange={set("summary")} disabled={busy} rows={4} placeholder="Short explanation shown to the data principal." className={field} /></label>
+                <Alert>{error}</Alert>
+                <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
+                    <button type="submit" disabled={busy} className={primaryBtn}>{busy ? "Creating..." : "Create draft"}</button>
                 </div>
             </form>
         </Modal>
     );
 }
 
-export default function Notices() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const [notices, setNotices] = useState([]);
-    const [loading, setLoading] = useState(true);
+function EditorModal({ id, onClose, onChanged }) {
+    const [state, setState] = useState({ loading: true, error: "", notice: null, templates: [], templatesError: "", purposes: [] });
+    const [templateId, setTemplateId] = useState("");
+    const [picked, setPicked] = useState([]);
+    const [translations, setTranslations] = useState([]);
+    const [lang, setLang] = useState("en");
+    const [busy, setBusy] = useState("");
     const [error, setError] = useState("");
-    const [flash, setFlash] = useState(location.state?.flash ?? "");
-    const [creating, setCreating] = useState(false);
-    const [busyId, setBusyId] = useState("");
-
-    const [tick, setTick] = useState(0);
-    const load = useCallback(() => {
-        setLoading(true);
-        setTick((t) => t + 1);
-    }, []);
+    const [flash, setFlash] = useState("");
 
     useEffect(() => {
         let active = true;
-        listNotices().then((res) => {
+        Promise.all([getNotice(id), getNoticeTemplatesLite(), getPurposeOptions()]).then(([n, t, p]) => {
             if (!active) return;
-            if (res.ok) setNotices(res.data);
-            setError(res.ok ? "" : res.error);
-            setLoading(false);
+            if (!n.ok) return setState((s) => ({ ...s, loading: false, error: n.error }));
+            const notice = n.data;
+            setState({ loading: false, error: "", notice, templates: t.ok ? t.data : [], templatesError: t.ok ? "" : t.error, purposes: p.ok ? p.data : [] });
+            setPicked(notice.purposes);
+            setTranslations(NOTICE_LANGUAGES.map((l) => notice.translations.find((x) => x.languageCode === l.code) ?? { languageCode: l.code, title: "", summary: "" }));
+            setLang(notice.translations[0]?.languageCode || "en");
         });
         return () => {
             active = false;
         };
-    }, [tick]);
+    }, [id]);
 
-    const publish = async (n) => {
-        if (!window.confirm(PUBLISH_WARNING)) return;
-        setBusyId(n.id);
+    const n = state.notice;
+    const locked = n && isPublished(n.status);
+    const template = state.templates.find((t) => t.id === templateId);
+    const nameOf = (code) => state.purposes.find((p) => p.code === code)?.name ?? code;
+    const options = useMemo(() => [...state.purposes, ...picked.filter((c) => !state.purposes.some((p) => p.code === c)).map((c) => ({ code: c, name: c }))], [state.purposes, picked]);
+    const current = translations.find((t) => t.languageCode === lang) ?? { title: "", summary: "" };
+
+    const setText = (k) => (e) => setTranslations((list) => list.map((t) => (t.languageCode === lang ? { ...t, [k]: e.target.value } : t)));
+    const toggle = (code) => setPicked((l) => (l.includes(code) ? l.filter((c) => c !== code) : [...l, code]));
+
+    const save = async () => {
+        setError("");
         setFlash("");
-        const res = await publishNotice(n.id);
-        setBusyId("");
-        if (!res.ok) return setError(res.error);
-        setFlash(`${n.code} v${n.version} published.`);
-        load();
+        if (!translations.some((t) => t.title.trim())) {
+            setError("Add a title in at least one language.");
+            return false;
+        }
+        setBusy("save");
+        const res = await updateNotice(id, { templateId, purposes: picked, translations });
+        setBusy("");
+        if (!res.ok) {
+            setError(res.error);
+            return false;
+        }
+        setFlash("Draft saved.");
+        onChanged();
+        return true;
     };
 
-    const newVersion = async (n) => {
-        setBusyId(n.id);
-        const res = await createNoticeVersion(n.id);
-        setBusyId("");
+    const publish = async () => {
+        if (!(await save())) return;
+        setBusy("publish");
+        const res = await publishNotice(id);
+        setBusy("");
         if (!res.ok) return setError(res.error);
-        if (res.data.id) navigate(`/dashboard/notices/${res.data.id}`, { state: { flash: res.data.message } });
-        else load();
+        onChanged(`${n.code} v${n.version} published.`);
+        onClose();
+    };
+
+    return (
+        <Modal title="Notice" onClose={() => !busy && onClose()}>
+            <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white p-5 text-[#0F172A] shadow-xl sm:p-6">
+                {state.loading ? (
+                    <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-[#E2E8F0]/70" />)}</div>
+                ) : state.error ? (
+                    <Alert>{state.error}</Alert>
+                ) : (
+                    <>
+                        <div className="pr-8">
+                            <p className="font-mono text-xs text-[#64748B]">{n.code} · v{n.version}</p>
+                            <div className="mt-1 flex items-center gap-2"><h2 className="text-lg font-semibold">{locked ? "Published notice" : "Edit draft notice"}</h2><StatusPill status={n.status} /></div>
+                            {locked && <p className="mt-1 text-sm text-[#475569]">Published notices are locked. Use "New version" in the list to make changes.</p>}
+                            {n.hash && <p className="mt-1 break-all font-mono text-[11px] text-[#64748B]">SHA-256: {n.hash}</p>}
+                        </div>
+
+                        {!locked && (
+                            <label className="block text-sm font-medium text-[#334155]">
+                                Template (design and default purposes)
+                                <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={!!busy} className={field}>
+                                    <option value="">{n.layout ? `Keep current design (${n.layout})` : "No template"}</option>
+                                    {state.templates.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
+                                </select>
+                                {state.templatesError && <span className="mt-1 block text-xs text-[#B45309]">Could not load templates: {state.templatesError}</span>}
+                                {template && template.purposes.length > 0 && <span className="mt-1 block text-xs text-[#64748B]">This template adds: {template.purposes.map(nameOf).join(", ")}</span>}
+                            </label>
+                        )}
+
+                        <div>
+                            <p className="text-sm font-medium text-[#334155]">Purposes</p>
+                            {options.length === 0 ? (
+                                <p className="mt-1 text-xs text-[#64748B]">No purposes found. Create consent purposes in Consent management first.</p>
+                            ) : (
+                                <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-[#E2E8F0] p-3 sm:grid-cols-2">
+                                    {options.map((p) => (
+                                        <label key={p.code} className="flex items-center gap-2 text-sm text-[#334155]">
+                                            <input type="checkbox" checked={picked.includes(p.code)} disabled={locked || !!busy} onChange={() => toggle(p.code)} />
+                                            {p.name}
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <p className="text-sm font-medium text-[#334155]">Text and translations</p>
+                                <div className="inline-flex rounded-xl border border-[#E2E8F0] p-0.5" role="tablist" aria-label="Language">
+                                    {NOTICE_LANGUAGES.map((l) => {
+                                        const filled = translations.find((t) => t.languageCode === l.code)?.title.trim();
+                                        return (
+                                            <button key={l.code} type="button" role="tab" aria-selected={lang === l.code} onClick={() => setLang(l.code)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${lang === l.code ? "bg-[#CCFBF1] text-[#0F766E]" : "text-[#475569] hover:bg-[#F1F5F9]"}`}>
+                                                {l.label}{filled ? " ✓" : ""}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <label className="mt-2 block text-sm font-medium text-[#334155]">Title<input value={current.title} onChange={setText("title")} disabled={locked || !!busy} maxLength={500} className={field} /></label>
+                            <label className="mt-2 block text-sm font-medium text-[#334155]">Summary<textarea value={current.summary} onChange={setText("summary")} disabled={locked || !!busy} rows={5} className={field} /></label>
+                            <p className="mt-1 text-xs text-[#64748B]">Leave a language empty to skip it. Users get English if their language is missing.</p>
+                        </div>
+
+                        <Alert>{error}</Alert>
+                        <Alert tone="success">{flash}</Alert>
+
+                        <div className="flex flex-wrap justify-end gap-2.5">
+                            <button type="button" onClick={onClose} disabled={!!busy} className={ghostBtn}>Close</button>
+                            {!locked && <button type="button" onClick={save} disabled={!!busy} className={ghostBtn}>{busy === "save" ? "Saving..." : "Save draft"}</button>}
+                            {!locked && <button type="button" onClick={publish} disabled={!!busy} className={primaryBtn}>{busy === "publish" ? "Publishing..." : "Save and publish"}</button>}
+                        </div>
+                    </>
+                )}
+            </div>
+        </Modal>
+    );
+}
+
+export default function Notices() {
+    const { query = "" } = useOutletContext() || {};
+    const [state, setState] = useState({ loading: true, rows: [], error: "" });
+    const [openId, setOpenId] = useState(null);
+    const [creating, setCreating] = useState(false);
+    const [flash, setFlash] = useState("");
+    const [actionError, setActionError] = useState("");
+    const [busyId, setBusyId] = useState(null);
+
+    const apply = useCallback((res) => setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error }), []);
+    const load = useCallback(async () => {
+        setState((s) => ({ ...s, loading: true }));
+        apply(await getNotices());
+    }, [apply]);
+
+    useEffect(() => {
+        let active = true;
+        getNotices().then((res) => {
+            if (active) apply(res);
+        });
+        return () => {
+            active = false;
+        };
+    }, [apply]);
+
+    const rows = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return state.rows
+            .filter((r) => !q || [r.code, r.title, r.status].some((v) => v.toLowerCase().includes(q)))
+            .sort((a, b) => a.code.localeCompare(b.code) || b.version - a.version);
+    }, [state.rows, query]);
+
+    const newVersion = async (r) => {
+        setActionError("");
+        setFlash("");
+        setBusyId(r.id);
+        const res = await createNoticeVersion(r.id);
+        setBusyId(null);
+        if (!res.ok) return setActionError(res.error);
+        setFlash(`Draft v${r.version + 1} of ${r.code} created.`);
+        load();
+        if (res.data.id) setOpenId(res.data.id);
     };
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Notices</h1>
-                    <p className="mt-1 text-sm text-[#475569]">The itemised statements shown to consumers before consent is taken (Sec 5).</p>
+                    <h1 className="text-3xl font-bold tracking-tight">Privacy notices</h1>
+                    <p className="mt-1 max-w-3xl text-sm text-[#475569]">Versioned notices shown to data principals. Draft, add translations, then publish. Published versions are locked and hashed; make changes with a new version.</p>
                 </div>
-                <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>Create notice</button>
+                <div className="flex gap-2">
+                    <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
+                    <button type="button" onClick={() => { setFlash(""); setCreating(true); }} className={primaryBtn}>+ New notice</button>
+                </div>
             </div>
 
-            <Alert tone="success">{flash}</Alert>
-            {!loading && error && notices.length > 0 && <Alert>{error}</Alert>}
+            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
+            <Alert>{actionError}</Alert>
+            {state.error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert>}
 
             <div className={`${panel} overflow-hidden`}>
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[960px] text-xs text-[#334155]">
-                        <thead className="bg-[#F8FAFC]">
-                            <tr>{["Notice code", "Title", "Version", "Purposes linked", "Status", "Created", "Available actions"].map((h) => <th key={h} className={th}>{h}</th>)}</tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#E2E8F0]">
-                            {loading ? (
-                                <tr><td colSpan={7} className="px-5 py-8"><div className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" /></td></tr>
-                            ) : error && notices.length === 0 ? (
-                                <tr><td colSpan={7} className="px-5 py-10 text-center text-xs text-[#B91C1C]">{error} <button type="button" onClick={load} className="ml-2 font-semibold underline">Retry</button></td></tr>
-                            ) : notices.length === 0 ? (
-                                <tr><td colSpan={7} className="px-5 py-10 text-center text-xs text-[#475569]">No notices yet. Use Create notice to start the first draft.</td></tr>
-                            ) : notices.map((n) => {
-                                const published = isPublished(n.status);
-                                const busy = busyId === n.id;
-                                return (
-                                    <tr key={n.id} className="hover:bg-[#F8FAFC]">
-                                        <td className="px-4 py-4 font-mono text-[11px] font-semibold text-[#0F172A]">{n.code}</td>
-                                        <td className="max-w-[300px] px-4 py-4">
-                                            <Link to={`/dashboard/notices/${n.id}`} className="text-sm font-semibold text-[#0F766E] hover:underline">{n.title}</Link>
-                                        </td>
-                                        <td className="px-4 py-4 font-semibold text-[#0F172A]">v{n.version}</td>
-                                        <td className="px-4 py-4 text-[#0F172A]">{`${n.purposeCount} ${n.purposeCount === 1 ? "Purpose" : "Purposes"}`}</td>
-                                        <td className="px-4 py-4">
-                                            <StatusPill status={n.status} />
-                                            {published && n.hash && <p title={n.hash} className="mt-1 font-mono text-[10px] text-[#64748B]">{n.hash.slice(0, 12)}…</p>}
-                                        </td>
-                                        <td className="whitespace-nowrap px-4 py-4 text-[#475569]">{formatDate(n.createdAt)}</td>
-                                        <td className="px-4 py-4">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                {published ? (
-                                                    <>
-                                                        <Link to={`/dashboard/notices/${n.id}`} className={`${ghostBtn} !px-3 !py-1.5 text-xs`}>View only</Link>
-                                                        <button type="button" disabled={busy} onClick={() => newVersion(n)} className={`${primaryBtn} !px-3 !py-1.5 text-xs`}>{busy ? "Creating..." : "New version"}</button>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Link to={`/dashboard/notices/${n.id}`} className={`${ghostBtn} !px-3 !py-1.5 text-xs`}>Edit</Link>
-                                                        <button type="button" disabled={busy} onClick={() => publish(n)} className={`${primaryBtn} !px-3 !py-1.5 text-xs`}>{busy ? "Publishing..." : "Publish"}</button>
-                                                    </>
-                                                )}
-                                            </div>
+                {state.loading ? (
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                ) : rows.length === 0 ? (
+                    <p className="px-5 py-12 text-center text-sm text-[#475569]">{state.rows.length ? "No notices match your search." : 'No notices yet. Use "New notice" to create one.'}</p>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[760px]">
+                            <thead className="bg-[#F8FAFC]">
+                                <tr><th className={`${th} pl-5`}>Code</th><th className={th}>Title</th><th className={th}>Version</th><th className={th}>Status</th><th className={th}>Purposes</th><th className={th}>Created</th><th className={`${th} pr-5`} /></tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {rows.map((r) => (
+                                    <tr key={r.id} className="hover:bg-[#F8FAFC]">
+                                        <td className={`${td} pl-5 font-mono text-xs`}>{r.code}</td>
+                                        <td className={`${td} font-medium text-[#0F172A]`}>{r.title || "-"}</td>
+                                        <td className={td}>v{r.version}</td>
+                                        <td className={td}><StatusPill status={r.status} /></td>
+                                        <td className={td}>{r.purposesCount}</td>
+                                        <td className={td}>{formatDate(r.createdAt)}</td>
+                                        <td className={`${td} whitespace-nowrap pr-5 text-right`}>
+                                            <button type="button" onClick={() => { setFlash(""); setOpenId(r.id); }} className="font-semibold text-[#0F766E] hover:underline">{isPublished(r.status) ? "View" : "Edit"}</button>
+                                            {isPublished(r.status) && (
+                                                <button type="button" onClick={() => newVersion(r)} disabled={busyId === r.id} className="ml-4 font-semibold text-[#0E7490] hover:underline disabled:opacity-50">{busyId === r.id ? "Creating..." : "New version"}</button>
+                                            )}
                                         </td>
                                     </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
-            {creating && (
-                <CreateDialog
-                    onClose={() => setCreating(false)}
-                    onCreated={({ id, message }) => {
-                        setCreating(false);
-                        if (id) navigate(`/dashboard/notices/${id}`, { state: { flash: message } });
-                        else { setFlash(message); load(); }
-                    }}
-                />
-            )}
+            {creating && <CreateModal onClose={() => setCreating(false)} onCreated={(newId) => { setCreating(false); setFlash("Draft created. Add purposes and translations, then publish."); load(); if (newId) setOpenId(newId); }} />}
+            {openId && <EditorModal key={openId} id={openId} onClose={() => setOpenId(null)} onChanged={(msg) => { if (msg) setFlash(msg); load(); }} />}
         </div>
     );
 }

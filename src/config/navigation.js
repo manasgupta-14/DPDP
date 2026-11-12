@@ -5,6 +5,7 @@ export const ADMIN_SECTIONS = [
             { to: "/dashboard", label: "Dashboard", icon: "grid", end: true },
             { to: "/dashboard/timeline", label: "Act & Rules timeline", icon: "calendar" },
             { to: "/dashboard/my-tasks", label: "My Tasks", icon: "consent" },
+            { to: "/dashboard/reports", label: "Reports", icon: "download" },
         ],
     },
     {
@@ -29,6 +30,7 @@ export const ADMIN_SECTIONS = [
             { to: "/dashboard/grievances", label: "Grievances", icon: "rights" },
             { to: "/dashboard/breach", label: "Breach management", icon: "shield" },
             { to: "/dashboard/dpia", label: "DPIA", icon: "scale" },
+            { to: "/dashboard/retention", label: "Retention & erasure", icon: "clock" },
             { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist" },
             { to: "/dashboard/audit", label: "Audit trail", icon: "audit" },
         ],
@@ -56,7 +58,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/tasks", label: "My Tasks", icon: "tasks" },
             { to: "/user/consent", label: "My Consents", icon: "consent" },
-            { to: "/user/notices", label: "Privacy notices", icon: "notice" },
+            { to: "/user/notices", label: "My notices", icon: "notice" },
             { to: "/user/reports", label: "My Security Reports", icon: "shield" },
         ],
     },
@@ -65,6 +67,7 @@ export const USER_SECTIONS = [
         items: [
             { to: "/user/grievance", label: "Grievance", icon: "rights" },
             { to: "/user/privacy", label: "Privacy settings", icon: "rights" },
+            { to: "/user/privacy-notices", label: "Privacy notices", icon: "notice" },
         ],
     },
 ];

@@ -50,7 +50,6 @@ const pickAny = (obj, keys) => {
 };
 
 export function normalizePurposeHistory(entry, index = 0) {
-    // API: [{ Revision: "v2", State: "Current" | "Archived", Recorded }]
     const revision = pickAny(entry, ["revision", "version", "versionNumber"]);
     const state = pickAny(entry, ["state", "status"]);
     return {

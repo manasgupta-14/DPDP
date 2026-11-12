@@ -4,7 +4,9 @@ import { createNoticeVersion, getNotice, getPurposeDetails, getTemplateOptions, 
 import Alert from "../../components/shared/Alert.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { LANGUAGES, isPublished, langLabel } from "../../utils/noticeApi.js";
-import { PUBLISH_WARNING, StatusPill } from "./Notices.jsx";
+import { StatusPill } from "../../components/admin/notices/NoticeBadges.jsx";
+
+const PUBLISH_WARNING = "Publish this notice? A published notice is locked and hashed. To change it later you will need to create a new version.";
 
 const DASH = <span className="text-[#94A3B8]">-</span>;
 
@@ -23,8 +25,6 @@ function Section({ letter, title, hint, children }) {
     );
 }
 
-// Layout comes from the selected template. Colour + logo are what the backend saved on the notice
-// (the template list API does not return them), so they refresh after the next save.
 function TemplatePreview({ template, notice, changed }) {
     if (!template && !notice.layout) return <p className="text-sm text-[#64748B]">No template applied yet. Pick one and save the draft.</p>;
     const color = notice.primaryColor;
@@ -61,8 +61,6 @@ export default function NoticeEditor() {
     const [lang, setLang] = useState("");
     const [newLang, setNewLang] = useState("");
 
-    // The backend merges the template's default purposes into the notice on every save, so the
-    // saved list already contains them. Strip them here so switching template drops the old defaults.
     const hydrate = useCallback((n, templateList) => {
         const tpl = templateList.find((t) => t.id === n.templateId);
         const own = tpl ? n.purposes.filter((c) => !tpl.purposes.includes(c)) : n.purposes;
@@ -117,7 +115,7 @@ export default function NoticeEditor() {
     };
 
     const validate = () => {
-        if (!form.templateId) return "Select a template - the backend needs one to save the notice.";
+        if (!form.templateId) return "Select a template to save the notice.";
         const primary = form.translations.find((t) => t.language === form.defaultLanguage);
         if (!primary?.title.trim()) return `Enter the ${langLabel(form.defaultLanguage)} (primary) title.`;
         const tooLong = form.translations.find((t) => t.title.trim().length > 500);

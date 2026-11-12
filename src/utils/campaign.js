@@ -18,6 +18,30 @@ export const AUDIENCES = [
     { value: "All", label: "Everyone" },
 ];
 
+export const TARGET_AUDIENCE = { specific: 1, allCustomers: 2, allStaff: 3, everyone: 4 };
+
+export const TARGET_AUDIENCE_OPTIONS = [
+    { value: TARGET_AUDIENCE.everyone, label: "Everyone (staff and customers)" },
+    { value: TARGET_AUDIENCE.allStaff, label: "All staff (internal users)" },
+    { value: TARGET_AUDIENCE.allCustomers, label: "All customers (data principals)" },
+    { value: TARGET_AUDIENCE.specific, label: "Specific people (choose after creating)" },
+];
+
+export function targetAudienceLabel(value, role) {
+    switch (Number(value)) {
+        case TARGET_AUDIENCE.everyone:
+            return "Everyone";
+        case TARGET_AUDIENCE.allStaff:
+            return role && role !== "All" ? `Staff · ${role}` : "All staff";
+        case TARGET_AUDIENCE.allCustomers:
+            return "All customers";
+        case TARGET_AUDIENCE.specific:
+            return "Specific people";
+        default:
+            return role || "-";
+    }
+}
+
 export const CAMPAIGN_TYPES = [
     { value: "Consent", label: "Consent request (allow / deny)" },
     { value: "Awareness", label: "Awareness notice (mark as read)" },
@@ -43,6 +67,7 @@ export function normalizeCampaign(c) {
         description: pick(c, ["description"]) || "",
         type: pick(c, ["campaignType", "type"]),
         audience: pick(c, ["targetRole"]),
+        targetAudience: Number(pick(c, ["targetAudience"]) ?? 0),
         status: pick(c, ["status"]),
         startDate: pick(c, ["startDate"]),
         endDate: pick(c, ["endDate"]),
@@ -67,7 +92,7 @@ export function normalizeStats(s) {
         accepted: num(["acceptedCount"]),
         rejected: num(["rejectedCount"]),
         completed: num(["completedCount"]),
-        rate: num(["acceptanceRate"]),
+        rate: num(["acceptanceRate"]) || (num(["totalResponses"]) ? Math.round((num(["acceptedCount"]) / num(["totalResponses"])) * 10000) / 100 : 0),
     };
 }
 

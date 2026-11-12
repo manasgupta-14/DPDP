@@ -41,7 +41,7 @@ export default function EditOrgUnitForm({ unit, flat, onSaved, onClose }) {
                 <label className="block text-sm font-medium text-[#334155]">
                     Code <span className="text-[#DC2626]">*</span>
                     <input value={form.code} onChange={(e) => { setForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/\s+/g, "-") })); setErrors((er) => ({ ...er, code: undefined })); }} maxLength={60} spellCheck={false} className={`${field} font-mono`} aria-invalid={!!errors.code} />
-                    <span className="mt-1 block text-xs text-[#475569]">Kind ({unit.kind}) and parent cannot be changed here — the API only updates name and code.</span>
+                    <span className="mt-1 block text-xs text-[#475569]">Kind ({unit.kind}) and parent cannot be changed here. Only name and code can be edited.</span>
                     <span className="block text-xs text-[#DC2626]">{errors.code}</span>
                 </label>
                 <Alert>{apiError}</Alert>

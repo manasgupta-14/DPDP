@@ -39,7 +39,6 @@ export default function PrivacyRequests() {
 
     const typed = `${search} ${query || ""}`.trim();
 
-    // The backend does the searching, so wait until the user stops typing before calling it.
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebounced(typed);
@@ -164,7 +163,7 @@ export default function PrivacyRequests() {
                                     </td>
                                     <td className="px-4 py-3.5 font-medium text-[#0F172A]">{r.type || "-"}</td>
                                     <td className="px-4 py-3.5">
-                                        <span className="font-medium text-[#0F172A]" title="Name is masked by the backend">{r.principalName || shortId(r.principalId)}</span>
+                                        <span className="font-medium text-[#0F172A]" title="Name is masked">{r.principalName || shortId(r.principalId)}</span>
                                     </td>
                                     <td className="px-4 py-3.5"><StatusBadge status={r.status} /></td>
                                     <td className="px-4 py-3.5"><NotInApi /></td>

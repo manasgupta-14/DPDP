@@ -26,3 +26,26 @@ export async function getMyPendingCampaigns() {
 export async function respondToCampaign(campaignId, responseStatus) {
     return apiFetch("/api/Campaign/respond", { method: "POST", body: { campaignId, responseStatus } });
 }
+
+export async function getAudienceList(type) {
+    const res = await apiFetch(`/api/Campaign/audiences?type=${encodeURIComponent(type)}`);
+    if (!res.ok) return res;
+    return {
+        ...res,
+        data: asArray(res.data)
+            .map((m) => ({
+                id: String(m?.id ?? m?.Id ?? ""),
+                name: String(m?.fullName ?? m?.FullName ?? ""),
+                email: String(m?.email ?? m?.Email ?? ""),
+                userType: String(m?.userType ?? m?.UserType ?? ""),
+            }))
+            .filter((m) => m.id),
+    };
+}
+
+export async function linkAudience({ campaignId, selectedIds, isInternalUserMapping }) {
+    return apiFetch("/api/Campaign/link-audience", {
+        method: "POST",
+        body: { campaignId, selectedIds, isInternalUserMapping: !!isInternalUserMapping },
+    });
+}

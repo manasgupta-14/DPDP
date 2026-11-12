@@ -3,7 +3,6 @@ import { getPurposeHistory } from "../../../api/purposeRegistry.js";
 import { toDate } from "../../../utils/audit.js";
 import Modal from "../../shared/Modal.jsx";
 import { dkBtn, dkModal } from "../consent/styles.js";
-import { NotInApi } from "./NotInApi.jsx";
 
 const when = (value) => {
     const d = toDate(value);
@@ -31,7 +30,7 @@ export default function PurposeHistoryModal({ purpose, onClose }) {
         <Modal title={title} onClose={onClose}>
             <div className={dkModal}>
                 <h2 className="pr-8 text-lg font-semibold">{title}</h2>
-                <p className="text-xs text-[#475569]">Every edit archives the old version and creates a new one. Who changed it and why: <NotInApi /></p>
+                <p className="text-xs text-[#475569]">Every edit archives the old version and creates a new one.</p>
 
                 {state.loading && <div aria-busy="true" className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>}
 
