@@ -1,8 +1,5 @@
 import { DEFAULT_COLOR } from "./noticeTemplate.js";
 
-// A "notice" is a row of the backend NoticeTemplate API (code, name, description, purposes, layout).
-// The backend has no body, translations, version, status, review or content hash for it yet,
-// so those live in this browser (localStorage) until the API supports them.
 
 export const NOTICE_STATUS = { draft: "Draft", published: "Published", archived: "Archived" };
 export const REVIEW = { none: "Not required", pending: "Pending review", approved: "Approved" };
@@ -66,7 +63,6 @@ export function saveMeta(id, patch) {
         all[id] = { ...(all[id] || {}), ...patch };
         localStorage.setItem(META_KEY, JSON.stringify(all));
     } catch {
-        /* storage blocked or full: the notice itself is still saved through the API */
     }
 }
 
@@ -76,11 +72,9 @@ export function dropMeta(id) {
         delete all[id];
         localStorage.setItem(META_KEY, JSON.stringify(all));
     } catch {
-        /* ignore */
     }
 }
 
-// Backend TemplateListDto: id, code, name, description, purposes, layout, createdAt
 export function normalizeNotice(raw) {
     const purposes = pick(raw, ["purposes"]);
     return {
@@ -120,9 +114,6 @@ export function formatDay(value) {
 
 export const nextVersion = (list, code) => list.filter((n) => n.code === code).reduce((max, n) => Math.max(max, n.version || 1), 0) + 1;
 
-// ---- content hash -------------------------------------------------------------------------
-// crypto.subtle only exists on https / localhost, and this console can run on plain http,
-// so a small SHA-256 is used instead.
 const K = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
     0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
@@ -180,7 +171,6 @@ export function sha256Hex(text) {
     return h.map((x) => x.toString(16).padStart(8, "0")).join("");
 }
 
-// Fixed key order so the same wording always gives the same hash.
 export function contentHash(form, version) {
     return sha256Hex(
         JSON.stringify({

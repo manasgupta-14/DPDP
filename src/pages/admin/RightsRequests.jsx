@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getPrivacyRequestDetail, getPrivacyRequestList, resolvePrivacyRequest } from "../../api/privacyRequest.js";
+import { getRightsRequestDetail, getPrivacyRequestList, resolvePrivacyRequest } from "../../api/privacyRequest.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
@@ -7,7 +7,6 @@ import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.j
 import { formatDate } from "../../utils/breach.js";
 import { RIGHT_STATUSES, RIGHT_TYPES, TONES, isFinal, rightLabel, statusInfo } from "../../utils/rightsRequest.js";
 
-// DSAR register: naye backend ki GET /api/PrivacyRequest (filters + pages) aur /{id}/detail par chalta hai
 const PAGE_SIZE = 10;
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]";
 const td = "px-3 py-3 text-sm text-[#334155]";
@@ -26,7 +25,7 @@ function DetailModal({ id, onClose, onSaved }) {
 
     useEffect(() => {
         let active = true;
-        getPrivacyRequestDetail(id).then((res) => {
+        getRightsRequestDetail(id).then((res) => {
             if (!active) return;
             setState({ loading: false, data: res.ok ? res.data : null, error: res.ok ? "" : res.error });
             if (res.ok) {

@@ -29,8 +29,8 @@ export const PURPOSE_STATE = { allowed: "Allowed", denied: "Not allowed", withdr
 
 export const MISSING = "Not recorded";
 
-export const NOT_IN_API = "Not in API";
-export const NOT_IN_API_HINT = "The frontend is ready for this field, but the backend API does not return it yet.";
+export const NOT_IN_API = "-";
+export const NOT_IN_API_HINT = "";
 export const NOT_SET = "Not set";
 
 const rawKey = (obj, key) => {
@@ -114,7 +114,6 @@ function purposeState(decision, status, expiresAt, recordStatus) {
 }
 
 export function normalizeConsentArtifact(record, index = 0, purposes = [], principalId = "") {
-    // API purpose id nahi bhejti, naam se match hota hai. Same naam ke purposes ho toh ek-ek karke match karte hain.
     const nameQueues = new Map();
     const lastByName = new Map();
     purposes.forEach((p) => {
@@ -198,7 +197,6 @@ export function normalizeConsentRecord(record, index = 0) {
     const rawStatus = rawKey(record, "overallStatus") ?? rawKey(record, "status");
     const status = typeof rawStatus === "number" ? RECORD_STATUS_NAMES[rawStatus] ?? "Unknown" : rawStatus ?? "Unknown";
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
-    // API ab Purposes / Decisions ([{purpose, decision, status}]) bhejti hai; purani shape (consentDetails) bhi chalti rehti hai.
     const details = listOf(rawKey(record, "consentDetails") ?? rawKey(record, "purposes") ?? rawKey(record, "decisions"));
     const purposes = details.map((d, i) => {
         const purpose = rawKey(d, "consentPurpose") ?? d;

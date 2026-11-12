@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getDataInventoryItem, updateDataInventory } from "../../../api/dataInventory.js";
+import { deleteDataInventory, getDataInventoryItem, updateDataInventory } from "../../../api/dataInventory.js";
 import Alert from "../../shared/Alert.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { formatDate } from "../../../utils/breach.js";
@@ -21,6 +21,19 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
     const [loadError, setLoadError] = useState("");
     const [editing, setEditing] = useState(startEditing);
     const [notice, setNotice] = useState("");
+    const [confirming, setConfirming] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
+
+    const remove = async () => {
+        setDeleting(true);
+        setDeleteError("");
+        const res = await deleteDataInventory(item.id);
+        setDeleting(false);
+        if (!res.ok) return setDeleteError(res.error);
+        onChanged?.(`Deleted "${item.name}".`);
+        onClose?.();
+    };
 
     const fetchFresh = useCallback(async () => {
         const res = await getDataInventoryItem(listItem.id);
@@ -88,10 +101,23 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
                 {item.updatedAt && <Row label="Last updated">{formatDate(item.updatedAt)}</Row>}
             </dl>
 
-            <div className="flex gap-2.5">
-                <button type="button" onClick={() => { setNotice(""); setEditing(true); }} disabled={loading} className={`${primaryBtn} flex-1`}>Edit</button>
-                <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
-            </div>
+            {deleteError && <Alert>{deleteError}</Alert>}
+
+            {confirming ? (
+                <div className="space-y-3 rounded-xl border border-[#FECACA] bg-[#FEF2F2] p-4">
+                    <p className="text-sm text-[#7F1D1D]">Delete <span className="font-semibold">{item.name}</span>? This cannot be undone.</p>
+                    <div className="flex gap-2.5">
+                        <button type="button" onClick={remove} disabled={deleting} className="inline-flex flex-1 items-center justify-center rounded-xl bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#B91C1C] disabled:opacity-60">{deleting ? "Deleting..." : "Yes, delete"}</button>
+                        <button type="button" onClick={() => setConfirming(false)} disabled={deleting} className={ghostBtn}>Cancel</button>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex gap-2.5">
+                    <button type="button" onClick={() => { setNotice(""); setEditing(true); }} disabled={loading} className={`${primaryBtn} flex-1`}>Edit</button>
+                    <button type="button" onClick={() => { setNotice(""); setDeleteError(""); setConfirming(true); }} disabled={loading} className="inline-flex items-center justify-center rounded-xl border border-[#FECACA] px-4 py-2.5 text-sm font-semibold text-[#B91C1C] transition hover:bg-[#FEF2F2] disabled:opacity-60">Delete</button>
+                    <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
+                </div>
+            )}
         </div>
     );
 }

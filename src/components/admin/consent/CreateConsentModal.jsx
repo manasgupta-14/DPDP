@@ -3,7 +3,6 @@ import { addPurpose } from "../../../api/consent.js";
 import Modal from "../../shared/Modal.jsx";
 import { dkBtn, dkInput } from "./styles.js";
 
-// Admin sirf yeh chunta hai ki kis detail ki permission maangni hai. Allow / Don't allow user chunta hai, admin nahi.
 const PRESETS = [
     { key: "name", code: "NAME", name: "Use of my name", question: "Can we use your name?" },
     { key: "email", code: "EMAIL", name: "Use of my email address", question: "Can we use your email address?" },
@@ -46,7 +45,6 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
         const failed = [];
         let saved = 0;
         for (const it of items) {
-            // isMandatory false: user har detail par khud Allow / Don't allow chunega
             const res = await addPurpose({ code: it.code, shortName: it.name, isMandatory: false });
             if (res.ok) saved += 1;
             else failed.push(`${it.name}: ${res.error}`);

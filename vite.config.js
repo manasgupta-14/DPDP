@@ -8,8 +8,6 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
-    // Dev mein browser /api/... call karta hai, Vite use .NET backend ko forward karta hai.
-    // Isse CORS aur self-signed HTTPS certificate dono ka issue nahi aata.
     proxy: {
       "/api": {
         target: "https://localhost:7139",

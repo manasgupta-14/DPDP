@@ -6,7 +6,6 @@ const CHANNEL_WEB = 0;
 
 const byNewest = (a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime();
 
-// Edit karne par backend purana version inactive karke naya version banata hai, isliye default mein sirf active versions.
 export async function getPurposes({ includeInactive = false } = {}) {
     const res = await apiFetch("/api/Consent/purposes");
     if (!res.ok) return res;

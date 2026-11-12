@@ -5,7 +5,7 @@ import MyReportsList from "../../components/user/MyReportsList.jsx";
 import { timeOf } from "../../utils/breach.js";
 
 const FALLBACK_NOTICE =
-    "This list is read from the browser you submitted the reports from, because the server has no \"my reports\" endpoint yet. Reports from other devices will not appear here until the backend adds GET /api/Breach/my-reports.";
+    "This list shows the reports submitted from this browser.";
 
 export default function MySecurityReports() {
     const [reports, setReports] = useState([]);

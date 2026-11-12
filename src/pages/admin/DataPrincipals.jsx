@@ -37,7 +37,6 @@ function Section({ title, count, children }) {
     );
 }
 
-// ---------- 360 view ----------
 function View360({ principal, onClose }) {
     const [state, setState] = useState({ loading: true, data: null, error: "" });
 
@@ -140,7 +139,6 @@ function View360({ principal, onClose }) {
     );
 }
 
-// ---------- Add one ----------
 const EMPTY = { fullName: "", mobile: "", email: "", consumerNo: "", dateOfBirth: "", class: "adult", preferredLocale: "en-IN" };
 
 function AddForm({ onClose, onAdded }) {
@@ -212,10 +210,9 @@ function AddForm({ onClose, onAdded }) {
     );
 }
 
-// ---------- Page ----------
 export default function DataPrincipals() {
     const [search, setSearch] = useState("");
-    const [query, setQuery] = useState(""); // search box se 400ms baad server pe jata hai
+    const [query, setQuery] = useState("");
     const [classType, setClassType] = useState("");
     const [page, setPage] = useState(1);
     const [state, setState] = useState({ loading: true, rows: [], total: 0, error: "" });

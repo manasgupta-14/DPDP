@@ -1,9 +1,6 @@
 import { toDate } from "./audit.js";
 import { asArray } from "./breach.js";
 
-// Backend (ImportController / BulkImportService) mein kinds ya statuses ki koi list endpoint nahi hai.
-// ImportType ek free string hai (default "Consumers") aur sirf consumer CSV hi parse hota hai, isliye kind ek hi hai.
-// Batch ke status backend ke code se liye gaye hain: Staged -> Executing -> Completed / CompletedWithErrors (ya Failed).
 export const IMPORT_KINDS = [{ value: "Consumers", label: "Consumers", description: "Consumer base: mobile, email or consumer_no, name, class and preferred locale." }];
 
 export const IMPORT_STATUSES = [
@@ -52,7 +49,6 @@ export const ROW_TONE = {
 
 const GUARDIAN_CLASSES = ["child", "person_with_disability"];
 
-// The API serializes row data with C# property names (Mobile, ConsumerNo ...), so match keys ignoring case.
 function field(obj, ...names) {
     if (!obj || typeof obj !== "object") return "";
     const wanted = names.map((n) => n.toLowerCase());
@@ -123,7 +119,6 @@ export function errorLogCsv(rows) {
 
 export const errorLogName = (fileName) => `${String(fileName || "batch").replace(/\.csv$/i, "").replace(/[^\w.-]+/g, "-")}-error-log.csv`;
 
-// Header names must match the backend's CSV mapping exactly (lower-case snake_case).
 export const SAMPLE_CSV = [
     "mobile,email,consumer_no,display_name,full_name,date_of_birth,class,preferred_locale",
     "9876543210,jayesh@example.com,,Jayesh Mane,Jayesh Suresh Mane,1988-04-12,adult,mr-IN",

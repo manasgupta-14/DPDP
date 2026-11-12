@@ -4,7 +4,6 @@ import { DEFAULT_COLOR, DEFAULT_LAYOUT, isHex, norm, toCode } from "../../../uti
 import Alert from "../../shared/Alert.jsx";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
-import { NotInApi } from "../purposes/NotInApi.jsx";
 import NoticePreview from "./NoticePreview.jsx";
 
 const hint = "mt-1 block text-xs font-normal text-[#475569]";
@@ -121,12 +120,12 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
 
                         <div className="grid gap-4 sm:grid-cols-2">
                             <label className="block text-sm font-medium text-[#334155]">
-                                <span className="flex items-center gap-2">Logo URL{editing && template.logoUrl === undefined && <NotInApi />}</span>
+                                <span className="flex items-center gap-2">Logo URL</span>
                                 <input type="url" value={form.logoUrl} onChange={set("logoUrl")} disabled={busy} placeholder="https://example.com/logo.png" className={field} />
                                 <span className={hint}>Optional. Shown at the top of the notice.</span>
                             </label>
                             <label className="block text-sm font-medium text-[#334155]">
-                                <span className="flex items-center gap-2">Primary colour{editing && template.primaryColor === undefined && <NotInApi />}</span>
+                                <span className="flex items-center gap-2">Primary colour</span>
                                 <div className="flex items-center gap-2">
                                     <input type="color" value={isHex(form.primaryColor) ? form.primaryColor : DEFAULT_COLOR} onChange={set("primaryColor")} disabled={busy} aria-label="Pick colour" className="mt-1.5 h-[42px] w-12 shrink-0 cursor-pointer rounded-xl border border-[#E2E8F0] bg-white p-1" />
                                     <input value={form.primaryColor} onChange={set("primaryColor")} disabled={busy} maxLength={7} className={`${field} font-mono uppercase`} aria-invalid={!!errors.primaryColor} />
@@ -138,11 +137,11 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
                             Layout
                             <input list="notice-template-layouts" value={form.layout} onChange={set("layout")} maxLength={50} disabled={busy} placeholder="Standard" className={field} aria-invalid={!!errors.layout} />
                             <datalist id="notice-template-layouts"><option value="Standard" /></datalist>
-                            <span className={hint}>Saved with the template and returned by the API. The backend does not list allowed layouts, so Standard is the default.</span>
+                            <span className={hint}>Standard is the default layout.</span>
                             <span className={err}>{errors.layout}</span>
                         </label>
                         {editing && (template.logoUrl === undefined || template.primaryColor === undefined) && (
-                            <p className="rounded-lg border border-[#D97706]/30 bg-[#D97706]/10 px-3 py-2 text-xs text-[#B45309]">The API does not return the saved logo and colour. Saving sends the values shown here, so re-enter them if this template already had its own.</p>
+                            <p className="rounded-lg border border-[#D97706]/30 bg-[#D97706]/10 px-3 py-2 text-xs text-[#B45309]">Check the logo and colour before saving. Saving uses the values shown here.</p>
                         )}
                     </div>
 

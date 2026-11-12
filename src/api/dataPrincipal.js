@@ -1,10 +1,6 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
 
-// Data Principals (customers)
-//   GET  /api/dataprincipal?search=&classType=&page=&pageSize=   -> { totalCount, data: [...] }  (PII masked)
-//   GET  /api/dataprincipal/{id}/360-view                         -> { record, identifiers, rightsRequests, activeConsents }
-//   POST /api/dataprincipal/add                                   -> { message, referenceId, dataPrincipalId }
 
 const pick = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];

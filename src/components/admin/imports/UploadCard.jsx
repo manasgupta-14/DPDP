@@ -17,7 +17,6 @@ export default function UploadCard({ kinds, onStaged }) {
     const [error, setError] = useState("");
     const [staging, setStaging] = useState(false);
 
-    // Kind dropdown backend ke meta se aata hai; pehla option default.
     const activeKind = kinds.find((k) => k.value === kind) || kinds[0];
 
     const canStage = !!activeKind && (!!picked || pasted.trim() !== "");

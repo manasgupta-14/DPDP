@@ -17,7 +17,7 @@ function Block({ title, note, children }) {
     return (
         <section className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="text-sm font-semibold text-[#0F172A]">{title}</h3>
-            {note && <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#475569]"><NotInApi />{note}</p>}
+            {note && <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#475569]">{note}</p>}
             <div className="mt-3">{children}</div>
         </section>
     );
@@ -48,7 +48,7 @@ export default function DataPrincipal360Modal({ id, onClose }) {
             <div className={`${panel} max-h-[90vh] space-y-4 overflow-y-auto p-5 sm:p-6`}>
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold text-[#0F172A]">Data principal 360 view</h2>
-                    <p className="mt-1 text-sm text-[#475569]">Everything the backend holds for this person. Name, email, mobile and consumer no. are masked by the backend.</p>
+                    <p className="mt-1 text-sm text-[#475569]">Everything held for this person. Name, email, mobile and consumer no. are masked.</p>
                     <p className="mt-1 break-all font-mono text-[11px] text-[#64748B]">{id}</p>
                 </div>
 
@@ -72,7 +72,7 @@ export default function DataPrincipal360Modal({ id, onClose }) {
                             </dl>
                         </Block>
 
-                        <Block title="Identifiers" note={data.identifiers.length === 0 ? "The backend returned no identifiers. It does not create identifier rows when a user is added or imported." : undefined}>
+                        <Block title="Identifiers" note={data.identifiers.length === 0 ? "No identifiers recorded." : undefined}>
                             {data.identifiers.length === 0 ? <Empty>No identifiers on record.</Empty> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-[420px] text-xs text-[#334155]">
@@ -102,7 +102,7 @@ export default function DataPrincipal360Modal({ id, onClose }) {
                             )}
                         </Block>
 
-                        <Block title="Consents" note={data.consents.length > 0 && data.consents.every((c) => c.purposeName === "Mapped Purpose") ? "Purpose name is a fixed placeholder in the API (Mapped Purpose). The real purpose is not returned." : undefined}>
+                        <Block title="Consents" >
                             {data.consents.length === 0 ? <Empty>No consent records.</Empty> : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full min-w-[420px] text-xs text-[#334155]">

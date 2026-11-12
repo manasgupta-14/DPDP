@@ -1,6 +1,5 @@
 export const NOTICE_VERSION = "1.0";
 
-// Backend ko bheji jaane wali language (ConsentRecord.Language)
 export const NOTICE_LOCALE = { en: "en-IN", hi: "hi-IN" };
 
 export const NOTICE_TEXT = {

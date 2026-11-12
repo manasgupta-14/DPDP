@@ -8,7 +8,6 @@ const select = "mt-1.5 h-10 w-full min-w-[12rem] rounded-xl border border-[#E2E8
 export default function BatchList({ batches, kinds: knownKinds, statuses: knownStatuses, loading, query, onOpen }) {
     const [status, setStatus] = useState("");
     const [kind, setKind] = useState("");
-    // Known options + koi bhi aisi value jo batches mein aayi ho, taaki filter kabhi kisi batch ko chhupa na de
     const kinds = useMemo(() => {
         const extra = [...new Set(batches.map((b) => b.importType).filter((v) => v && !knownKinds.some((k) => k.value === v)))];
         return [...knownKinds, ...extra.map((v) => ({ value: v, label: v }))];
