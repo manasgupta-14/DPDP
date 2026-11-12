@@ -143,7 +143,7 @@ function EditorModal({ id, onClose, onChanged }) {
         <Modal title="Notice" onClose={() => !busy && onClose()}>
             <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white p-5 text-[#0F172A] shadow-xl sm:p-6">
                 {state.loading ? (
-                    <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 pg-shimmer rounded-xl" />)}</div>
                 ) : state.error ? (
                     <Alert>{state.error}</Alert>
                 ) : (
@@ -280,7 +280,7 @@ export default function Notices() {
 
             <div className={`${panel} overflow-hidden`}>
                 {state.loading ? (
-                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : rows.length === 0 ? (
                     <p className="px-5 py-12 text-center text-sm text-[#475569]">{state.rows.length ? "No notices match your search." : 'No notices yet. Use "New notice" to create one.'}</p>
                 ) : (

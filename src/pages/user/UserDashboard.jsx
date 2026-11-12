@@ -5,6 +5,7 @@ import { getMyPendingCampaigns } from "../../api/campaign.js";
 import { getUserSummary } from "../../api/dashboard.js";
 import Icon from "../../components/shared/Icon.jsx";
 import { panel, primaryBtn, ghostBtn } from "../../components/shared/ui.js";
+import { isDataPrincipal } from "../../auth/authStore.js";
 import { formatDay, typeLabel } from "../../utils/campaign.js";
 import { dateText, typeLabel as requestTypeLabel } from "../../utils/privacyRequest.js";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
@@ -31,7 +32,7 @@ export default function UserDashboard() {
         getMyPendingCampaigns().then((res) => {
             if (active) setTasks({ loading: false, items: res.ok ? res.data : [], error: res.ok ? "" : res.error });
         });
-        getMyReports().then((res) => {
+        (isDataPrincipal() ? Promise.resolve({ ok: true, data: [] }) : getMyReports()).then((res) => {
             if (active) setReports({ loading: false, items: res.ok ? res.data : [] });
         });
         getUserSummary().then((res) => {
@@ -41,6 +42,7 @@ export default function UserDashboard() {
     }, []);
 
     const firstName = (profile?.name || "there").split(/[\s@]/)[0];
+    const customer = isDataPrincipal(profile);
     const open = reports.items.filter((r) => !/closed|resolved/i.test(r.status)).length;
 
     return (
@@ -48,19 +50,27 @@ export default function UserDashboard() {
             <header className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#111C2E] to-[#0B1220] p-6 text-white sm:p-8">
                 <div aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-56 w-56 rounded-full bg-[#22D3EE]/15 blur-[70px]" />
                 <div className="relative">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#22D3EE]">Employee portal</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#22D3EE]">{customer ? "Customer portal" : "Employee portal"}</p>
                     <h1 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">Welcome, {firstName}</h1>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#CBD5E1]">Respond to consent requests from your organisation and report anything suspicious to the security team.</p>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-[#CBD5E1]">{customer ? "See how your data is used, change your consent any time, and ask for a copy, correction or erasure of your data." : "Respond to consent requests from your organisation and report anything suspicious to the security team."}</p>
                     <div className="mt-5 flex flex-wrap gap-3">
-                        <Link to="/user/tasks" className={primaryBtn}>Review my tasks</Link>
-                        <Link to="/user/reports" className={`${ghostBtn} !bg-transparent !text-white !border-[#263449] hover:!border-[#22D3EE] hover:!text-[#22D3EE]`}>Report an incident</Link>
+                        <Link to="/user/tasks" className={`${primaryBtn} ${tasks.items.length ? "pg-attn" : ""}`}>Review my tasks{tasks.items.length > 0 && <span className="pg-attn-badge">{tasks.items.length}</span>}</Link>
+                        {customer ? (
+                            <Link to="/user/privacy" className={`${ghostBtn} !bg-transparent !text-white !border-[#263449] hover:!border-[#22D3EE] hover:!text-[#22D3EE]`}>Raise a privacy request</Link>
+                        ) : (
+                            <Link to="/user/reports" className={`${ghostBtn} !bg-transparent !text-white !border-[#263449] hover:!border-[#22D3EE] hover:!text-[#22D3EE]`}>Report an incident</Link>
+                        )}
                     </div>
                 </div>
             </header>
 
             <div className="grid gap-6 sm:grid-cols-2">
                 <Stat to="/user/tasks" icon="tasks" tint="bg-[#CCFBF1] text-[#0F766E]" label="Pending tasks" value={tasks.loading ? "-" : tasks.items.length} hint={tasks.items.length ? "Waiting for your response" : "You are all caught up"} />
-                <Stat to="/user/reports" icon="shield" tint="bg-[#22D3EE]/15 text-[#0F172A]" label="Open security reports" value={reports.loading ? "-" : open} hint="Reports you submitted that are not closed" />
+                {customer ? (
+                    <Stat to="/user/grievance" icon="rights" tint="bg-[#22D3EE]/15 text-[#0F172A]" label="Need help?" value="Grievance" hint="Raise a complaint and track the reply" />
+                ) : (
+                    <Stat to="/user/reports" icon="shield" tint="bg-[#22D3EE]/15 text-[#0F172A]" label="Open security reports" value={reports.loading ? "-" : open} hint="Reports you submitted that are not closed" />
+                )}
             </div>
 
             <section aria-label="Privacy overview" className="grid gap-6 sm:grid-cols-3">

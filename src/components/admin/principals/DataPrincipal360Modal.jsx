@@ -52,7 +52,7 @@ export default function DataPrincipal360Modal({ id, onClose }) {
                     <p className="mt-1 break-all font-mono text-[11px] text-[#64748B]">{id}</p>
                 </div>
 
-                {loading && <div className="h-24 animate-pulse rounded-xl bg-[#E2E8F0]/70" />}
+                {loading && <div className="h-24 pg-shimmer rounded-xl" />}
                 {error && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{error}</p>}
 
                 {data && (

@@ -33,7 +33,7 @@ function OutcomeBadge({ outcome }) {
 function Skeleton() {
     return (
         <div className="space-y-3 p-5" aria-busy="true">
-            {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-11 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}
+            {[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-11 pg-shimmer rounded-lg" />)}
         </div>
     );
 }

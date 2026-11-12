@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { getAudienceList, linkAudience } from "../../../api/campaign.js";
+import { applyAudienceGroup, createAudienceGroup, getAudienceGroups, getAudienceList, linkAudience } from "../../../api/campaign.js";
 import Alert from "../../shared/Alert.jsx";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
@@ -7,6 +7,7 @@ import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 const TABS = [
     { key: "internal", label: "Internal Users (Staff)", isInternal: true },
     { key: "customer", label: "Data Principals (Customers)", isInternal: false },
+    { key: "groups", label: "Saved groups", isGroup: true },
 ];
 
 export default function AudienceModal({ campaign, onClose, onLinked }) {
@@ -16,10 +17,27 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
     const [selected, setSelected] = useState(() => new Set());
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
+    const [groups, setGroups] = useState({ loading: true, items: [], error: "" });
+    const [groupId, setGroupId] = useState("");
+    const [saveAs, setSaveAs] = useState(false);
+    const [groupName, setGroupName] = useState("");
 
     const current = TABS.find((t) => t.key === tab);
 
     useEffect(() => {
+        if (tab !== "groups") return undefined;
+        let active = true;
+        getAudienceGroups().then((res) => {
+            if (!active) return;
+            setGroups(res.ok ? { loading: false, items: res.data, error: "" } : { loading: false, items: [], error: res.error });
+        });
+        return () => {
+            active = false;
+        };
+    }, [tab]);
+
+    useEffect(() => {
+        if (tab === "groups") return undefined;
         let active = true;
         getAudienceList(tab).then((res) => {
             if (!active) return;
@@ -37,6 +55,19 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
         setSelected(new Set());
         setSearch("");
         setError("");
+        setGroupId("");
+    };
+
+    const applyGroup = async () => {
+        setError("");
+        const group = groups.items.find((g) => g.id === groupId);
+        if (!group) return setError("Pick a saved group.");
+        setBusy(true);
+        const res = await applyAudienceGroup(group.id, campaign.id);
+        setBusy(false);
+        if (!res.ok) return setError(res.error);
+        onLinked?.(`Group "${group.name}" (${group.members.length} people) applied to "${campaign.title}".`);
+        onClose();
     };
 
     const visible = useMemo(() => {
@@ -67,11 +98,20 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
     const submit = async () => {
         setError("");
         if (selected.size === 0) return setError("Select at least one person.");
+        if (saveAs && !groupName.trim()) return setError("Enter a name for the new group, or untick \"Save as group\".");
         setBusy(true);
         const res = await linkAudience({ campaignId: campaign.id, selectedIds: [...selected], isInternalUserMapping: current.isInternal });
         setBusy(false);
         if (!res.ok) return setError(res.error);
-        onLinked?.(`${selected.size} ${current.isInternal ? "staff member" : "customer"}${selected.size === 1 ? "" : "s"} linked to "${campaign.title}".`);
+        let note = "";
+        if (saveAs && groupName.trim()) {
+            const saved = await createAudienceGroup({
+                name: groupName,
+                members: [...selected].map((id) => ({ id, userType: current.isInternal ? "InternalUser" : "DataPrincipal" })),
+            });
+            note = saved.ok ? ` Saved as group "${groupName.trim()}".` : ` (Group not saved: ${saved.error})`;
+        }
+        onLinked?.(`${selected.size} ${current.isInternal ? "staff member" : "customer"}${selected.size === 1 ? "" : "s"} linked to "${campaign.title}".${note}`);
         onClose();
     };
 
@@ -100,19 +140,45 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
                         ))}
                     </div>
 
-                    <input
+                    {!current.isGroup && <input
                         type="search"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by name or email"
                         aria-label="Search by name or email"
                         className={`${field} mt-3`}
-                    />
+                    />}
                 </div>
 
                 <div className="min-h-[200px] flex-1 overflow-y-auto">
-                    {list.loading ? (
-                        <div className="space-y-2 p-5" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-9 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                    {current.isGroup ? (
+                        groups.loading ? (
+                            <div className="space-y-2 p-5" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="pg-shimmer h-14 rounded-xl" />)}</div>
+                        ) : groups.error ? (
+                            <div className="p-5"><Alert>{groups.error}</Alert></div>
+                        ) : groups.items.length === 0 ? (
+                            <p className="px-5 py-10 text-center text-sm text-[#475569]">No saved groups yet. Create one from "Audience groups" on the Campaigns page, or tick "Save as group" while linking people.</p>
+                        ) : (
+                            <ul className="space-y-2 p-5" role="radiogroup" aria-label="Saved groups">
+                                {groups.items.map((g) => {
+                                    const on = groupId === g.id;
+                                    return (
+                                        <li key={g.id}>
+                                            <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-all ${on ? "border-[#0F766E] bg-[#CCFBF1]/40 shadow-[0_6px_16px_-8px_rgba(15,118,110,0.5)]" : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]"}`}>
+                                                <input type="radio" name="audience-group" checked={on} onChange={() => setGroupId(g.id)} disabled={busy} />
+                                                <span className="min-w-0 flex-1">
+                                                    <span className="block truncate font-semibold text-[#0F172A]">{g.name}</span>
+                                                    <span className="block text-xs text-[#64748B]">{g.staffCount} staff · {g.customerCount} customer{g.customerCount === 1 ? "" : "s"}</span>
+                                                </span>
+                                                <span className="rounded-lg bg-[#0F766E]/10 px-2 py-1 text-xs font-bold text-[#0F766E]">{g.members.length}</span>
+                                            </label>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )
+                    ) : list.loading ? (
+                        <div className="space-y-2 p-5" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-9 pg-shimmer rounded" />)}</div>
                     ) : list.error ? (
                         <div className="p-5"><Alert>{list.error}</Alert></div>
                     ) : list.items.length === 0 ? (
@@ -160,16 +226,45 @@ export default function AudienceModal({ campaign, onClose, onLinked }) {
 
                 <div className="space-y-3 border-t border-[#E2E8F0] p-5 sm:px-6">
                     <Alert>{error}</Alert>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                        <p className="text-sm text-[#475569]">
-                            <span className="font-semibold text-[#0F172A]">{selected.size}</span> selected
-                            {list.items.length > 0 && <> of {list.items.length}</>}
-                        </p>
-                        <div className="flex gap-2.5">
-                            <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
-                            <button type="button" onClick={submit} disabled={busy || selected.size === 0} className={primaryBtn}>{busy ? "Linking..." : "Link audience"}</button>
+                    {current.isGroup ? (
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-xs text-[#64748B]">Applying a group replaces this campaign's current audience.</p>
+                            <div className="flex gap-2.5">
+                                <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
+                                <button type="button" onClick={applyGroup} disabled={busy || !groupId} className={primaryBtn}>{busy ? "Applying..." : "Apply group"}</button>
+                            </div>
                         </div>
-                    </div>
+                    ) : (
+                        <>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <label className="flex items-center gap-2 text-sm text-[#334155]">
+                                    <input type="checkbox" checked={saveAs} onChange={(e) => setSaveAs(e.target.checked)} disabled={busy} />
+                                    Save as group
+                                </label>
+                                {saveAs && (
+                                    <input
+                                        value={groupName}
+                                        onChange={(e) => setGroupName(e.target.value)}
+                                        maxLength={150}
+                                        disabled={busy}
+                                        placeholder="Group name"
+                                        aria-label="Group name"
+                                        className="h-9 min-w-0 flex-1 rounded-lg border border-[#E2E8F0] px-3 text-sm focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40"
+                                    />
+                                )}
+                            </div>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-sm text-[#475569]">
+                                    <span className="font-semibold text-[#0F172A]">{selected.size}</span> selected
+                                    {list.items.length > 0 && <> of {list.items.length}</>}
+                                </p>
+                                <div className="flex gap-2.5">
+                                    <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
+                                    <button type="button" onClick={submit} disabled={busy || selected.size === 0} className={primaryBtn}>{busy ? "Linking..." : "Link audience"}</button>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </Modal>

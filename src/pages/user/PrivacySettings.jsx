@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMyPrivacyRequests, raisePrivacyRequest } from "../../api/privacyRequest.js";
-import { getProfile } from "../../auth/authStore.js";
+import { getProfile, isDataPrincipal } from "../../auth/authStore.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
@@ -145,6 +145,9 @@ export default function PrivacySettings() {
                 <p className="mt-1 text-sm text-[#475569]">Use your rights under the DPDP Act: ask to access, correct, update, erase or export your data.</p>
             </div>
 
+            {!isDataPrincipal(getProfile()) && (
+                <Alert tone="info">This page is meant for customer (data principal) logins. You are signed in with a staff account, so privacy requests may not be saved. Sign in as a customer to test it.</Alert>
+            )}
             {!principalId && <Alert>Your session has no user ID, so requests cannot be linked to you. Please sign in again.</Alert>}
 
             <div role="tablist" aria-label="Privacy settings" className="flex flex-wrap gap-3">
@@ -168,7 +171,7 @@ export default function PrivacySettings() {
                     {notice && <Alert tone="success">{notice}</Alert>}
                     {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
                     {loading ? (
-                        <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
+                        <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-28 pg-shimmer rounded-2xl" />)}</div>
                     ) : items.length === 0 && !error ? (
                         <div className={`${panel} px-5 py-12 text-center`}>
                             <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="rights" className="h-6 w-6" /></span>
