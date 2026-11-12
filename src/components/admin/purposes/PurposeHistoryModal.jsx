@@ -32,7 +32,7 @@ export default function PurposeHistoryModal({ purpose, onClose }) {
                 <h2 className="pr-8 text-lg font-semibold">{title}</h2>
                 <p className="text-xs text-[#475569]">Every edit archives the old version and creates a new one.</p>
 
-                {state.loading && <div aria-busy="true" className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-[#E2E8F0]/70" />)}</div>}
+                {state.loading && <div aria-busy="true" className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-12 pg-shimmer rounded-lg" />)}</div>}
 
                 {!state.loading && state.error && <p role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/10 px-3 py-2 text-xs text-[#B91C1C]">{state.error}</p>}
 

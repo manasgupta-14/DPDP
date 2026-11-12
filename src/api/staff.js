@@ -21,7 +21,7 @@ function normalizeStaff(s, index = 0) {
 export async function getStaffList() {
     const res = await apiFetch("/api/Staff");
     if (!res.ok) {
-        if (res.status === 403) return { ...res, error: "The staff list is only available to accounts with the Admin role." };
+        if (res.status === 403) return { ...res, error: "Your role does not have the \"Users.View\" permission needed to see staff. Ask an admin to add it in Roles & permissions." };
         return res;
     }
     return { ...res, data: asArray(res.data).map(normalizeStaff) };
@@ -39,7 +39,7 @@ export async function createStaff({ name, email, password, roleId, orgUnitId }) 
         },
     });
     if (!res.ok) {
-        if (res.status === 403) return { ...res, error: "Only a SystemAdmin can create staff." };
+        if (res.status === 403) return { ...res, error: "Your role does not have the \"Users.Create\" permission needed to add staff. Ask an admin to add it in Roles & permissions." };
         return { ...res, error: String(res.data?.message ?? res.data?.Message ?? res.error).replace(/^Database error:\s*/i, "") };
     }
     return { ...res, data: { message: res.data?.message ?? res.data?.Message ?? "Staff created successfully." } };

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
-    ACTION_TYPES, TRIGGER_EVENTS, actionLabel, createRetentionPolicy, deleteRetentionPolicy, getRetentionMetrics, getRetentionPolicies, getRetentionPolicy, triggerLabel, updateRetentionPolicy,
+    ACTION_TYPES, TRIGGER_EVENTS, actionLabel, createRetentionPolicy, deleteRetentionPolicy, getErasureQueue, getRetentionMetrics, getRetentionPolicies, getRetentionPolicy, triggerLabel, updateRetentionPolicy,
 } from "../../api/retentionPolicy.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -138,6 +138,104 @@ function Stat({ label, value, hint, children }) {
     );
 }
 
+function daysFromNow(value) {
+    const t = value ? new Date(value).getTime() : NaN;
+    if (Number.isNaN(t)) return null;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    return Math.round((t - startOfToday.getTime()) / 86400000);
+}
+
+function ErasureQueue({ query }) {
+    const [state, setState] = useState({ loading: true, rows: [], error: "" });
+    const [filter, setFilter] = useState("all");
+
+    const load = useCallback(async () => {
+        setState((s) => ({ ...s, loading: true }));
+        const res = await getErasureQueue();
+        setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error });
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        getErasureQueue().then((res) => {
+            if (!active) return;
+            setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error });
+        });
+        return () => { active = false; };
+    }, []);
+
+    const overdue = state.rows.filter((r) => r.status === "Overdue").length;
+    const rows = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        return state.rows.filter((r) =>
+            (filter === "all" || r.status.toLowerCase() === filter) &&
+            (!q || [r.reference, r.policy, r.action, r.status].some((v) => v.toLowerCase().includes(q))));
+    }, [state.rows, filter, query]);
+
+    const FILTERS = [["all", "All", state.rows.length], ["overdue", "Overdue", overdue], ["pending", "Pending", state.rows.length - overdue]];
+
+    return (
+        <>
+            {state.error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert>}
+            <div className={`${panel} overflow-hidden`}>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-3.5">
+                    <div className="inline-flex rounded-xl bg-[#F1F5F9] p-1" role="tablist" aria-label="Filter queue">
+                        {FILTERS.map(([key, label, n]) => (
+                            <button key={key} type="button" role="tab" aria-selected={filter === key} onClick={() => setFilter(key)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${filter === key ? "bg-white text-[#0F172A] shadow-[0_1px_3px_rgba(15,23,42,0.12)]" : "text-[#475569] hover:text-[#0F172A]"}`}>
+                                {label} <span className={`ml-1 rounded-full px-1.5 text-[10px] ${key === "overdue" && n ? "bg-[#DC2626]/10 text-[#B91C1C]" : "bg-[#E2E8F0] text-[#475569]"}`}>{n}</span>
+                            </button>
+                        ))}
+                    </div>
+                    <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
+                </div>
+                {state.loading ? (
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="pg-shimmer h-10 rounded-lg" />)}</div>
+                ) : rows.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                        <p className="text-sm font-semibold text-[#0F172A]">{state.rows.length ? "Nothing matches this filter" : state.error ? "Queue could not be loaded" : "Queue is clear"}</p>
+                        <p className="mx-auto mt-1 max-w-lg text-sm text-[#475569]">{state.rows.length || state.error ? "Try another filter or search." : "No records are close to their erasure date under the active retention policy."}</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[720px]">
+                            <thead className="bg-[#F8FAFC]">
+                                <tr><th className={`${th} pl-5`}>Record</th><th className={th}>Policy</th><th className={th}>Action</th><th className={th}>Due</th><th className={`${th} pr-5`}>Status</th></tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#E2E8F0]">
+                                {rows.map((r) => {
+                                    const d = daysFromNow(r.dueDate);
+                                    const late = r.status === "Overdue";
+                                    return (
+                                        <tr key={r.id}>
+                                            <td className={`${td} pl-5`}>
+                                                <p className="font-mono text-[13px] font-medium text-[#0F172A]">{r.reference || r.id.slice(0, 8)}</p>
+                                            </td>
+                                            <td className={td}>{r.policy || "-"}</td>
+                                            <td className={td}>
+                                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${r.action === "Delete" ? "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25" : "bg-[#F1F5F9] text-[#334155] ring-[#CBD5E1]"}`}>{actionLabel(r.action)}</span>
+                                            </td>
+                                            <td className={td}>
+                                                {formatDate(r.dueDate)}
+                                                {d !== null && <span className={`block text-xs ${late ? "font-semibold text-[#B91C1C]" : "text-[#64748B]"}`}>{d < 0 ? `${-d} day${d === -1 ? "" : "s"} overdue` : d === 0 ? "Due today" : `in ${d} day${d === 1 ? "" : "s"}`}</span>}
+                                            </td>
+                                            <td className={`${td} pr-5`}>
+                                                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${late ? "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25" : "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25"}`}>
+                                                    <span className={`h-1.5 w-1.5 rounded-full bg-current ${late ? "animate-pulse" : ""}`} />{r.status}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
 export default function Retention() {
     const { query = "" } = useOutletContext() || {};
     const [tab, setTab] = useState("policies");
@@ -226,17 +324,14 @@ export default function Retention() {
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
 
             {tab === "queue" ? (
-                <div className={`${panel} px-5 py-12 text-center`}>
-                    <p className="text-sm font-semibold">Erasure queue</p>
-                    <p className="mx-auto mt-1 max-w-lg text-sm text-[#475569]">Records due for anonymisation or deletion will be listed here.</p>
-                </div>
+                <ErasureQueue query={query} />
             ) : (
                 <>
                     {openError && <Alert>{openError}</Alert>}
                     {state.error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert>}
                     <div className={`${panel} overflow-hidden`}>
                         {state.loading ? (
-                            <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                            <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                         ) : rows.length === 0 ? (
                             <p className="px-5 py-12 text-center text-sm text-[#475569]">{state.rows.length ? "No policies match your search." : state.error ? "Policies could not be loaded." : 'No retention policies yet. Use "New policy" to create one.'}</p>
                         ) : (

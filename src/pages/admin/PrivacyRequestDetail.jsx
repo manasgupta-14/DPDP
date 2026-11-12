@@ -48,6 +48,7 @@ export default function PrivacyRequestDetail() {
     const [remarks, setRemarks] = useState("");
     const [busy, setBusy] = useState(false);
     const [formError, setFormError] = useState("");
+    const [now] = useState(() => Date.now());
 
     const apply = useCallback((res, resetForm) => {
         if (!res.ok) {
@@ -101,7 +102,7 @@ export default function PrivacyRequestDetail() {
         setBusy(false);
     };
 
-    if (loading) return <div className="h-64 animate-pulse rounded-2xl bg-[#E2E8F0]/70" aria-busy="true" />;
+    if (loading) return <div className="h-64 pg-shimmer rounded-2xl" aria-busy="true" />;
 
     if (!request) {
         return (
@@ -114,7 +115,7 @@ export default function PrivacyRequestDetail() {
 
     const due = dueInfo(request);
     const closed = isClosed(request.status);
-    const daysLeft = request.target ? Math.ceil((request.target.getTime() - Date.now()) / 86400000) : null;
+    const daysLeft = request.target ? Math.ceil((request.target.getTime() - now) / 86400000) : null;
     const timeline = buildTimeline(request);
 
     return (
