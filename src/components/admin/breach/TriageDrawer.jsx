@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { assignIncident, updateIncident } from "../../../api/breach.js";
 import { BASE_STATUSES, SEVERITIES, formatDate, isFinished, sameText, severityColor } from "../../../utils/breach.js";
 import Alert from "../../shared/Alert.jsx";
@@ -126,10 +127,12 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
 
     const busy = saving || assigning;
 
-    return (
-        <div className="fixed inset-0 z-50">
+    // Portal: page ke animated (transform) parent ke andar fixed drawer poore page jitna lamba ho jata tha
+    // aur scroll nahi hota tha. Body par render karne se drawer screen ki height me rehta hai.
+    return createPortal(
+        <div className="fixed inset-0 z-50 overscroll-contain">
             <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="absolute inset-0 bg-[#0B1220]/60" />
-            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="pg-pop absolute inset-y-0 right-0 flex w-full max-w-xl flex-col bg-white shadow-2xl">
+            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="pg-pop absolute inset-y-0 right-0 flex h-[100dvh] max-h-screen w-full max-w-xl flex-col bg-white shadow-2xl">
                 <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] p-5">
                     <div className="min-w-0">
                         <h2 id="triage-title" className="mt-1 break-words text-xl font-bold text-[#0F172A]">{incident.title}</h2>
@@ -144,7 +147,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                 </div>
 
                 <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
-                    <div className="flex-1 space-y-5 overflow-y-auto p-5">
+                    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
                         <section className="rounded-xl bg-[#F8FAFC] p-4" aria-label="Incident details">
                             <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[#334155]">{incident.description || "No description provided."}</p>
                             <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-[#475569]">
@@ -220,6 +223,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                     </div>
                 </form>
             </aside>
-        </div>
+        </div>,
+        document.body,
     );
 }
