@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getAllIncidents, getMyTeam } from "../../api/breach.js";
 import Alert from "../../components/shared/Alert.jsx";
 import BreachCharts from "../../components/admin/breach/BreachCharts.jsx";
@@ -16,7 +17,15 @@ export default function BreachManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
-    const [selectedId, setSelectedId] = useState(null);
+    const [pickedId, setSelectedId] = useState(null);
+    const [params, setParams] = useSearchParams();
+    // Bell notification "?incident=<id>" se seedha us incident ka drawer khulta hai.
+    const linkedId = params.get("incident");
+    const selectedId = pickedId ?? linkedId;
+    const closeDrawer = () => {
+        setSelectedId(null);
+        if (linkedId) setParams((p) => { p.delete("incident"); return p; }, { replace: true });
+    };
 
     const fetchAll = useCallback(async () => {
         const [list, members] = await Promise.all([getAllIncidents(), getMyTeam()]);
@@ -85,7 +94,7 @@ export default function BreachManagement() {
             ? `${waiting} open ${waiting === 1 ? "incident is" : "incidents are"} waiting for a severity.`
             : "Every open incident has a severity.";
 
-    const selected = incidents.find((i) => i.id === selectedId) || null;
+    const selected = incidents.find((i) => String(i.id) === String(selectedId)) || null;
     const drawerIncident = selected && {
         ...selected,
         reporterLabel: nameOf(selected.reportedBy, selected.reportedById),
@@ -125,7 +134,7 @@ export default function BreachManagement() {
                         filters={filters}
                         onFilters={setFilters}
                         nameOf={nameOf}
-                        onOpen={(i) => setSelectedId(i.id)}
+                        onOpen={(i) => { if (linkedId) setParams((p) => { p.delete("incident"); return p; }, { replace: true }); setSelectedId(i.id); }}
                     />
                 </>
             )}
@@ -136,7 +145,7 @@ export default function BreachManagement() {
                     incident={drawerIncident}
                     statuses={statuses}
                     assigneeName={nameOf(selected.assignedTo, selected.assignedToId, "Unassigned")}
-                    onClose={() => setSelectedId(null)}
+                    onClose={closeDrawer}
                     onChanged={refreshQuietly}
                 />
             )}

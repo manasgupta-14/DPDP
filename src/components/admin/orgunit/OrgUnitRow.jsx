@@ -36,8 +36,8 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                 <span className="break-all font-mono text-xs text-[#64748B]">{unit.code}</span>
             </div>
 
-            <span className="whitespace-nowrap text-sm text-[#475569]">
-                <span className="font-semibold text-[#0F172A]">{unit.principals}</span> {unit.principals === 1 ? "principal" : "principals"}
+            <span className="whitespace-nowrap text-sm text-[#475569]" title="Staff (users) assigned to this unit">
+                <span className="font-semibold text-[#0F172A]">{unit.principals}</span> staff
             </span>
 
             <div className="flex min-w-[240px] flex-wrap items-center justify-end gap-2">

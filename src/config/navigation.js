@@ -1,4 +1,4 @@
-export const ADMIN_SECTIONS = [
+const ALL_ADMIN_SECTIONS = [
     {
         label: "Overview",
         items: [
@@ -39,7 +39,8 @@ export const ADMIN_SECTIONS = [
         label: "Administration",
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
-            { to: "/dashboard/staff", label: "Staff", icon: "adduser" },
+            // Staff abhi menu me chhupa hai (code aur route /dashboard/staff waise hi hai). Dikhana ho to "hidden: true" hata do.
+            { to: "/dashboard/staff", label: "Staff", icon: "adduser", hidden: true },
             { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
             { to: "/dashboard/imports", label: "Bulk import", icon: "upload" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
@@ -47,6 +48,8 @@ export const ADMIN_SECTIONS = [
         ],
     },
 ];
+
+export const ADMIN_SECTIONS = ALL_ADMIN_SECTIONS.map((s) => ({ ...s, items: s.items.filter((i) => !i.hidden) }));
 
 export const USER_SECTIONS = [
     {

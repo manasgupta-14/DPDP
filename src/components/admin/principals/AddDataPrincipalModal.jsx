@@ -41,7 +41,9 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
         getRoleOptions().then((res) => {
             if (!active) return;
             const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
+            const def = items.find((r) => /^data\s*principal$/i.test(r.name));
             setRoles({ loading: false, items });
+            if (def) setForm((f) => (f.roleId ? f : { ...f, roleId: def.id }));
         });
         return () => { active = false; };
     }, []);

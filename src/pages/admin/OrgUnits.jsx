@@ -114,7 +114,7 @@ export default function OrgUnits() {
                         <p className="text-sm text-[#475569]">
                             <span className="font-semibold text-[#0F172A]">{stats.units}</span> units ·{" "}
                             <span className="font-semibold text-[#0F172A]">{stats.active}</span> active ·{" "}
-                            <span className="font-semibold text-[#0F172A]">{stats.principals}</span> principals
+                            <span className="font-semibold text-[#0F172A]">{stats.principals}</span> staff assigned
                         </p>
                         <div className="flex flex-wrap gap-2">
                             <button type="button" onClick={() => setCollapsed(new Set())} disabled={!collapsed.size} className={ghostBtn}>Expand all</button>

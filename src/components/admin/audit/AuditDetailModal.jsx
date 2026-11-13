@@ -1,5 +1,5 @@
 import Modal from "../../shared/Modal.jsx";
-import { ACTION_TONE, NOT_IN_API, OUTCOME_TONE, actionKind, isSuccess } from "../../../utils/audit.js";
+import { ACTION_TONE, NOT_IN_API, OUTCOME_TONE, actionKind, humanizeAction, isSuccess } from "../../../utils/audit.js";
 
 const notInApi = <span className="text-[#64748B]">{NOT_IN_API}</span>;
 
@@ -28,7 +28,7 @@ export default function AuditDetailModal({ log, onClose }) {
                     <Row label="When">{when(log.time) || notInApi}</Row>
                     <Row label="Action">
                         {log.action
-                            ? <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${actionTone}`}>{log.action}</span>
+                            ? <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${actionTone}`}>{humanizeAction(log.action)}</span>
                             : notInApi}
                     </Row>
                     <Row label="Entity type">{log.entityType || notInApi}</Row>
