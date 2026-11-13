@@ -96,3 +96,19 @@ export async function getRetentionMetrics() {
         },
     };
 }
+
+export async function getErasureQueue() {
+    const res = await apiFetch("/api/RetentionPolicy/queue");
+    if (!res.ok) return permission(res);
+    return {
+        ...res,
+        data: asArray(res.data).map((r) => ({
+            id: String(pick(r, "recordId", "RecordId") ?? ""),
+            reference: String(pick(r, "referenceId", "ReferenceId") ?? ""),
+            policy: String(pick(r, "policyName", "PolicyName") ?? ""),
+            action: String(pick(r, "actionType", "ActionType") ?? ""),
+            dueDate: pick(r, "dueDate", "DueDate"),
+            status: String(pick(r, "status", "Status") ?? "Pending"),
+        })),
+    };
+}

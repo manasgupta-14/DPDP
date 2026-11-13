@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
 import { getRoleOptions } from "../../api/roles.js";
+import AudienceGroups from "../../components/admin/campaign/AudienceGroups.jsx";
 import AudienceModal from "../../components/admin/campaign/AudienceModal.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
@@ -321,6 +322,7 @@ export default function Campaigns() {
     const [creating, setCreating] = useState(false);
     const [assigning, setAssigning] = useState(null);
     const [flash, setFlash] = useState("");
+    const [groupsKey, setGroupsKey] = useState(0);
 
     const load = useCallback(async () => {
         setError("");
@@ -353,6 +355,7 @@ export default function Campaigns() {
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
             <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} onAssign={(c) => { setFlash(""); setAssigning(c); }} selectedId={selected?.id} />
             {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
+            <AudienceGroups refreshKey={groupsKey} />
             {creating && (
                 <Modal title="Create new campaign" onClose={() => setCreating(false)}>
                     <CreateForm
@@ -364,7 +367,7 @@ export default function Campaigns() {
                     />
                 </Modal>
             )}
-            {assigning && <AudienceModal key={assigning.id} campaign={assigning} onClose={() => setAssigning(null)} onLinked={setFlash} />}
+            {assigning && <AudienceModal key={assigning.id} campaign={assigning} onClose={() => setAssigning(null)} onLinked={(msg) => { setFlash(msg); setGroupsKey((k) => k + 1); }} />}
         </div>
     );
 }

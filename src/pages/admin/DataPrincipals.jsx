@@ -63,7 +63,7 @@ function View360({ principal, onClose }) {
                 </div>
 
                 {state.loading ? (
-                    <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 pg-shimmer rounded-xl" />)}</div>
                 ) : state.error ? (
                     <Alert>{state.error}</Alert>
                 ) : (
@@ -278,7 +278,7 @@ export default function DataPrincipals() {
 
             <div className={`${panel} overflow-hidden`}>
                 {state.loading ? (
-                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 animate-pulse rounded bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : state.rows.length === 0 ? (
                     <p className="px-5 py-12 text-center text-sm text-[#475569]">{query || classType ? "No data principals match these filters." : "No data principals yet. Add one, or import a CSV from Bulk import."}</p>
                 ) : (

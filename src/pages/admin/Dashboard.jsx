@@ -7,18 +7,19 @@ import Icon from "../../components/shared/Icon.jsx";
 import { summaryToCsv } from "../../utils/dashboard.js";
 
 const rise = (delay = 0) => ({ animation: `pg-rise .65s cubic-bezier(.22,1,.36,1) ${delay}ms both` });
-const card = "rounded-2xl border border-[#E2E8F0] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]";
+const card = "pg-surface rounded-2xl border border-[#E2E8F0]/90 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]";
 
 function Kpi({ item, delay }) {
     return (
-        <div className={`${card} pg-card p-5`} style={rise(delay)}>
-            <div className="flex items-start justify-between">
-                <span className={`grid h-10 w-10 place-items-center rounded-full ${item.tint}`}>
+        <div className={`${card} pg-card group relative overflow-hidden p-5`} style={rise(delay)}>
+            <span aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[#22D3EE]/10 blur-2xl transition-opacity duration-500 group-hover:opacity-100 sm:opacity-60" />
+            <div className="relative flex items-start justify-between">
+                <span className={`grid h-11 w-11 place-items-center rounded-xl ring-1 ring-inset ring-black/5 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${item.tint}`}>
                     <Icon name={item.icon} className="h-5 w-5" />
                 </span>
-                <Icon name="arrow" className="h-4 w-4 text-[#CBD5E1]" />
+                <Icon name="arrow" className="h-4 w-4 text-[#CBD5E1] transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#0F766E]" />
             </div>
-            <p className="mt-4 text-3xl font-bold tracking-tight text-[#0F172A]">{item.display}</p>
+            <p className="relative mt-4 text-3xl font-extrabold tracking-tight text-[#0F172A] tabular-nums">{item.display}</p>
             <p className="mt-1 text-sm font-medium text-[#334155]">{item.label}</p>
             {item.group && <p className="mt-0.5 text-xs text-[#64748B]">{item.group}</p>}
         </div>
@@ -44,10 +45,10 @@ function Skeleton() {
     return (
         <div className="space-y-5" aria-busy="true">
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                {[0, 1, 2, 3].map((i) => <div key={i} className="h-36 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}
+                {[0, 1, 2, 3].map((i) => <div key={i} className="pg-shimmer h-36 rounded-2xl" />)}
             </div>
             <div className="grid gap-5 lg:grid-cols-2">
-                {[0, 1].map((i) => <div key={i} className="h-80 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}
+                {[0, 1].map((i) => <div key={i} className="pg-shimmer h-80 rounded-2xl" />)}
             </div>
         </div>
     );

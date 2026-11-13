@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addDataPrincipal } from "../../../api/dataPrincipals.js";
+import { getRoleOptions } from "../../../api/roles.js";
 import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, validatePrincipal } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
 const label = "block text-sm font-medium text-[#334155]";
-const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "" };
+const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "", roleId: "", password: "", confirm: "" };
+
+// Login (optional): password diya to email zaroori, kam se kam 8 akshar, aur dono password same
+function validateLogin(form) {
+    const e = {};
+    if (!form.password && !form.confirm) return e;
+    if (!form.email.trim()) e.email = "Email is required so this customer can sign in.";
+    if (form.password.length < 8) e.password = "Use at least 8 characters.";
+    if (form.password !== form.confirm) e.confirm = "Passwords do not match.";
+    return e;
+}
 
 function Row({ title, error, hint, children }) {
     return (
@@ -22,12 +33,23 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState("");
     const [busy, setBusy] = useState(false);
+    const [roles, setRoles] = useState({ loading: true, items: [] });
     const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+    useEffect(() => {
+        let active = true;
+        getRoleOptions().then((res) => {
+            if (!active) return;
+            const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
+            setRoles({ loading: false, items });
+        });
+        return () => { active = false; };
+    }, []);
 
     const submit = async (e) => {
         e.preventDefault();
         setApiError("");
-        const found = validatePrincipal(form);
+        const found = { ...validatePrincipal(form), ...validateLogin(form) };
         setErrors(found);
         if (Object.keys(found).length > 0) return;
         setBusy(true);
@@ -39,6 +61,8 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
             dateOfBirth: form.dateOfBirth,
             cls: form.cls,
             preferredLocale: form.preferredLocale,
+            roleId: form.roleId || undefined,
+            password: form.password || undefined,
         });
         setBusy(false);
         if (!res.ok) return setApiError(res.error);
@@ -69,6 +93,22 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                         <select value={form.preferredLocale} onChange={set("preferredLocale")} disabled={busy} className={field}>{PRINCIPAL_LOCALES.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}</select>
                     </Row>
                 </div>
+
+                <fieldset className="rounded-xl border border-[#E2E8F0] p-4">
+                    <legend className="px-1.5 text-sm font-semibold text-[#0F172A]">Customer login <span className="font-normal text-[#64748B]">(optional)</span></legend>
+                    <p className="text-xs text-[#64748B]">Set a password so this customer can sign in at the login page with their email and use the customer portal (consents, notices, privacy requests).</p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <Row title="Role" hint={roles.loading ? "Loading roles..." : "Pick a customer role, e.g. DataPrincipal. Without a role the customer has no permissions."}>
+                            <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading} className={field}>
+                                <option value="">No role</option>
+                                {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
+                            </select>
+                        </Row>
+                        <div className="hidden sm:block" />
+                        <Row title="Password" error={errors.password} hint="At least 8 characters"><input type="password" value={form.password} onChange={set("password")} autoComplete="new-password" disabled={busy} className={field} /></Row>
+                        <Row title="Confirm password" error={errors.confirm}><input type="password" value={form.confirm} onChange={set("confirm")} autoComplete="new-password" disabled={busy} className={field} /></Row>
+                    </div>
+                </fieldset>
 
                 {apiError && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{apiError}</p>}
 

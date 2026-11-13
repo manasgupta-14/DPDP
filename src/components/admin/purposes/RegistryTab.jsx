@@ -17,7 +17,7 @@ export default function RegistryTab({ title, intro, addLabel, onAdd, onEdit, col
                     </thead>
                     <tbody className="divide-y divide-[#E2E8F0]">
                         {loading ? (
-                            <tr><td colSpan={columns.length + 1} className="px-5 py-8"><div className="h-10 animate-pulse rounded-lg bg-[#E2E8F0]/70" /></td></tr>
+                            <tr><td colSpan={columns.length + 1} className="px-5 py-8"><div className="h-10 pg-shimmer rounded-lg" /></td></tr>
                         ) : rows.length === 0 ? (
                             <tr><td colSpan={columns.length + 1} className="px-5 py-10 text-center text-xs text-[#475569]">{emptyText}</td></tr>
                         ) : rows.map((r) => (

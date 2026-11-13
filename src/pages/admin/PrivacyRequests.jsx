@@ -133,7 +133,7 @@ export default function PrivacyRequests() {
             {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
 
             {loading && !refreshing ? (
-                <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
+                <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-16 pg-shimmer rounded-2xl" />)}</div>
             ) : showEmpty ? (
                 <div className={`${panel} px-5 py-12 text-center`}>
                     <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="rights" className="h-6 w-6" /></span>

@@ -1,9 +1,16 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
+import { permissionMessage } from "./permissionMap.js";
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const TIMEOUT_MS = 15000;
 
-function extractError(data, status) {
+function extractError(data, status, method, path) {
+    if (status === 403) return permissionMessage(method, path);
+    // DbUpdateException par backend asli wajah innerError / rootError me bhejta hai
+    if (data && typeof data === "object") {
+        const root = data.rootError || data.RootError || data.innerError || data.InnerError;
+        if (typeof root === "string" && root.trim()) return root.trim();
+    }
     if (data && typeof data === "object") {
         if (typeof data.error === "string") return data.error;
         if (typeof data.Error === "string") return data.Error;
@@ -57,7 +64,7 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
                 window.location.assign("/login?expired=1");
             }
         }
-        return { ok: false, status: res.status, data, error: extractError(data, res.status) };
+        return { ok: false, status: res.status, data, error: extractError(data, res.status, method, path) };
     } catch (err) {
         const error =
             err.name === "AbortError"

@@ -2,7 +2,7 @@ import { MAX_DEPTH, kindTone } from "../../../utils/orgUnit.js";
 import Icon from "../../shared/Icon.jsx";
 
 const rowBtn =
-    "rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#334155] transition-all duration-200 hover:-translate-y-px hover:border-[#0F766E] hover:text-[#0F766E] hover:shadow-[0_4px_12px_-4px_rgba(15,118,110,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle, onAdd, onDeactivate, onEdit, onActivate, onDelete, busy }) {
     const hasChildren = unit.children.length > 0;
@@ -14,7 +14,7 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
             role="treeitem"
             aria-level={depth}
             aria-expanded={hasChildren ? open : undefined}
-            className={`flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[#E2E8F0] py-3 pr-4 transition-colors last:border-b-0 hover:bg-[#F8FAFC] ${unit.active ? "" : "bg-[#F8FAFC]/70"}`}
+            className={`group/row flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[#E2E8F0] py-3 pr-4 transition-colors duration-200 last:border-b-0 hover:bg-[#F8FAFC] ${unit.active ? "" : "bg-[#F8FAFC]/70"}`}
             style={{ paddingLeft: 12 + (depth - 1) * 28 }}
         >
             <button
@@ -32,7 +32,7 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                     <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
                     {unit.kind}
                 </span>
-                <span className="min-w-0 break-words text-[15px] font-semibold text-[#0F172A]">{unit.name}</span>
+                <span className="min-w-0 break-words text-[15px] font-semibold text-[#0F172A] transition-colors group-hover/row:text-[#0F766E]">{unit.name}</span>
                 <span className="break-all font-mono text-xs text-[#64748B]">{unit.code}</span>
             </div>
 

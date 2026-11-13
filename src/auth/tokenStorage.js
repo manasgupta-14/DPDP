@@ -66,6 +66,8 @@ export function sessionFromToken(token) {
         email: p[CLAIM.email] ?? p.email ?? null,
         role: p[CLAIM.role] ?? p.role ?? null,
         organizationId: p.OrganizationId ?? p.organizationId ?? null,
+        // Backend ab "UserType" claim deta hai: "InternalUser" (staff) ya "DataPrincipal" (customer)
+        userType: p.UserType ?? p.userType ?? (String(p[CLAIM.role] ?? p.role ?? "") === "DataPrincipal" ? "DataPrincipal" : "InternalUser"),
         permissions: [].concat(p.Permission ?? p.permission ?? []).map(String),
         expiresAt: p.exp ? new Date(p.exp * 1000) : null,
     };

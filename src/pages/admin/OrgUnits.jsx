@@ -10,6 +10,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { flatten, summarize, visibleRows } from "../../utils/orgUnit.js";
+import { getToken, sessionFromToken } from "../../auth/tokenStorage.js";
 
 export default function OrgUnits() {
     const { query = "" } = useOutletContext() || {};
@@ -20,6 +21,7 @@ export default function OrgUnits() {
     const [collapsed, setCollapsed] = useState(() => new Set());
     const [dialog, setDialog] = useState(null);
     const [busyId, setBusyId] = useState(null);
+    const myOrgId = useMemo(() => sessionFromToken(getToken() || "")?.organizationId || "", []);
 
     const flat = useMemo(() => flatten(tree), [tree]);
     const stats = useMemo(() => summarize(flat), [flat]);
@@ -122,11 +124,24 @@ export default function OrgUnits() {
                     </div>
 
                     {loading ? (
-                        <p className="px-5 py-6 text-sm text-[#475569]">Loading hierarchy...</p>
+                        <div role="status" aria-label="Loading hierarchy" className="space-y-3 px-5 py-6">
+                            {[0, 1, 2].map((i) => (
+                                <div key={i} className="flex items-center gap-3" style={{ paddingLeft: i * 28 }}>
+                                    <span className="pg-shimmer h-6 w-20 rounded-full" />
+                                    <span className="pg-shimmer h-4 w-40 rounded-md" />
+                                    <span className="pg-shimmer h-3 w-24 rounded-md" />
+                                </div>
+                            ))}
+                        </div>
                     ) : rows.length === 0 ? (
-                        <p className="px-5 py-6 text-sm text-[#475569]">
-                            {query ? "No unit matches your search." : error ? "The hierarchy could not be loaded." : "No units yet. Use \"New top-level unit\" to add the first zone."}
-                        </p>
+                        <div className="px-5 py-6 text-sm text-[#475569]">
+                            <p>{query ? "No unit matches your search." : error ? "The hierarchy could not be loaded." : "No units yet. Use \"New top-level unit\" to add the first zone."}</p>
+                            {!query && !error && myOrgId && (
+                                <p className="mt-2 text-xs text-[#64748B]">
+                                    Showing units for your organisation <span className="font-mono text-[#0F172A]">{myOrgId}</span>. Units saved under a different OrganizationId will not appear here.
+                                </p>
+                            )}
+                        </div>
                     ) : (
                         <ul role="tree" aria-label="Organisation hierarchy">
                             {rows.map(({ unit, depth }) => (
