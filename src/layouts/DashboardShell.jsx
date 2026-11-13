@@ -97,7 +97,6 @@ export default function DashboardShell({
     profileLink,
     profileLabel = "Profile",
     search = true,
-    mockBadge = false,
     bell = { title: "Notifications", items: [], count: 0 },
     footer = "Demo app for the DPDP Act, 2023 and DPDP Rules, 2025. Not legal advice.",
 }) {
@@ -196,7 +195,6 @@ export default function DashboardShell({
                         </label>
                     )}
 
-                    {mockBadge && <span className="hidden rounded-full bg-[#D97706]/15 px-3 py-1 text-[11px] font-bold tracking-wide text-[#B45309] sm:inline">MOCK DATA</span>}
 
                     <div ref={bellRef} className="relative">
                         <button

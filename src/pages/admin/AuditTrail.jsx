@@ -5,11 +5,13 @@ import AuditDetailModal from "../../components/admin/audit/AuditDetailModal.jsx"
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
-import { ACTION_TONE, OUTCOME_TONE, actionKind, auditToCsv, countByKind, isSuccess, shortHash } from "../../utils/audit.js";
+import { ACTION_TONE, OUTCOME_TONE, actionKind, auditToCsv, countByKind, humanizeAction, humanizeEntity, isSuccess, shortHash } from "../../utils/audit.js";
 
 const PAGE_SIZE = 20;
 
 const when = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" }) : "-");
+
+const byLabel = (a, b) => a.label.localeCompare(b.label);
 
 function Stat({ label, value, tone }) {
     return (
@@ -22,7 +24,7 @@ function Stat({ label, value, tone }) {
 
 function ActionBadge({ action }) {
     const kind = actionKind(action);
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{action || "Unknown"}</span>;
+    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{humanizeAction(action) || "Unknown"}</span>;
 }
 
 function OutcomeBadge({ outcome }) {
@@ -73,8 +75,8 @@ export default function AuditTrail() {
         return () => { active = false; };
     }, []);
 
-    const tables = useMemo(() => [...new Set(logs.map((l) => l.table).filter(Boolean))].sort(), [logs]);
-    const actions = useMemo(() => [...new Set(logs.map((l) => l.action).filter(Boolean))].sort(), [logs]);
+    const tables = useMemo(() => [...new Set(logs.map((l) => l.table).filter(Boolean))].map((v) => ({ value: v, label: humanizeEntity(v) })).sort(byLabel), [logs]);
+    const actions = useMemo(() => [...new Set(logs.map((l) => l.action).filter(Boolean))].map((v) => ({ value: v, label: humanizeAction(v) })).sort(byLabel), [logs]);
     const outcomes = useMemo(() => [...new Set(logs.map((l) => l.outcome).filter(Boolean))].sort(), [logs]);
     const counts = useMemo(() => countByKind(logs), [logs]);
 
@@ -164,14 +166,14 @@ export default function AuditTrail() {
                         Action
                         <select value={action} onChange={reset(setAction)} className={`${field} mt-1 min-w-[140px] py-2`}>
                             <option value="">All actions</option>
-                            {actions.map((a) => <option key={a} value={a}>{a}</option>)}
+                            {actions.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
                     </label>
                     <label className="text-xs font-medium text-[#475569]">
                         Entity
                         <select value={table} onChange={reset(setTable)} className={`${field} mt-1 min-w-[160px] py-2`}>
                             <option value="">All entities</option>
-                            {tables.map((t) => <option key={t} value={t}>{t}</option>)}
+                            {tables.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </label>
                     <label className="text-xs font-medium text-[#475569]">

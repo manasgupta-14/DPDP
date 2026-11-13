@@ -91,8 +91,75 @@ export async function addDataPrincipal(form) {
             dateOfBirth: clean(form.dateOfBirth),
             class: form.class || "adult",
             preferredLocale: form.preferredLocale || "en-IN",
+            roleId: form.roleId || null,
+            password: form.password || null,
         },
     });
     if (!res.ok) return res;
     return { ...res, data: { referenceId: str(res.data, "referenceId", "ReferenceId"), id: str(res.data, "dataPrincipalId", "DataPrincipalId") } };
+}
+
+/** PUT /api/dataprincipal/{id}: sirf wahi fields bhejte hain jo bhari gayi hain, baaki backend me purani rahengi. */
+export async function updateDataPrincipal(id, form) {
+    const clean = (v) => (v && String(v).trim() ? String(v).trim() : null);
+    const body = {
+        fullName: clean(form.fullName),
+        mobile: clean(form.mobile),
+        email: clean(form.email)?.toLowerCase() ?? null,
+        consumerNo: clean(form.consumerNo),
+        dateOfBirth: clean(form.dateOfBirth),
+        class: form.class || null,
+        preferredLocale: form.preferredLocale || null,
+        roleId: form.roleId || null,
+        password: form.password || null,
+    };
+    const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "PUT", body });
+    if (res.ok) return res;
+    if (res.status === 404 && !res.data) return { ...res, error: "Edit is not available on the server yet. Ask the backend team to add PUT /api/dataprincipal/{id}." };
+    if (res.status === 405) return { ...res, error: "Edit is not available on the server yet. Ask the backend team to add PUT /api/dataprincipal/{id}." };
+    return res;
+}
+
+/** DELETE /api/dataprincipal/{id}: backend record ko anonymise karke list se hata deta hai. */
+export async function deleteDataPrincipal(id) {
+    const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "DELETE" });
+    if (res.ok) return res;
+    if ((res.status === 404 && !res.data) || res.status === 405) return { ...res, error: "Delete is not available on the server yet. Ask the backend team to add DELETE /api/dataprincipal/{id}." };
+    return res;
+}
+
+/** GET /api/dataprincipal/count: kul data principals (orgUnitId do to sirf us unit ke). */
+export async function getDataPrincipalCount(orgUnitId = "") {
+    const q = orgUnitId ? `?orgUnitId=${encodeURIComponent(orgUnitId)}` : "";
+    const res = await apiFetch(`/api/dataprincipal/count${q}`);
+    if (!res.ok) return res;
+    return { ...res, data: Number(pick(res.data, "totalCount", "TotalCount") ?? 0) };
+}
+
+/**
+ * POST /api/dataprincipal/bulk-import: rows ko seedha data principal bana deta hai (staging nahi).
+ * Bade data ko 500-500 ke hisson me bhejte hain taaki request hang na ho.
+ */
+export async function bulkImportDataPrincipals(rows, { roleId = "", onProgress } = {}) {
+    const CHUNK = 500;
+    const clean = (v) => (v && String(v).trim() ? String(v).trim() : null);
+    let imported = 0;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+        const body = rows.slice(i, i + CHUNK).map((r) => ({
+            fullName: clean(r.fullName),
+            mobile: clean(r.mobile),
+            email: clean(r.email)?.toLowerCase() ?? null,
+            consumerNo: clean(r.consumerNo),
+            dateOfBirth: clean(r.dateOfBirth),
+            class: r.class || "adult",
+            preferredLocale: r.preferredLocale || "en-IN",
+            roleId: roleId || null,
+            password: clean(r.password),
+        }));
+        const res = await apiFetch("/api/dataprincipal/bulk-import", { method: "POST", body });
+        if (!res.ok) return { ...res, data: { imported }, error: imported ? `${res.error || "Import stopped."} ${imported} rows were already imported.` : res.error };
+        imported += Number(pick(res.data, "importedCount", "ImportedCount") ?? body.length);
+        onProgress?.(imported);
+    }
+    return { ok: true, data: { imported } };
 }

@@ -4,6 +4,7 @@ import { getBatches } from "../../api/imports.js";
 import BatchList from "../../components/admin/imports/BatchList.jsx";
 import BatchReview from "../../components/admin/imports/BatchReview.jsx";
 import AddDataPrincipalModal from "../../components/admin/principals/AddDataPrincipalModal.jsx";
+import QuickImportCard from "../../components/admin/imports/QuickImportCard.jsx";
 import UploadCard from "../../components/admin/imports/UploadCard.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -94,6 +95,7 @@ export default function BulkImport() {
 
             {addingUser && <AddDataPrincipalModal onClose={() => setAddingUser(false)} onAdded={(d) => setNotice({ id: "", text: `User added${d.referenceId ? ` (${d.referenceId})` : ""}. It is now a data principal.` })} />}
 
+            <QuickImportCard onImported={(n) => setNotice({ id: "", text: `${n} data principal${n === 1 ? "" : "s"} imported. They are now in Consent → Data principals.` })} />
             <UploadCard kinds={IMPORT_KINDS} onStaged={staged} />
             <BatchList batches={batches} kinds={IMPORT_KINDS} statuses={IMPORT_STATUSES} loading={loading} query={query} onOpen={(id) => { setActiveId(id); setNotice(null); }} />
         </div>

@@ -1,5 +1,6 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
+import { getOrganizationUsers } from "./users.js";
 
 const pick = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
@@ -24,7 +25,16 @@ export async function getStaffList() {
         if (res.status === 403) return { ...res, error: "Your role does not have the \"Users.View\" permission needed to see staff. Ask an admin to add it in Roles & permissions." };
         return res;
     }
-    return { ...res, data: asArray(res.data).map(normalizeStaff) };
+    const list = asArray(res.data).map(normalizeStaff);
+    const noRole = (s) => !s.role || /^unassigned$/i.test(s.role);
+    // Backend Staff list me role "Unassigned" aata hai (UserRole include nahi hai) ya list khali aati hai:
+    // tab hi my-team se role / users bhar lo.
+    if (list.length && !list.some(noRole)) return { ...res, data: list };
+    const team = await getOrganizationUsers();
+    if (!team.ok) return { ...res, data: list };
+    if (!list.length) return { ...res, data: team.data.map((u) => ({ ...u, orgUnitId: null, orgUnitName: "" })) };
+    const byId = new Map(team.data.map((u) => [u.id.toLowerCase(), u]));
+    return { ...res, data: list.map((s) => (noRole(s) ? { ...s, role: byId.get(s.id.toLowerCase())?.role || s.role } : s)) };
 }
 
 export async function createStaff({ name, email, password, roleId, orgUnitId }) {
