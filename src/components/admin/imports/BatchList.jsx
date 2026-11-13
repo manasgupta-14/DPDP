@@ -53,7 +53,7 @@ export default function BatchList({ batches, kinds: knownKinds, statuses: knownS
             </div>
 
             {loading ? (
-                <div className="mt-4 space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-[#E2E8F0]/70" />)}</div>
+                <div className="mt-4 space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 pg-shimmer rounded-xl" />)}</div>
             ) : shown.length === 0 ? (
                 <div className="py-14 text-center">
                     <p className="text-sm font-semibold text-[#0F172A]">{batches.length === 0 ? "No batches yet" : "No records found"}</p>

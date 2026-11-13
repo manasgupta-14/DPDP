@@ -40,11 +40,11 @@ export function normalizeUnit(raw) {
     return {
         id: String(pick(raw, "id", "Id") ?? ""),
         name: String(pick(raw, "name", "Name") ?? ""),
-        kind: String(pick(raw, "unitType", "UnitType") ?? "Other"),
-        code: String(pick(raw, "unitCode", "UnitCode") ?? ""),
+        kind: String(pick(raw, "unitType", "UnitType", "kind", "type", "Type") ?? "Other"),
+        code: String(pick(raw, "unitCode", "UnitCode", "code", "Code") ?? ""),
         parentId: pick(raw, "parentId", "ParentId"),
-        active: pick(raw, "isActive", "IsActive") !== false,
-        principals: Number(pick(raw, "principalsCount", "PrincipalsCount") ?? 0),
+        active: ![false, 0, "false", "False", "0"].includes(pick(raw, "isActive", "IsActive", "active")),
+        principals: Number(pick(raw, "principalsCount", "PrincipalsCount") ?? 0) || 0,
         children: Array.isArray(children) ? children.map(normalizeUnit) : [],
     };
 }

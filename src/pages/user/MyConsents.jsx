@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getConsentHistory, getPurposes, recordConsent, withdrawConsent } from "../../api/consent.js";
-import { getProfile } from "../../auth/authStore.js";
+import { getProfile, isDataPrincipal } from "../../auth/authStore.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
@@ -146,6 +146,9 @@ export default function MyConsents() {
                 </button>
             </div>
 
+            {!isDataPrincipal(getProfile()) && (
+                <Alert tone="info">This page is meant for customer (data principal) logins. You are signed in with a staff account, so your choices may not be saved. Sign in as a customer to test it.</Alert>
+            )}
             {notice && <Alert tone="success">{notice}</Alert>}
             {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}
             {withdrawn && <Alert tone="info">You have withdrawn your consent. Nothing is being used. You can allow individual items again below.</Alert>}
@@ -155,7 +158,13 @@ export default function MyConsents() {
             <section aria-label="Purposes" className="space-y-3">
                 <h2 className="text-lg font-semibold">Your choices</h2>
                 {loading ? (
-                    <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-20 animate-pulse rounded-2xl bg-[#E2E8F0]/70" />)}</div>
+                    <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-20 pg-shimmer rounded-2xl" />)}</div>
+                ) : purposes.length === 0 && error ? (
+                    <div className={`${panel} px-5 py-12 text-center`}>
+                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FEF2F2] text-[#B91C1C]"><Icon name="alert" className="h-6 w-6" /></span>
+                        <p className="mt-3 font-semibold">Your choices could not be loaded</p>
+                        <p className="mx-auto mt-1 max-w-md text-sm text-[#475569]">See the message above. Once it is fixed, press Refresh.</p>
+                    </div>
                 ) : purposes.length === 0 ? (
                     <div className={`${panel} px-5 py-12 text-center`}>
                         <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-6 w-6" /></span>

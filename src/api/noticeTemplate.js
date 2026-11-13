@@ -8,10 +8,8 @@ const pick = (o, ...keys) => {
     return null;
 };
 
-const forbidden = (res) =>
-    res.status === 403
-        ? { ...res, error: "You do not have permission to manage notice templates. Ask an admin to give your role this permission." }
-        : res;
+// 403 ka message ab client.js se aata hai (saath me exact permission ka naam).
+const forbidden = (res) => res;
 
 function normalizeTemplate(t) {
     return {
