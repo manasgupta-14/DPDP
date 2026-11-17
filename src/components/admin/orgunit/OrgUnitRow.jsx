@@ -2,7 +2,7 @@ import { MAX_DEPTH, kindTone } from "../../../utils/orgUnit.js";
 import Icon from "../../shared/Icon.jsx";
 
 const rowBtn =
-    "rounded-lg border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-semibold text-[#334155] transition-all duration-200 hover:-translate-y-px hover:border-[#0F766E] hover:text-[#0F766E] hover:shadow-[0_4px_12px_-4px_rgba(15,118,110,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 transition-all duration-200 hover:-translate-y-px hover:border-brand hover:text-brand-ink hover:shadow-[0_4px_12px_-4px_rgba(43,89,195,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle, onAdd, onDeactivate, onEdit, onActivate, onDelete, busy }) {
     const hasChildren = unit.children.length > 0;
@@ -14,7 +14,7 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
             role="treeitem"
             aria-level={depth}
             aria-expanded={hasChildren ? open : undefined}
-            className={`group/row flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[#E2E8F0] py-3 pr-4 transition-colors duration-200 last:border-b-0 hover:bg-[#F8FAFC] ${unit.active ? "" : "bg-[#F8FAFC]/70"}`}
+            className={`group/row flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line py-3 pr-4 transition-colors duration-200 last:border-b-0 hover:bg-soft ${unit.active ? "" : "bg-soft/70"}`}
             style={{ paddingLeft: 12 + (depth - 1) * 28 }}
         >
             <button
@@ -22,7 +22,7 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                 onClick={onToggle}
                 disabled={!hasChildren || forceOpen}
                 aria-label={open ? `Collapse ${unit.name}` : `Expand ${unit.name}`}
-                className={`grid h-6 w-6 shrink-0 place-items-center rounded-md text-[#64748B] transition hover:bg-[#E2E8F0] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${hasChildren ? "" : "invisible"}`}
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted transition hover:bg-line focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${hasChildren ? "" : "invisible"}`}
             >
                 <Icon name="chevron" className={`h-4 w-4 transition-transform duration-200 ${open ? "" : "-rotate-90"}`} />
             </button>
@@ -32,12 +32,12 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                     <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
                     {unit.kind}
                 </span>
-                <span className="min-w-0 break-words text-[15px] font-semibold text-[#0F172A] transition-colors group-hover/row:text-[#0F766E]">{unit.name}</span>
-                <span className="break-all font-mono text-xs text-[#64748B]">{unit.code}</span>
+                <span className="min-w-0 break-words text-[15px] font-semibold text-ink transition-colors group-hover/row:text-brand-ink">{unit.name}</span>
+                <span className="break-all font-mono text-xs text-muted">{unit.code}</span>
             </div>
 
-            <span className="whitespace-nowrap text-sm text-[#475569]" title="Staff (users) assigned to this unit">
-                <span className="font-semibold text-[#0F172A]">{unit.principals}</span> staff
+            <span className="whitespace-nowrap text-sm text-ink-3" title="Staff (users) assigned to this unit">
+                <span className="font-semibold text-ink">{unit.principals}</span> staff
             </span>
 
             <div className="flex min-w-[240px] flex-wrap items-center justify-end gap-2">
@@ -49,11 +49,11 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                     </>
                 ) : (
                     <>
-                        <span className="rounded-full bg-[#D97706]/10 px-2.5 py-1 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">Inactive</span>
+                        <span className="rounded-full bg-warn/10 px-2.5 py-1 text-xs font-semibold text-warn-ink ring-1 ring-warn/25">Inactive</span>
                         <button type="button" onClick={onActivate} disabled={busy} className={rowBtn}>{busy ? "Activating..." : "Activate"}</button>
                     </>
                 )}
-                <button type="button" onClick={onDelete} className={`${rowBtn} hover:!border-[#DC2626] hover:!text-[#DC2626]`}>Delete</button>
+                <button type="button" onClick={onDelete} className={`${rowBtn} hover:!border-bad hover:!text-bad-ink`}>Delete</button>
             </div>
         </li>
     );

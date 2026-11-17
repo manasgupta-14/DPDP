@@ -5,8 +5,8 @@ import { downloadText } from "../../../utils/bulkImport.js";
 import Alert from "../../shared/Alert.jsx";
 import { panel, primaryBtn } from "../../shared/ui.js";
 
-const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40 disabled:bg-[#F8FAFC]";
-const label = "block text-sm font-medium text-[#334155]";
+const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40 disabled:bg-soft";
+const label = "block text-sm font-medium text-ink-2";
 const MAX_BYTES = 5 * 1024 * 1024;
 const TEMPLATE = "full_name,mobile,email,consumer_no,class,preferred_locale,date_of_birth\nRavi Kumar,9876543210,ravi@example.com,CN1001,adult,hi-IN,1990-05-14\n";
 const PLACEHOLDER = "full_name,mobile,email,consumer_no,class,preferred_locale\nRavi Kumar,9876543210,ravi@example.com,CN1001,adult,hi-IN";
@@ -159,10 +159,10 @@ export default function QuickImportCard({ onImported }) {
         <section className={`${panel} p-5 sm:p-6`} aria-labelledby="quick-import-title">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <h2 id="quick-import-title" className="text-lg font-semibold text-[#0F172A]">Quick import data principals</h2>
-                    <p className="mt-1 max-w-2xl text-sm text-[#475569]">Adds people straight to Data principals in one step, without staging or review. Use the batch upload below when you want to check rows before saving.</p>
+                    <h2 id="quick-import-title" className="text-lg font-semibold text-ink">Quick import data principals</h2>
+                    <p className="mt-1 max-w-2xl text-sm text-ink-3">Adds people straight to Data principals in one step, without staging or review. Use the batch upload below when you want to check rows before saving.</p>
                 </div>
-                <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="rounded-xl border border-[#E2E8F0] bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] transition hover:border-[#0F766E] hover:text-[#0F766E]">
+                <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand-ink">
                     {open ? "Hide" : "Open quick import"}
                 </button>
             </div>
@@ -172,8 +172,8 @@ export default function QuickImportCard({ onImported }) {
                     <div className="grid gap-4 md:grid-cols-2">
                         <label className={label}>
                             CSV file
-                            <input key={inputKey} type="file" accept=".csv,text/csv" onChange={onFile} disabled={busy} className={`${input} py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-[#E6F4F1] file:px-3 file:py-1 file:text-sm file:font-semibold file:text-[#0F766E]`} />
-                            {fileName && <span className="mt-1 block truncate text-xs text-[#64748B]">{fileName}</span>}
+                            <input key={inputKey} type="file" accept=".csv,text/csv" onChange={onFile} disabled={busy} className={`${input} py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-ink`} />
+                            {fileName && <span className="mt-1 block truncate text-xs text-muted">{fileName}</span>}
                         </label>
                         <label className={label}>
                             Role for everyone in this file
@@ -189,20 +189,20 @@ export default function QuickImportCard({ onImported }) {
                         <textarea value={text} onChange={(e) => { setText(e.target.value); setFileName(""); }} disabled={busy} rows={5} placeholder={PLACEHOLDER} className={`${input} h-auto py-2.5 font-mono text-xs`} />
                     </label>
 
-                    <p className="text-xs text-[#64748B]">
+                    <p className="text-xs text-muted">
                         Columns: full_name, mobile, email, consumer_no, class, preferred_locale, date_of_birth, password (optional). Each row needs a mobile or an email.{" "}
-                        <button type="button" onClick={() => downloadText("data-principals-template.csv", TEMPLATE)} className="font-semibold text-[#0F766E] hover:underline">Download template</button>
+                        <button type="button" onClick={() => downloadText("data-principals-template.csv", TEMPLATE)} className="font-semibold text-brand-ink hover:underline">Download template</button>
                     </p>
 
                     {parsed?.missing && <Alert>{parsed.missing}</Alert>}
                     {parsed && !parsed.missing && (
-                        <div className="rounded-xl bg-[#F8FAFC] p-4 text-sm ring-1 ring-[#E2E8F0]">
-                            <p className="text-[#0F172A]">
-                                <span className="font-semibold text-[#15803D]">{parsed.rows.length}</span> ready to import
-                                {parsed.errors.length > 0 && <> · <span className="font-semibold text-[#DC2626]">{parsed.errors.length}</span> skipped</>}
+                        <div className="rounded-xl bg-soft p-4 text-sm ring-1 ring-line">
+                            <p className="text-ink">
+                                <span className="font-semibold text-ok-ink">{parsed.rows.length}</span> ready to import
+                                {parsed.errors.length > 0 && <> · <span className="font-semibold text-bad-ink">{parsed.errors.length}</span> skipped</>}
                             </p>
                             {parsed.errors.length > 0 && (
-                                <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-[#B91C1C]">
+                                <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto text-xs text-bad-ink">
                                     {parsed.errors.slice(0, 50).map((e) => <li key={e.line}>Row {e.line}: {e.text}</li>)}
                                     {parsed.errors.length > 50 && <li>…and {parsed.errors.length - 50} more</li>}
                                 </ul>
@@ -213,8 +213,8 @@ export default function QuickImportCard({ onImported }) {
                     {error && <Alert>{error}</Alert>}
 
                     <div className="flex flex-wrap items-center justify-end gap-2.5">
-                        {busy && <span className="text-sm text-[#475569]">Imported {progress} of {parsed?.rows.length ?? 0}...</span>}
-                        <button type="button" onClick={clear} disabled={busy || !text} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-50">Clear</button>
+                        {busy && <span className="text-sm text-ink-3">Imported {progress} of {parsed?.rows.length ?? 0}...</span>}
+                        <button type="button" onClick={clear} disabled={busy || !text} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-ink-3 hover:bg-subtle disabled:opacity-50">Clear</button>
                         <button type="button" onClick={run} disabled={busy || !parsed?.rows.length} className={primaryBtn}>
                             {busy ? "Importing..." : `Import ${parsed?.rows.length || ""} data principal${parsed?.rows.length === 1 ? "" : "s"}`.replace("  ", " ")}
                         </button>

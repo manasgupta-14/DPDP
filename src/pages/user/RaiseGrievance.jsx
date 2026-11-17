@@ -27,12 +27,12 @@ export default function RaiseGrievance() {
     return (
         <div className="mx-auto max-w-2xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Raise a grievance</h1>
-                <p className="mt-1 text-sm text-[#475569]">Tell us how your personal data is being handled badly. The Data Protection team will review it and reply.</p>
+                <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Raise a grievance</h1>
+                <p className="mt-1 text-sm text-ink-3">Tell us how your personal data is being handled badly. The Data Protection team will review it and reply.</p>
             </div>
 
             {ticket && (
-                <Alert tone="success" action={<Link to="/user/my-grievances" className="shrink-0 font-semibold text-[#0F766E] hover:underline">View my grievances</Link>}>
+                <Alert tone="success" action={<Link to="/user/my-grievances" className="shrink-0 font-semibold text-brand-ink hover:underline">View my grievances</Link>}>
                     Your grievance was submitted. Keep this ticket number: <span className="font-mono font-semibold">{ticket}</span>
                 </Alert>
             )}

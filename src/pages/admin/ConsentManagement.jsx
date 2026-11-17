@@ -1,3 +1,4 @@
+import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getConsentRecord, getConsentRecords, getPurposes } from "../../api/consent.js";
@@ -11,7 +12,7 @@ const PAGE_SIZE = 10;
 const EMPTY_FILTERS = { reference: "", status: "", purpose: "", channel: "", from: "", to: "" };
 
 function Filter({ label, children }) {
-    return <label className="min-w-0 text-[11px] font-medium text-[#475569]">{label}{children}</label>;
+    return <label className="min-w-0 text-[11px] font-medium text-ink-3">{label}{children}</label>;
 }
 
 export default function ConsentManagement() {
@@ -111,8 +112,8 @@ export default function ConsentManagement() {
         <div className={`${dkPage} space-y-5`} style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-[#0F172A]">Consent records</h1>
-                    <p className="mt-1 text-xs text-[#475569]">Every consent artifact taken, in any channel. Each one is signed and independently verifiable.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Consent records</h1>
+                    <p className="mt-1 text-xs text-ink-3">Every consent artifact taken, in any channel. Each one is signed and independently verifiable.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={reload} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
@@ -130,6 +131,15 @@ export default function ConsentManagement() {
                     <span className="min-w-0 break-words">{error}</span>
                     <button type="button" onClick={reload} className="shrink-0 font-semibold underline">Retry</button>
                 </div>
+            )}
+
+            {!loading && records.length > 0 && (
+                <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatTile label="Consent records" value={records.length} total={records.length} icon="consent" tone="info" hint="All channels" />
+                    <StatTile label="Active" value={records.filter((r) => /active|granted|partial/i.test(String(r.status))).length} total={records.length} icon="check" tone="ok" colorValue hint="Consent still in force" />
+                    <StatTile label="Withdrawn" value={records.filter((r) => /withdraw/i.test(String(r.status))).length} total={records.length} icon="refresh" tone="warn" colorValue hint="Taken back by the person" />
+                    <StatTile label="Expired or declined" value={records.filter((r) => /expire|declin|denied|reject/i.test(String(r.status))).length} total={records.length} icon="x" tone="bad" colorValue hint="No longer valid" />
+                </section>
             )}
 
             <section aria-label="Filters" className={`${dkCard} p-4`}>
@@ -161,7 +171,7 @@ export default function ConsentManagement() {
                     <Filter label="To">
                         <input type="date" value={draft.to} min={draft.from || undefined} onChange={setFilter("to")} className={dkInput} />
                     </Filter>
-                    <button type="button" onClick={clear} disabled={!hasFilters} className="h-9 px-2 text-xs font-semibold text-[#0E7490] hover:underline disabled:cursor-not-allowed disabled:text-[#475569] disabled:no-underline">Clear filters</button>
+                    <button type="button" onClick={clear} disabled={!hasFilters} className="h-9 px-2 text-xs font-semibold text-info-ink hover:underline disabled:cursor-not-allowed disabled:text-ink-3 disabled:no-underline">Clear filters</button>
                 </div>
             </section>
 
@@ -169,15 +179,15 @@ export default function ConsentManagement() {
                 <div className={`${dkCard} space-y-2 p-4`} aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-12 pg-shimmer rounded-lg" />)}</div>
             ) : filtered.length === 0 ? (
                 <div className={`${dkCard} px-5 py-12 text-center`}>
-                    <p className="text-sm font-semibold text-[#0F172A]">{hasFilters || query ? "No records match these filters" : "No consent records yet"}</p>
-                    <p className="mt-1 text-xs text-[#475569]">{hasFilters || query ? "Try changing or clearing the filters." : "Consent records appear here once users answer the consent popup or their My Consents page."}</p>
+                    <p className="text-sm font-semibold text-ink">{hasFilters || query ? "No records match these filters" : "No consent records yet"}</p>
+                    <p className="mt-1 text-xs text-ink-3">{hasFilters || query ? "Try changing or clearing the filters." : "Consent records appear here once users answer the consent popup or their My Consents page."}</p>
                 </div>
             ) : (
                 <ConsentTable rows={slice} onOpen={(r) => setOpenId(r.id)} />
             )}
 
             {!loading && filtered.length > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#475569]">
+                <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-ink-3">
                     <p>Showing {slice.length} of {filtered.length}{filtered.length !== records.length ? ` (${records.length} loaded)` : ""} · Page {current} of {pages}</p>
                     {pages > 1 && (
                         <div className="flex gap-2">

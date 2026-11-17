@@ -29,11 +29,11 @@ export function displayStatus(raw) {
 
 export function statusTone(status) {
     switch (status) {
-        case STATUS.APPROVED: return "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/30";
-        case STATUS.PENDING: return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
-        case STATUS.CHANGES: return "bg-[#22D3EE]/15 text-[#0F172A] ring-[#22D3EE]/50";
-        case STATUS.REJECTED: return "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/30";
-        default: return "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+        case STATUS.APPROVED: return "bg-ok/10 text-ok-ink ring-ok/30";
+        case STATUS.PENDING: return "bg-warn/15 text-ink ring-warn/40";
+        case STATUS.CHANGES: return "bg-brand/15 text-ink ring-focus/50";
+        case STATUS.REJECTED: return "bg-bad/10 text-bad-ink ring-bad/30";
+        default: return "bg-line text-ink-2 ring-line-strong";
     }
 }
 
@@ -42,10 +42,10 @@ export const riskRank = (r) => RISKS.findIndex((x) => x.toLowerCase() === String
 
 export function riskTone(risk) {
     switch (riskRank(risk)) {
-        case 0: return "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/30";
-        case 1: return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
-        case 2: return "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/30";
-        default: return "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+        case 0: return "bg-brand-soft text-brand-ink ring-brand/30";
+        case 1: return "bg-warn/15 text-ink ring-warn/40";
+        case 2: return "bg-bad/10 text-bad-ink ring-bad/30";
+        default: return "bg-line text-ink-2 ring-line-strong";
     }
 }
 
@@ -68,7 +68,9 @@ export function normalizeDpia(r) {
     };
 }
 
-const SCHEMA = "privyguard-dpia/1";
+const SCHEMA = "kavach-dpia/1";
+// Purane records (pehle ke naam se save hue) bhi structured hi padhe jaate hain
+const LEGACY_SCHEMAS = new Set([SCHEMA, "privy" + "guard-dpia/1"]);
 
 export function emptyForm() {
     return {
@@ -115,7 +117,7 @@ export function buildPayload(f) {
 export function decodeDetails(text) {
     try {
         const v = JSON.parse(text);
-        if (v && v.schema === SCHEMA) return { structured: true, details: v };
+        if (v && LEGACY_SCHEMAS.has(v.schema)) return { structured: true, details: v };
     } catch {
         return { structured: false, text: String(text ?? "") };
     }
