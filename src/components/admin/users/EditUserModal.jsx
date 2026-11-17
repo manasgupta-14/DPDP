@@ -4,7 +4,7 @@ import { updateUser } from "../../../api/users.js";
 import Icon from "../../shared/Icon.jsx";
 import Modal from "../../shared/Modal.jsx";
 
-const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40";
+const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40";
 
 const sameText = (a, b) => String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
 
@@ -54,53 +54,53 @@ export default function EditUserModal({ user, users, roles, rolesLoading, rolesE
 
     return (
         <Modal title="Edit user" onClose={onClose}>
-            <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-6">
+            <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-line bg-surface p-6">
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold">Edit user</h2>
-                    <p className="mt-0.5 text-xs text-[#64748B]">Password and active status are not changed here.</p>
+                    <p className="mt-0.5 text-xs text-muted">Password and active status are not changed here.</p>
                 </div>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Full name
                     <input value={form.name} onChange={set("name")} autoComplete="off" className={input} />
-                    {errors.name && <span className="mt-1 block text-xs text-[#DC2626]">{errors.name}</span>}
+                    {errors.name && <span className="mt-1 block text-xs text-bad-ink">{errors.name}</span>}
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Email
                     <input type="email" value={form.email} onChange={set("email")} autoComplete="off" className={input} />
-                    {errors.email && <span className="mt-1 block text-xs text-[#DC2626]">{errors.email}</span>}
+                    {errors.email && <span className="mt-1 block text-xs text-bad-ink">{errors.email}</span>}
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Phone number
                     <input type="tel" value={form.phone} onChange={set("phone")} className={input} />
-                    {errors.phone && <span className="mt-1 block text-xs text-[#DC2626]">{errors.phone}</span>}
+                    {errors.phone && <span className="mt-1 block text-xs text-bad-ink">{errors.phone}</span>}
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
-                    Role <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Role <span className="text-bad-ink">*</span>
                     <select value={roleId} onChange={(e) => { setPickedRole(e.target.value); setErrors((c) => ({ ...c, roleId: undefined })); }} className={input} disabled={rolesLoading || roles.length === 0}>
                         <option value="">{rolesLoading ? "Loading roles..." : "Select a role"}</option>
                         {roles.map((role) => (
                             <option key={role.id} value={role.id}>{role.name}</option>
                         ))}
                     </select>
-                    <span className="mt-1 block text-xs text-[#64748B]">Changing the role changes which modules and actions this user can access.</span>
-                    {rolesError && <span role="alert" className="mt-1 block text-xs text-[#B45309]">Could not load roles: {rolesError}</span>}
+                    <span className="mt-1 block text-xs text-muted">Changing the role changes which modules and actions this user can access.</span>
+                    {rolesError && <span role="alert" className="mt-1 block text-xs text-warn-ink">Could not load roles: {rolesError}</span>}
                     {!rolesLoading && !rolesError && roles.length === 0 && (
-                        <span className="mt-1 block text-xs text-[#B45309]">No roles available. <Link to="/dashboard/roles/new" className="font-semibold underline">Create a role</Link> first.</span>
+                        <span className="mt-1 block text-xs text-warn-ink">No roles available. <Link to="/dashboard/roles/new" className="font-semibold underline">Create a role</Link> first.</span>
                     )}
-                    {errors.roleId && <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleId}</span>}
+                    {errors.roleId && <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>}
                 </label>
 
-                {apiError && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{apiError}</p>}
+                {apiError && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{apiError}</p>}
 
                 <div className="flex gap-2.5">
-                    <button type="button" onClick={onClose} className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-[#E2E8F0] bg-white text-sm font-semibold text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                    <button type="button" onClick={onClose} className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-line bg-surface text-sm font-semibold text-ink-2 transition hover:border-brand hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         Cancel
                     </button>
-                    <button type="submit" disabled={saving || !changed || rolesLoading || roles.length === 0} className="inline-flex h-11 flex-[2] items-center justify-center gap-2 rounded-xl bg-[#0F766E] text-sm font-semibold text-white transition hover:bg-[#115E59] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
+                    <button type="submit" disabled={saving || !changed || rolesLoading || roles.length === 0} className="inline-flex h-11 flex-[2] items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-white transition hover:bg-brand-strong hover:shadow-[0_0_20px_rgba(91,141,239,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-60">
                         <Icon name="check" className="h-4 w-4" /> {saving ? "Saving..." : changed ? "Save changes" : "No changes"}
                     </button>
                 </div>

@@ -38,8 +38,8 @@ export function daysToRetention(days) {
     return `${n} ${n === 1 ? "day" : "days"}`;
 }
 
-export const ACTIVE_TONE = "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25";
-export const INACTIVE_TONE = "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+export const ACTIVE_TONE = "bg-ok/10 text-ok-ink ring-ok/25";
+export const INACTIVE_TONE = "bg-line text-ink-2 ring-line-strong";
 
 const pickAny = (obj, keys) => {
     for (const k of keys) {

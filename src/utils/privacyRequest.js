@@ -29,11 +29,11 @@ export const STATUS_LABEL = {
 };
 export const statusLabel = (status) => STATUS_LABEL[status] || status || "-";
 
-const AMBER = "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25";
-const CYAN = "bg-[#22D3EE]/10 text-[#0E7490] ring-[#22D3EE]/40";
-const GREEN = "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25";
-const RED = "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25";
-const GREY = "bg-[#F1F5F9] text-[#334155] ring-[#CBD5E1]";
+const AMBER = "bg-warn/10 text-warn-ink ring-warn/25";
+const CYAN = "bg-brand/10 text-info-ink ring-focus/40";
+const GREEN = "bg-ok/10 text-ok-ink ring-ok/25";
+const RED = "bg-bad/10 text-bad-ink ring-bad/25";
+const GREY = "bg-subtle text-ink-2 ring-line-strong";
 
 export const STATUS_TONE = {
     Submitted: AMBER,

@@ -113,17 +113,17 @@ export function actionKind(action) {
 }
 
 export const ACTION_TONE = {
-    create: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25",
-    update: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
-    delete: "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25",
-    other: "bg-[#F1F5F9] text-[#334155] ring-[#CBD5E1]",
+    create: "bg-ok/10 text-ok-ink ring-ok/25",
+    update: "bg-warn/10 text-warn-ink ring-warn/25",
+    delete: "bg-bad/10 text-bad-ink ring-bad/25",
+    other: "bg-subtle text-ink-2 ring-line-strong",
 };
 
 export const isSuccess = (outcome) => /^success/i.test(String(outcome ?? "").trim());
 
 export const OUTCOME_TONE = {
-    success: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25",
-    other: "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25",
+    success: "bg-ok/10 text-ok-ink ring-ok/25",
+    other: "bg-bad/10 text-bad-ink ring-bad/25",
 };
 
 export const shortId = (id) => (id ? String(id).slice(0, 8) : "-");

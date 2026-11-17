@@ -9,8 +9,8 @@ import InventoryForm from "./InventoryForm.jsx";
 function Row({ label, children, wide }) {
     return (
         <div className={wide ? "sm:col-span-2" : ""}>
-            <dt className="text-xs font-medium uppercase tracking-wider text-[#64748B]">{label}</dt>
-            <dd className="mt-1 whitespace-pre-wrap break-words text-sm text-[#0F172A]">{children || <span className="text-[#94A3B8]">Not set</span>}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+            <dd className="mt-1 whitespace-pre-wrap break-words text-sm text-ink">{children || <span className="text-faint">Not set</span>}</dd>
         </div>
     );
 }
@@ -80,9 +80,9 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
             <div className="pr-8">
                 <div className="flex flex-wrap items-center gap-2.5">
                     <h2 className="text-lg font-semibold">{item.name}</h2>
-                    <span className="inline-flex rounded-full bg-[#CCFBF1] px-2.5 py-0.5 text-xs font-semibold text-[#0F766E] ring-1 ring-[#0F766E]/25">{item.status}</span>
+                    <span className="inline-flex rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand/25">{item.status}</span>
                 </div>
-                {item.category && <p className="mt-0.5 text-sm text-[#64748B]">{item.category}</p>}
+                {item.category && <p className="mt-0.5 text-sm text-muted">{item.category}</p>}
             </div>
 
             {notice && <Alert tone="success">{notice}</Alert>}
@@ -104,17 +104,17 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
             {deleteError && <Alert>{deleteError}</Alert>}
 
             {confirming ? (
-                <div className="space-y-3 rounded-xl border border-[#FECACA] bg-[#FEF2F2] p-4">
-                    <p className="text-sm text-[#7F1D1D]">Delete <span className="font-semibold">{item.name}</span>? This cannot be undone.</p>
+                <div className="space-y-3 rounded-xl border border-bad/30 bg-bad-soft p-4">
+                    <p className="text-sm text-bad-ink">Delete <span className="font-semibold">{item.name}</span>? This cannot be undone.</p>
                     <div className="flex gap-2.5">
-                        <button type="button" onClick={remove} disabled={deleting} className="inline-flex flex-1 items-center justify-center rounded-xl bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#B91C1C] disabled:opacity-60">{deleting ? "Deleting..." : "Yes, delete"}</button>
+                        <button type="button" onClick={remove} disabled={deleting} className="inline-flex flex-1 items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink disabled:opacity-60">{deleting ? "Deleting..." : "Yes, delete"}</button>
                         <button type="button" onClick={() => setConfirming(false)} disabled={deleting} className={ghostBtn}>Cancel</button>
                     </div>
                 </div>
             ) : (
                 <div className="flex gap-2.5">
                     <button type="button" onClick={() => { setNotice(""); setEditing(true); }} disabled={loading} className={`${primaryBtn} flex-1`}>Edit</button>
-                    <button type="button" onClick={() => { setNotice(""); setDeleteError(""); setConfirming(true); }} disabled={loading} className="inline-flex items-center justify-center rounded-xl border border-[#FECACA] px-4 py-2.5 text-sm font-semibold text-[#B91C1C] transition hover:bg-[#FEF2F2] disabled:opacity-60">Delete</button>
+                    <button type="button" onClick={() => { setNotice(""); setDeleteError(""); setConfirming(true); }} disabled={loading} className="inline-flex items-center justify-center rounded-xl border border-bad/30 px-4 py-2.5 text-sm font-semibold text-bad-ink transition hover:bg-bad-soft disabled:opacity-60">Delete</button>
                     <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
                 </div>
             )}

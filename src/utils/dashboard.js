@@ -134,14 +134,14 @@ function classify(arr) {
 
 function iconFor(label) {
     const l = label.toLowerCase();
-    if (/breach|incident|critical|overdue|violation/.test(l)) return { icon: "alert", tint: "bg-[#DC2626]/10 text-[#DC2626]" };
-    if (/consent/.test(l)) return { icon: "consent", tint: "bg-[#CCFBF1] text-[#0F766E]" };
-    if (/request|right|grievance|dpr|erasure|access/.test(l)) return { icon: "rights", tint: "bg-[#2A78D6]/10 text-[#2A78D6]" };
-    if (/notice|policy|privacy/.test(l)) return { icon: "notice", tint: "bg-[#6250D6]/10 text-[#6250D6]" };
-    if (/campaign|task|response|training|awareness/.test(l)) return { icon: "tasks", tint: "bg-[#16A34A]/10 text-[#16A34A]" };
-    if (/user|principal|employee|member|admin/.test(l)) return { icon: "adduser", tint: "bg-[#D97706]/15 text-[#B45309]" };
-    if (/inventory|data|record/.test(l)) return { icon: "inventory", tint: "bg-[#22D3EE]/15 text-[#0F766E]" };
-    return { icon: "checklist", tint: "bg-[#CCFBF1] text-[#0F766E]" };
+    if (/breach|incident|critical|overdue|violation/.test(l)) return { icon: "alert", tint: "bg-bad/10 text-bad-ink" };
+    if (/consent/.test(l)) return { icon: "consent", tint: "bg-brand-soft text-brand-ink" };
+    if (/request|right|grievance|dpr|erasure|access/.test(l)) return { icon: "rights", tint: "bg-brand/10 text-brand-ink" };
+    if (/notice|policy|privacy/.test(l)) return { icon: "notice", tint: "bg-violet/10 text-violet-ink" };
+    if (/campaign|task|response|training|awareness/.test(l)) return { icon: "tasks", tint: "bg-ok/10 text-ok-ink" };
+    if (/user|principal|employee|member|admin/.test(l)) return { icon: "adduser", tint: "bg-warn/15 text-warn-ink" };
+    if (/inventory|data|record/.test(l)) return { icon: "inventory", tint: "bg-brand/15 text-brand-ink" };
+    return { icon: "checklist", tint: "bg-brand-soft text-brand-ink" };
 }
 
 export function normalizeSummary(raw) {

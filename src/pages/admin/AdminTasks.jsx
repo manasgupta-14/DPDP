@@ -4,8 +4,8 @@ export default function AdminTasks() {
     return (
         <div className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-                <p className="mt-1 text-sm text-[#475569]">Campaigns addressed to admins or to everyone in your organisation.</p>
+                <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">My Tasks</h1>
+                <p className="mt-1 text-sm text-ink-3">Campaigns addressed to admins or to everyone in your organisation.</p>
             </div>
             <TasksBoard />
         </div>

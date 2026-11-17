@@ -46,16 +46,20 @@ export async function getReportHistory() {
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeJob) } : res;
 }
 
-export async function generateReport(key) {
+// Backend har report PDF ya CSV me bana sakta hai (?format=PDF|CSV, default PDF)
+export const REPORT_FORMATS = ["PDF", "CSV"];
+const fmtQuery = (format) => `?format=${encodeURIComponent(REPORT_FORMATS.includes(format) ? format : "PDF")}`;
+
+export async function generateReport(key, format = "PDF") {
     const option = REPORT_OPTIONS.find((o) => o.key === key);
     if (!option?.path) return { ok: false, status: 0, data: null, error: "Unknown report type." };
-    const res = await apiFetch(`/api/Reports/${option.path}`, { method: "POST" });
+    const res = await apiFetch(`/api/Reports/${option.path}${fmtQuery(format)}`, { method: "POST" });
     if (!res.ok) return res;
     return { ...res, data: { jobId: String(pick(res.data, "jobId", "JobId") ?? "") } };
 }
 
-export async function generateCampaignReport(campaignId) {
-    const res = await apiFetch(`/api/Reports/generate-campaign-report/${encodeURIComponent(campaignId)}`, { method: "POST" });
+export async function generateCampaignReport(campaignId, format = "PDF") {
+    const res = await apiFetch(`/api/Reports/generate-campaign-report/${encodeURIComponent(campaignId)}${fmtQuery(format)}`, { method: "POST" });
     if (!res.ok) return res;
     return { ...res, data: { jobId: String(pick(res.data, "jobId", "JobId") ?? "") } };
 }
@@ -65,7 +69,7 @@ export async function downloadReport(jobId) {
     let res;
     try {
         res = await fetch(`${BASE_URL}/api/Reports/download/${encodeURIComponent(jobId)}`, {
-            headers: { Authorization: token ? `Bearer ${token}` : "", Accept: "text/csv, application/json" },
+            headers: { Authorization: token ? `Bearer ${token}` : "", Accept: "application/pdf, text/csv, application/json" },
         });
     } catch {
         return { ok: false, error: "Cannot reach the server. Make sure the backend is running on https://localhost:7139." };
@@ -90,7 +94,8 @@ export async function downloadReport(jobId) {
     const blob = await res.blob();
     const disposition = res.headers.get("Content-Disposition") || "";
     const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
-    const fileName = match ? decodeURIComponent(match[1]) : `report-${jobId}.csv`;
+    const isPdf = /pdf/i.test(res.headers.get("Content-Type") || "") || /\.pdf$/i.test(match?.[1] || "");
+    const fileName = match ? decodeURIComponent(match[1]) : `report-${jobId}.${isPdf ? "pdf" : "csv"}`;
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -101,5 +106,13 @@ export async function downloadReport(jobId) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    return { ok: true, fileName, text: await blob.text() };
+    // SHA-256 file ke asli bytes se (PDF binary hai, text se hash galat aata)
+    let hash = "";
+    try {
+        const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+        hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    } catch {
+        // crypto.subtle sirf https/localhost par: tab text wala hash (CSV ke liye) page khud nikaal leta hai
+    }
+    return { ok: true, fileName, hash, text: isPdf ? "" : await blob.text() };
 }

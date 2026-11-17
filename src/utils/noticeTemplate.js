@@ -6,7 +6,7 @@ const pick = (obj, keys) => {
     return undefined;
 };
 
-export const DEFAULT_COLOR = "#0F62FE";
+export const DEFAULT_COLOR = "#2B59C3";
 export const DEFAULT_LAYOUT = "Standard";
 
 export const toCode = (v) => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");

@@ -103,9 +103,9 @@ export function formatDay(value) {
 }
 
 const TONE = {
-    active: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/30",
-    scheduled: "bg-[#22D3EE]/15 text-[#0F172A] ring-[#22D3EE]/50",
-    ended: "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]",
+    active: "bg-ok/10 text-ok-ink ring-ok/30",
+    scheduled: "bg-brand/15 text-ink ring-focus/50",
+    ended: "bg-line text-ink-2 ring-line-strong",
 };
 
 export function campaignState(c) {

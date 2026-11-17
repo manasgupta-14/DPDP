@@ -22,13 +22,13 @@ export default function DeleteDialog({ template, onClose, onDeleted }) {
         <Modal title="Delete notice template" onClose={() => !busy && onClose()}>
             <div className={`${panel} space-y-4 p-5 sm:p-6`}>
                 <h2 className="pr-8 text-lg font-semibold">Delete notice template</h2>
-                <p className="text-sm text-[#475569]">
-                    <span className="font-semibold text-[#0F172A]">{template.name}</span> will be removed permanently. This cannot be undone.
+                <p className="text-sm text-ink-3">
+                    <span className="font-semibold text-ink">{template.name}</span> will be removed permanently. This cannot be undone.
                 </p>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
-                    <button type="button" onClick={confirm} disabled={busy} className="inline-flex items-center justify-center rounded-xl bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#B91C1C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">{busy ? "Deleting..." : "Delete"}</button>
+                    <button type="button" onClick={confirm} disabled={busy} className="inline-flex items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-60">{busy ? "Deleting..." : "Delete"}</button>
                 </div>
             </div>
         </Modal>

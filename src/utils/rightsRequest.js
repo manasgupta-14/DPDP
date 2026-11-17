@@ -22,11 +22,11 @@ export const RIGHT_STATUSES = [
 ];
 
 export const TONES = {
-    amber: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
-    cyan: "bg-[#22D3EE]/10 text-[#0E7490] ring-[#22D3EE]/40",
-    green: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25",
-    red: "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25",
-    slate: "bg-[#F1F5F9] text-[#334155] ring-[#CBD5E1]",
+    amber: "bg-warn/10 text-warn-ink ring-warn/25",
+    cyan: "bg-brand/10 text-info-ink ring-focus/40",
+    green: "bg-ok/10 text-ok-ink ring-ok/25",
+    red: "bg-bad/10 text-bad-ink ring-bad/25",
+    slate: "bg-subtle text-ink-2 ring-line-strong",
 };
 
 export const rightLabel = (v) => RIGHT_TYPES.find((t) => t.value === v)?.label ?? (v || "-");

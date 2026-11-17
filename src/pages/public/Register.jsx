@@ -8,11 +8,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[0-9\s-]{10,15}$/;
 
 const LEVELS = [
-    { label: "Too weak", color: "#DC2626" },
-    { label: "Weak", color: "#DC2626" },
-    { label: "Fair", color: "#D97706" },
-    { label: "Good", color: "#0F766E" },
-    { label: "Strong", color: "#16A34A" },
+    { label: "Too weak", color: "var(--k-bad)" },
+    { label: "Weak", color: "var(--k-bad)" },
+    { label: "Fair", color: "var(--k-warn)" },
+    { label: "Good", color: "var(--k-brand)" },
+    { label: "Strong", color: "var(--k-ok)" },
 ];
 
 function scorePassword(pw) {
@@ -76,25 +76,25 @@ export default function Register() {
     return (
         <AuthLayout
             title="Create your account"
-            subtitle="Set up your PrivyGuard workspace."
+            subtitle="Set up your Kavach workspace."
             footer={
                 <>
                     Already have an account?{" "}
-                    <Link to="/login" className="font-semibold text-[#0F766E] hover:text-[#115E59] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                    <Link to="/login" className="font-semibold text-brand-ink hover:text-brand-ink hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         Sign in
                     </Link>
                 </>
             }
         >
             {done ? (
-                <div role="status" className="rounded-lg border border-[#16A34A]/30 bg-[#16A34A]/5 px-4 py-5 text-center">
-                    <p className="text-sm font-semibold text-[#16A34A]">Account created</p>
-                    <p className="mt-1 text-sm text-[#475569]">Your workspace is ready. Taking you to sign in.</p>
+                <div role="status" className="rounded-lg border border-ok/30 bg-ok/5 px-4 py-5 text-center">
+                    <p className="text-sm font-semibold text-ok-ink">Account created</p>
+                    <p className="mt-1 text-sm text-ink-3">Your workspace is ready. Taking you to sign in.</p>
                 </div>
             ) : (
                 <form onSubmit={onSubmit} noValidate className="space-y-5">
                     {formError && (
-                        <div role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/5 px-3.5 py-2.5 text-sm text-[#DC2626]">
+                        <div role="alert" className="rounded-lg border border-bad/30 bg-bad/5 px-3.5 py-2.5 text-sm text-bad-ink">
                             {formError}
                         </div>
                     )}
@@ -165,7 +165,7 @@ export default function Register() {
                                     {[1, 2, 3, 4].map((i) => (
                                         <span
                                             key={i}
-                                            className="h-1 flex-1 rounded-full bg-[#E2E8F0] transition-colors duration-300"
+                                            className="h-1 flex-1 rounded-full bg-line transition-colors duration-300"
                                             style={i <= score ? { backgroundColor: level.color } : undefined}
                                         />
                                     ))}
@@ -182,18 +182,18 @@ export default function Register() {
                     </Field>
 
                     <div>
-                        <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-relaxed text-[#334155]">
+                        <label className="flex cursor-pointer items-start gap-2.5 text-sm leading-relaxed text-ink-2">
                             <input
                                 type="checkbox"
                                 checked={form.agree}
                                 onChange={set("agree")}
                                 aria-invalid={!!errors.agree}
-                                className="mt-1 h-4 w-4 shrink-0 rounded border-[#CBD5E1] accent-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
+                                className="mt-1 h-4 w-4 shrink-0 rounded border-line-strong accent-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                             />
-                            <span>I agree to PrivyGuard using my name, email, phone number and organisation to create and manage my workspace account.</span>
+                            <span>I agree to Kavach using my name, email, phone number and organisation to create and manage my workspace account.</span>
                         </label>
                         {errors.agree && (
-                            <p role="alert" className="mt-1.5 text-xs text-[#DC2626]">
+                            <p role="alert" className="mt-1.5 text-xs text-bad-ink">
                                 {errors.agree}
                             </p>
                         )}
