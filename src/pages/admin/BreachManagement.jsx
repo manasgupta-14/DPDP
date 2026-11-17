@@ -102,24 +102,25 @@ export default function BreachManagement() {
 
     return (
         <div className="space-y-6">
-            <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#0B1220] px-6 py-6 text-white sm:px-8">
+            <header className="flex flex-wrap items-end justify-between gap-4">
                 <div className="max-w-2xl">
-                    <h1 className="text-3xl font-bold tracking-tight">Incident command desk</h1>
-                    <p className="mt-2 text-[15px] leading-relaxed text-[#CBD5E1]">{headline}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-bad-ink">Governance · Breach</p>
+                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Incident command desk</h1>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{headline}</p>
                 </div>
-                <button type="button" onClick={reload} disabled={loading} className={`${ghostBtn} cursor-pointer border-blue-800 bg-transparent text-blue-600 hover:border-blue-800 hover:bg-blue-800 hover:text-white`}>
+                <button type="button" onClick={reload} disabled={loading} className={ghostBtn}>
                     {loading ? "Refreshing..." : "Refresh"}
                 </button>
             </header>
 
             {error && (
-                <Alert action={<button type="button" onClick={reload} className="shrink-0 font-semibold text-[#0F766E] hover:underline">Retry</button>}>
+                <Alert action={<button type="button" onClick={reload} className="shrink-0 font-semibold text-brand-ink hover:underline">Retry</button>}>
                     {error}
                 </Alert>
             )}
 
             {loading && incidents.length === 0 ? (
-                <p className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center text-sm text-[#475569]">Loading incidents...</p>
+                <p className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-ink-3">Loading incidents...</p>
             ) : (
                 <>
                     <SummaryCards

@@ -20,6 +20,7 @@ export const AdminTasks = lazy(() => import("../pages/admin/AdminTasks.jsx"));
 export const DpiaDetail = lazy(() => import("../pages/dpia/DpiaDetail.jsx"));
 export const DpiaForm = lazy(() => import("../pages/dpia/DpiaForm.jsx"));
 export const DpiaList = lazy(() => import("../pages/dpia/DpiaList.jsx"));
+export const DpoDashboard = lazy(() => import("../pages/dpo/DpoDashboard.jsx"));
 export const DpoLayout = lazy(() => import("../layouts/DpoLayout.jsx"));
 export const UserLayout = lazy(() => import("../layouts/UserLayout.jsx"));
 export const MyConsents = lazy(() => import("../pages/user/MyConsents.jsx"));

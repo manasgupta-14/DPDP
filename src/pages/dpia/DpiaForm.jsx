@@ -13,13 +13,13 @@ import {
 } from "../../utils/dpia.js";
 import { useDpiaBase } from "./useDpiaBase.js";
 
-const err = "mt-1 block text-xs text-[#DC2626]";
+const err = "mt-1 block text-xs text-bad-ink";
 
 function Block({ title, hint, error, children }) {
     return (
         <fieldset className="min-w-0">
-            <legend className="text-sm font-medium text-[#334155]">{title}</legend>
-            {hint && <p className="mt-0.5 text-xs text-[#64748B]">{hint}</p>}
+            <legend className="text-sm font-medium text-ink-2">{title}</legend>
+            {hint && <p className="mt-0.5 text-xs text-muted">{hint}</p>}
             <div className="mt-2">{children}</div>
             {error && <span role="alert" className={err}>{error}</span>}
         </fieldset>
@@ -28,7 +28,7 @@ function Block({ title, hint, error, children }) {
 
 function Choice({ name, value, current, onChange, children }) {
     return (
-        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium ring-1 transition focus-within:ring-2 focus-within:ring-[#22D3EE] ${current === value ? "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]" : "bg-white text-[#334155] ring-[#E2E8F0] hover:ring-[#0F766E]"}`}>
+        <label className={`flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-medium ring-1 transition focus-within:ring-2 focus-within:ring-focus ${current === value ? "bg-brand-soft text-brand-ink ring-brand" : "bg-surface text-ink-2 ring-line hover:ring-brand"}`}>
             <input type="radio" name={name} value={value} checked={current === value} onChange={() => onChange(value)} className="sr-only" />
             {children}
         </label>
@@ -114,9 +114,9 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
     return (
         <div className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <Link to={base} className="text-sm font-semibold text-[#0F766E] hover:underline">&larr; All DPIAs</Link>
-                <h1 className="mt-2 text-3xl font-bold tracking-tight">{form.revisionOf ? "Revise DPIA" : "Create DPIA"}</h1>
-                <p className="mt-1 text-sm text-[#475569]">Four short steps. You can save as a draft at any point and finish later.</p>
+                <Link to={base} className="text-sm font-semibold text-brand-ink hover:underline">&larr; All DPIAs</Link>
+                <h1 className="mt-2 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">{form.revisionOf ? "Revise DPIA" : "Create DPIA"}</h1>
+                <p className="mt-1 text-sm text-ink-3">Four short steps. You can save as a draft at any point and finish later.</p>
             </div>
 
             {form.revisionOf && (
@@ -134,17 +134,17 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 0 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 1: Project details</h2>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Project / process name
                             <input value={form.title} onChange={text("title")} maxLength={200} placeholder="e.g. Employee health screening programme" className={field} aria-invalid={!!errors.title} />
                             <span className={err}>{errors.title}</span>
                         </label>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Department whose data is processed
                             <input value={form.department} onChange={text("department")} maxLength={100} placeholder="e.g. Human Resources" className={field} aria-invalid={!!errors.department} />
                             <span className={err}>{errors.department}</span>
                         </label>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Description
                             <textarea value={form.description} onChange={text("description")} rows={5} placeholder="What does this project or process do, and why is personal data involved?" className={`${field} resize-y`} aria-invalid={!!errors.description} />
                             <span className={err}>{errors.description}</span>
@@ -155,12 +155,12 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 1 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 2: Data processing</h2>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             What personal data is collected?
                             <textarea value={form.dataTypes} onChange={text("dataTypes")} rows={3} placeholder="e.g. Name, phone number, Aadhaar number, medical history" className={`${field} resize-y`} aria-invalid={!!errors.dataTypes} />
                             <span className={err}>{errors.dataTypes}</span>
                         </label>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Whose data is this (Data Principals)?
                             <input value={form.dataSubjects} onChange={text("dataSubjects")} maxLength={200} placeholder="e.g. Employees, job applicants, customers" className={field} aria-invalid={!!errors.dataSubjects} />
                             <span className={err}>{errors.dataSubjects}</span>
@@ -181,15 +181,15 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                             {form.purposes.length > 0 && (
                                 <ul className="mt-3 space-y-2">
                                     {form.purposes.map((p) => (
-                                        <li key={p} className="flex items-center justify-between gap-3 rounded-xl bg-[#F8FAFC] px-3.5 py-2 text-sm ring-1 ring-[#E2E8F0]">
+                                        <li key={p} className="flex items-center justify-between gap-3 rounded-xl bg-soft px-3.5 py-2 text-sm ring-1 ring-line">
                                             <span className="min-w-0 break-words">{p}</span>
-                                            <button type="button" onClick={() => update({ purposes: form.purposes.filter((x) => x !== p) })} aria-label={`Remove purpose ${p}`} className="shrink-0 rounded-md px-2 text-lg leading-none text-[#64748B] hover:bg-[#E2E8F0] hover:text-[#0F172A]">&times;</button>
+                                            <button type="button" onClick={() => update({ purposes: form.purposes.filter((x) => x !== p) })} aria-label={`Remove purpose ${p}`} className="shrink-0 rounded-md px-2 text-lg leading-none text-muted hover:bg-line hover:text-ink">&times;</button>
                                         </li>
                                     ))}
                                 </ul>
                             )}
                         </Block>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             How long is the data kept?
                             <input value={form.retention} onChange={text("retention")} maxLength={150} placeholder="e.g. 2 years after the employee leaves" className={field} aria-invalid={!!errors.retention} />
                             <span className={err}>{errors.retention}</span>
@@ -222,19 +222,19 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                                     <div className="grid gap-2">
                                         {RISKS.map((r) => (
                                             <Choice key={r} name={k} value={r} current={form[k]} onChange={(v) => update({ [k]: v })}>
-                                                <span className="font-semibold">{r}</span><span className="text-xs font-normal text-[#64748B]">{RISK_HELP[r]}</span>
+                                                <span className="font-semibold">{r}</span><span className="text-xs font-normal text-muted">{RISK_HELP[r]}</span>
                                             </Choice>
                                         ))}
                                     </div>
                                 </Block>
                             ))}
                         </div>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             What could go wrong if this data is leaked or misused?
                             <textarea value={form.riskDescription} onChange={text("riskDescription")} rows={4} placeholder="Describe the harm to the Data Principals and how likely it is." className={`${field} resize-y`} aria-invalid={!!errors.riskDescription} />
                             <span className={err}>{errors.riskDescription}</span>
                         </label>
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             What security measures are in place to reduce this risk?
                             <textarea value={form.safeguardNotes} onChange={text("safeguardNotes")} rows={4} placeholder="e.g. Data is encrypted, access is limited to HR staff, activity is logged." className={`${field} resize-y`} aria-invalid={!!errors.safeguardNotes} />
                             <span className={err}>{errors.safeguardNotes}</span>
@@ -245,10 +245,10 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 3 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 4: Review and submit</h2>
-                        <p className="text-sm text-[#475569]">Check the answers below. Once submitted, the DPIA goes to the Data Protection Officer and cannot be edited.</p>
+                        <p className="text-sm text-ink-3">Check the answers below. Once submitted, the DPIA goes to the Data Protection Officer and cannot be edited.</p>
                         <AssessmentView title={form.title} details={buildDetails(form)} />
-                        <label className="flex items-start gap-3 text-sm text-[#334155]">
-                            <input type="checkbox" checked={form.confirm} onChange={(e) => update({ confirm: e.target.checked })} className="mt-0.5 h-4 w-4 accent-[#0F766E]" />
+                        <label className="flex items-start gap-3 text-sm text-ink-2">
+                            <input type="checkbox" checked={form.confirm} onChange={(e) => update({ confirm: e.target.checked })} className="mt-0.5 h-4 w-4 accent-brand" />
                             <span>I confirm that this information is accurate and complete to the best of my knowledge.</span>
                         </label>
                         {errors.confirm && <span role="alert" className={err}>{errors.confirm}</span>}
@@ -258,7 +258,7 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 <Alert>{apiError}</Alert>
                 <Alert tone="success">{notice}</Alert>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E2E8F0] pt-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
                     <div>{step > 0 && <button type="button" onClick={() => goTo(step - 1)} className={ghostBtn} disabled={busy}>Back</button>}</div>
                     <div className="flex flex-wrap gap-3">
                         <button type="button" onClick={saveAsDraft} className={ghostBtn} disabled={busy}>Save as Draft</button>
@@ -302,7 +302,7 @@ export default function DpiaForm() {
         };
     }, [reviseParam]);
 
-    if (loading) return <p className="text-sm text-[#475569]">Checking your permissions...</p>;
+    if (loading) return <p className="text-sm text-ink-3">Checking your permissions...</p>;
     if (!can(PERM.create)) {
         return (
             <div className="mx-auto max-w-xl space-y-4">
@@ -319,7 +319,7 @@ export default function DpiaForm() {
             </div>
         );
     }
-    if (!seed) return <p className="text-sm text-[#475569]">Loading the DPIA to revise...</p>;
+    if (!seed) return <p className="text-sm text-ink-3">Loading the DPIA to revise...</p>;
 
     return (
         <>

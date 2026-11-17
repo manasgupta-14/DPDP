@@ -1,3 +1,4 @@
+import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
@@ -113,83 +114,83 @@ function CreateForm({ onCreated, onDone }) {
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Create new campaign</h2>
-            <p className="mt-1 text-sm text-[#475569]">Choose who sees it and when it runs. Users respond from their My Tasks page.</p>
+            <p className="mt-1 text-sm text-ink-3">Choose who sees it and when it runs. Users respond from their My Tasks page.</p>
 
             <div className="mt-5 space-y-4">
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Title
                     <input value={form.title} onChange={set("title")} maxLength={150} placeholder="e.g. Marketing data use consent" className={field} aria-invalid={!!errors.title} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.title}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.title}</span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Description
                     <textarea value={form.description} onChange={set("description")} rows={4} maxLength={500} placeholder="What are users being asked to approve or read?" className={`${field} resize-y`} aria-invalid={!!errors.description} />
                     <span className="mt-1 flex justify-between text-xs">
-                        <span className="text-[#DC2626]">{errors.description}</span>
-                        <span className="text-[#475569]">{form.description.length}/500</span>
+                        <span className="text-bad-ink">{errors.description}</span>
+                        <span className="text-ink-3">{form.description.length}/500</span>
                     </span>
                 </label>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Type
                         <select value={form.campaignType} onChange={set("campaignType")} className={field} aria-invalid={!!errors.campaignType}>
                             <option value="" disabled>Select type</option>
                             {CAMPAIGN_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.campaignType}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.campaignType}</span>
                     </label>
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Who receives it
                         <select value={form.targetAudience} onChange={set("targetAudience")} className={field} aria-invalid={!!errors.targetAudience}>
                             <option value="" disabled>Select audience</option>
                             {TARGET_AUDIENCE_OPTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.targetAudience}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.targetAudience}</span>
                     </label>
                 </div>
 
                 {Number(form.targetAudience) === TARGET_AUDIENCE.allStaff && (
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Staff role
                         <select value={form.targetRole} onChange={set("targetRole")} className={field} aria-invalid={!!errors.targetRole}>
                             {audiences.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.targetRole}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.targetRole}</span>
                     </label>
                 )}
                 {Number(form.targetAudience) === TARGET_AUDIENCE.specific && (
-                    <p className="rounded-xl bg-[#F8FAFC] px-3 py-2 text-xs text-[#475569] ring-1 ring-[#E2E8F0]">After you create the campaign, a list opens where you pick the exact staff members or customers.</p>
+                    <p className="rounded-xl bg-soft px-3 py-2 text-xs text-ink-3 ring-1 ring-line">After you create the campaign, a list opens where you pick the exact staff members or customers.</p>
                 )}
 
                 {consent && (
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Data this consent covers
                         <select value={form.dataInventoryId} onChange={set("dataInventoryId")} disabled={inventory.loading || inventory.items.length === 0} className={field} aria-invalid={!!errors.dataInventoryId}>
                             <option value="" disabled>{inventory.loading ? "Loading data inventory..." : "Select data inventory item"}</option>
                             {inventory.items.map((i) => <option key={i.id} value={i.id}>{i.name}{i.category ? ` (${i.category})` : ""}</option>)}
                         </select>
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.dataInventoryId}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.dataInventoryId}</span>
                         {!inventory.loading && inventory.items.length === 0 && !inventory.error && (
-                            <span className="mt-1 block text-xs text-[#475569]">
-                                No data inventory items yet. <Link to="/dashboard/inventory" className="font-semibold text-[#0F766E] hover:underline">Add one first</Link>, then come back.
+                            <span className="mt-1 block text-xs text-ink-3">
+                                No data inventory items yet. <Link to="/dashboard/inventory" className="font-semibold text-brand-ink hover:underline">Add one first</Link>, then come back.
                             </span>
                         )}
-                        {inventory.error && <span className="mt-1 block text-xs text-[#DC2626]">Could not load data inventory: {inventory.error}</span>}
+                        {inventory.error && <span className="mt-1 block text-xs text-bad-ink">Could not load data inventory: {inventory.error}</span>}
                     </label>
                 )}
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Starts on
                         <input type="date" value={form.startDate} onChange={set("startDate")} className={field} aria-invalid={!!errors.startDate} />
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.startDate}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.startDate}</span>
                     </label>
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Ends on
                         <input type="date" value={form.endDate} onChange={set("endDate")} min={form.startDate} className={field} aria-invalid={!!errors.endDate} />
-                        <span className="mt-1 block text-xs text-[#DC2626]">{errors.endDate}</span>
+                        <span className="mt-1 block text-xs text-bad-ink">{errors.endDate}</span>
                     </label>
                 </div>
 
@@ -206,8 +207,8 @@ function Bar({ label, value, total, color }) {
     const pct = total ? Math.round((value / total) * 100) : 0;
     return (
         <div>
-            <div className="flex justify-between text-xs font-medium text-[#334155]"><span>{label}</span><span>{value} ({pct}%)</span></div>
-            <div className="mt-1 h-2 rounded-full bg-[#E2E8F0]"><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: color }} /></div>
+            <div className="flex justify-between text-xs font-medium text-ink-2"><span>{label}</span><span>{value} ({pct}%)</span></div>
+            <div className="mt-1 h-2 rounded-full bg-line"><div className="h-2 rounded-full" style={{ width: `${pct}%`, background: color }} /></div>
         </div>
     );
 }
@@ -230,12 +231,12 @@ function StatsPanel({ campaign, onClose }) {
         <div className={`${panel} p-5 sm:p-6`}>
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-[#64748B]">Campaign analytics</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">Campaign analytics</p>
                     <h3 className="mt-1 truncate text-lg font-semibold">{campaign.title}</h3>
                 </div>
                 <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
             </div>
-            {state.loading && <p className="mt-4 text-sm text-[#475569]">Loading statistics...</p>}
+            {state.loading && <p className="mt-4 text-sm text-ink-3">Loading statistics...</p>}
             <div className="mt-4"><Alert>{state.error}</Alert></div>
             {s && (
                 <div className="mt-4 space-y-4">
@@ -244,19 +245,19 @@ function StatsPanel({ campaign, onClose }) {
                             ? [["Responses", s.total], ["Accepted", s.accepted], ["Rejected", s.rejected], ["Acceptance", `${s.total ? Math.round((s.accepted / s.total) * 100) : 0}%`]]
                             : [["Responses", s.total], ["Marked read", s.completed]]
                         ).map(([k, v]) => (
-                            <div key={k} className="rounded-xl bg-[#F8FAFC] p-3 ring-1 ring-[#E2E8F0]">
-                                <p className="text-xs text-[#64748B]">{k}</p>
+                            <div key={k} className="rounded-xl bg-soft p-3 ring-1 ring-line">
+                                <p className="text-xs text-muted">{k}</p>
                                 <p className="mt-0.5 text-xl font-bold">{v}</p>
                             </div>
                         ))}
                     </div>
                     {consent ? (
                         <>
-                            <Bar label="Accepted" value={s.accepted} total={s.total} color="#16A34A" />
-                            <Bar label="Rejected" value={s.rejected} total={s.total} color="#DC2626" />
+                            <Bar label="Accepted" value={s.accepted} total={s.total} color="var(--k-ok)" />
+                            <Bar label="Rejected" value={s.rejected} total={s.total} color="var(--k-bad)" />
                         </>
                     ) : (
-                        <Bar label="Marked as read" value={s.completed} total={s.total} color="#0F766E" />
+                        <Bar label="Marked as read" value={s.completed} total={s.total} color="var(--k-brand)" />
                     )}
                 </div>
             )}
@@ -267,39 +268,39 @@ function StatsPanel({ campaign, onClose }) {
 function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, onAssign, selectedId }) {
     return (
         <div className={`${panel} overflow-hidden`}>
-            <div className="flex items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
+            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
                 <div>
                     <h2 className="text-lg font-semibold">All campaigns</h2>
-                    <p className="text-sm text-[#475569]">{campaigns.length} created by your organisation</p>
+                    <p className="text-sm text-ink-3">{campaigns.length} created by your organisation</p>
                 </div>
                 <button type="button" onClick={onRefresh} className={ghostBtn}>Refresh</button>
             </div>
             {error && <div className="p-4"><Alert>{error}</Alert></div>}
             {loading ? (
-                <p className="px-5 py-6 text-sm text-[#475569]">Loading campaigns...</p>
+                <p className="px-5 py-6 text-sm text-ink-3">Loading campaigns...</p>
             ) : campaigns.length === 0 && !error ? (
-                <p className="px-5 py-6 text-sm text-[#475569]">No campaigns yet. Use "Create new campaign" to add the first one.</p>
+                <p className="px-5 py-6 text-sm text-ink-3">No campaigns yet. Use "Create new campaign" to add the first one.</p>
             ) : (
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[680px] text-left text-sm">
-                        <thead className="bg-[#F8FAFC] text-xs uppercase tracking-wider text-[#64748B]">
+                        <thead className="bg-soft text-xs uppercase tracking-wider text-muted">
                             <tr><th className="px-5 py-3">Title</th><th className="px-3 py-3">Audience</th><th className="px-3 py-3">Runs</th><th className="px-3 py-3">Status</th><th className="px-5 py-3" /></tr>
                         </thead>
-                        <tbody className="divide-y divide-[#E2E8F0]">
+                        <tbody className="divide-y divide-line">
                             {campaigns.map((c) => {
                                 const st = campaignState(c);
                                 return (
-                                    <tr key={c.id ?? c.title} className={selectedId === c.id ? "bg-[#CCFBF1]/40" : ""}>
+                                    <tr key={c.id ?? c.title} className={selectedId === c.id ? "bg-brand-soft/40" : ""}>
                                         <td className="px-5 py-3">
                                             <p className="font-medium">{c.title}</p>
-                                            <p className="text-xs text-[#64748B]">{typeLabel(c.type)}{c.inventory?.name ? ` · ${c.inventory.name}` : ""}</p>
+                                            <p className="text-xs text-muted">{typeLabel(c.type)}{c.inventory?.name ? ` · ${c.inventory.name}` : ""}</p>
                                         </td>
-                                        <td className="px-3 py-3 text-[#334155]">{targetAudienceLabel(c.targetAudience, c.audience)}</td>
-                                        <td className="whitespace-nowrap px-3 py-3 text-[#334155]">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
+                                        <td className="px-3 py-3 text-ink-2">{targetAudienceLabel(c.targetAudience, c.audience)}</td>
+                                        <td className="whitespace-nowrap px-3 py-3 text-ink-2">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
                                         <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${st.tone}`}>{st.label}</span></td>
                                         <td className="whitespace-nowrap px-5 py-3 text-right">
-                                            <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-[#0E7490] hover:underline disabled:opacity-50">Assign audience</button>
-                                            <button type="button" disabled={!c.id} onClick={() => onSelect(c)} className="text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">View stats</button>
+                                            <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-info-ink hover:underline disabled:opacity-50">Assign audience</button>
+                                            <button type="button" disabled={!c.id} onClick={() => onSelect(c)} className="text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">View stats</button>
                                         </td>
                                     </tr>
                                 );
@@ -347,12 +348,20 @@ export default function Campaigns() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Create consent and awareness campaigns, then track how users respond.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Campaigns</h1>
+                    <p className="mt-1 text-sm text-ink-3">Create consent and awareness campaigns, then track how users respond.</p>
                 </div>
                 <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>+ Create new campaign</button>
             </div>
-            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
+            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
+            {!loading && campaigns.length > 0 && (
+                <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatTile label="All campaigns" value={campaigns.length} total={campaigns.length} icon="tasks" tone="info" hint="Consent and awareness" />
+                    <StatTile label="Active" value={campaigns.filter((c) => campaignState(c).label === "Active").length} total={campaigns.length} icon="zap" tone="ok" colorValue hint="Collecting responses now" />
+                    <StatTile label="Scheduled" value={campaigns.filter((c) => campaignState(c).label === "Scheduled").length} total={campaigns.length} icon="calendar" tone="violet" colorValue hint="Start later" />
+                    <StatTile label="Consent campaigns" value={campaigns.filter((c) => isConsent(c.type)).length} total={campaigns.length} icon="consent" tone="warn" colorValue hint="Ask to allow or deny" />
+                </section>
+            )}
             <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} onAssign={(c) => { setFlash(""); setAssigning(c); }} selectedId={selected?.id} />
             {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
             <AudienceGroups refreshKey={groupsKey} />

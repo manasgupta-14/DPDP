@@ -8,16 +8,16 @@ import { StatusPill } from "../../components/admin/notices/NoticeBadges.jsx";
 
 const PUBLISH_WARNING = "Publish this notice? A published notice is locked and hashed. To change it later you will need to create a new version.";
 
-const DASH = <span className="text-[#94A3B8]">-</span>;
+const DASH = <span className="text-faint">-</span>;
 
 function Section({ letter, title, hint, children }) {
     return (
         <section className={panel}>
-            <header className="flex items-center gap-3 border-b border-[#E2E8F0] px-5 py-4">
-                <span className="grid h-7 w-7 place-items-center rounded-lg bg-[#CCFBF1] text-xs font-bold text-[#0F766E]">{letter}</span>
+            <header className="flex items-center gap-3 border-b border-line px-5 py-4">
+                <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand-soft text-xs font-bold text-brand-ink">{letter}</span>
                 <div>
-                    <h2 className="font-semibold text-[#0F172A]">{title}</h2>
-                    {hint && <p className="text-xs text-[#64748B]">{hint}</p>}
+                    <h2 className="font-semibold text-ink">{title}</h2>
+                    {hint && <p className="text-xs text-muted">{hint}</p>}
                 </div>
             </header>
             <div className="p-5">{children}</div>
@@ -26,22 +26,22 @@ function Section({ letter, title, hint, children }) {
 }
 
 function TemplatePreview({ template, notice, changed }) {
-    if (!template && !notice.layout) return <p className="text-sm text-[#64748B]">No template applied yet. Pick one and save the draft.</p>;
+    if (!template && !notice.layout) return <p className="text-sm text-muted">No template applied yet. Pick one and save the draft.</p>;
     const color = notice.primaryColor;
     return (
-        <div className="rounded-xl border border-[#E2E8F0] p-4" style={color ? { borderTop: `4px solid ${color}` } : undefined}>
+        <div className="rounded-xl border border-line p-4" style={color ? { borderTop: `4px solid ${color}` } : undefined}>
             <dl className="grid gap-2 text-sm sm:grid-cols-3">
-                <div><dt className="text-xs text-[#64748B]">Layout</dt><dd className="font-medium">{template?.layout || notice.layout || DASH}</dd></div>
+                <div><dt className="text-xs text-muted">Layout</dt><dd className="font-medium">{template?.layout || notice.layout || DASH}</dd></div>
                 <div>
-                    <dt className="text-xs text-[#64748B]">Primary colour</dt>
-                    <dd className="flex items-center gap-2 font-medium">{color ? <><span className="h-4 w-4 rounded border border-[#CBD5E1]" style={{ background: color }} />{color}</> : DASH}</dd>
+                    <dt className="text-xs text-muted">Primary colour</dt>
+                    <dd className="flex items-center gap-2 font-medium">{color ? <><span className="h-4 w-4 rounded border border-line-strong" style={{ background: color }} />{color}</> : DASH}</dd>
                 </div>
                 <div>
-                    <dt className="text-xs text-[#64748B]">Logo</dt>
+                    <dt className="text-xs text-muted">Logo</dt>
                     <dd className="font-medium">{notice.logoUrl ? <img src={notice.logoUrl} alt="" className="h-8 max-w-[120px] object-contain" /> : DASH}</dd>
                 </div>
             </dl>
-            {changed && <p className="mt-3 text-xs text-[#B45309]">Template changed - colour and logo are applied when you save the draft.</p>}
+            {changed && <p className="mt-3 text-xs text-warn-ink">Template changed - colour and logo are applied when you save the draft.</p>}
         </div>
     );
 }
@@ -170,7 +170,7 @@ export default function NoticeEditor() {
     if (!notice || !form) {
         return (
             <div className="space-y-4">
-                <Link to="/dashboard/notices" className="text-sm font-semibold text-[#0F766E] hover:underline">← Back to notices</Link>
+                <Link to="/dashboard/notices" className="text-sm font-semibold text-brand-ink hover:underline">← Back to notices</Link>
                 <Alert>{error || "Notice not found."}</Alert>
             </div>
         );
@@ -185,9 +185,9 @@ export default function NoticeEditor() {
         <div className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{primaryTitle || "Notice"}</h1>
-                    <p className="mt-1 text-sm text-[#475569]">
-                        <Link to="/dashboard/notices" className="font-semibold text-[#0F766E] hover:underline">← Back to notices</Link>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">{primaryTitle || "Notice"}</h1>
+                    <p className="mt-1 text-sm text-ink-3">
+                        <Link to="/dashboard/notices" className="font-semibold text-brand-ink hover:underline">← Back to notices</Link>
                         <span className="mx-1.5">·</span>
                         <span className="font-mono text-xs">{notice.code}</span> · v{notice.version} · primary language {langLabel(notice.defaultLanguage)}
                     </p>
@@ -209,27 +209,27 @@ export default function NoticeEditor() {
 
             <div className={`${panel} space-y-3 p-5`}>
                 <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-xs font-medium text-[#64748B]">Status:</span>
+                    <span className="text-xs font-medium text-muted">Status:</span>
                     <StatusPill status={notice.status} />
                 </div>
                 {published && (
                     <div>
-                        <p className="text-xs font-medium text-[#64748B]">Digital Fingerprint (SHA-256):</p>
-                        {notice.hash ? <p className="mt-1 break-all rounded-lg bg-[#F1F5F9] px-3 py-2 font-mono text-sm text-[#0F172A]">{notice.hash}</p> : <p className="mt-1">{DASH}</p>}
+                        <p className="text-xs font-medium text-muted">Digital Fingerprint (SHA-256):</p>
+                        {notice.hash ? <p className="mt-1 break-all rounded-lg bg-subtle px-3 py-2 font-mono text-sm text-ink">{notice.hash}</p> : <p className="mt-1">{DASH}</p>}
                     </div>
                 )}
-                {!published && <p className="text-xs text-[#64748B]">Draft: editable. Once published, this notice becomes read-only and is hashed. To change it later, create a new version.</p>}
+                {!published && <p className="text-xs text-muted">Draft: editable. Once published, this notice becomes read-only and is hashed. To change it later, create a new version.</p>}
             </div>
 
             <Section letter="A" title="Template & settings" hint="The template gives this notice its layout, logo, colour and default purposes.">
                 {published ? (
                     <div className="space-y-3 text-sm">
-                        <p><span className="text-[#64748B]">Template: </span><span className="font-medium">{template?.name || "-"}</span></p>
+                        <p><span className="text-muted">Template: </span><span className="font-medium">{template?.name || "-"}</span></p>
                         <TemplatePreview template={template} notice={notice} changed={false} />
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Template
                             <select value={form.templateId} onChange={(e) => set({ templateId: e.target.value })} className={field}>
                                 <option value="">Select a template</option>
@@ -243,11 +243,11 @@ export default function NoticeEditor() {
 
             <Section letter="B" title="Consent purposes" hint="Purposes that come with the template are merged with your own selection.">
                 {published ? (
-                    merged.length === 0 ? <p className="text-sm text-[#64748B]">No purposes linked.</p> : (
-                        <ul className="flex flex-wrap gap-2">{merged.map((c) => <li key={c} className="rounded-full bg-[#F1F5F9] px-3 py-1 text-xs font-semibold text-[#334155] ring-1 ring-[#CBD5E1]">{nameOf(c)}</li>)}</ul>
+                    merged.length === 0 ? <p className="text-sm text-muted">No purposes linked.</p> : (
+                        <ul className="flex flex-wrap gap-2">{merged.map((c) => <li key={c} className="rounded-full bg-subtle px-3 py-1 text-xs font-semibold text-ink-2 ring-1 ring-line-strong">{nameOf(c)}</li>)}</ul>
                     )
                 ) : allPurposes.length === 0 ? (
-                    <p className="text-sm text-[#64748B]">No purposes available. Add purposes first.</p>
+                    <p className="text-sm text-muted">No purposes available. Add purposes first.</p>
                 ) : (
                     <ul className="grid gap-2 sm:grid-cols-2">
                         {allPurposes.map((p) => {
@@ -255,23 +255,23 @@ export default function NoticeEditor() {
                             const checked = merged.includes(p.code);
                             return (
                                 <li key={p.code}>
-                                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm ${checked ? "border-[#0F766E] bg-[#F0FDFA]" : "border-[#E2E8F0] bg-white"}`}>
-                                        <input type="checkbox" checked={checked} disabled={fromTemplate} onChange={() => togglePurpose(p.code)} className="h-4 w-4 accent-[#0F766E]" />
-                                        <span className="min-w-0 flex-1 truncate font-medium text-[#0F172A]">{p.name}</span>
-                                        {fromTemplate && <span className="rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[10px] font-semibold text-[#0F766E]">From template</span>}
+                                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm ${checked ? "border-brand bg-brand-soft" : "border-line bg-surface"}`}>
+                                        <input type="checkbox" checked={checked} disabled={fromTemplate} onChange={() => togglePurpose(p.code)} className="h-4 w-4 accent-brand" />
+                                        <span className="min-w-0 flex-1 truncate font-medium text-ink">{p.name}</span>
+                                        {fromTemplate && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand-ink">From template</span>}
                                     </label>
                                 </li>
                             );
                         })}
                     </ul>
                 )}
-                <p className="mt-3 text-xs text-[#64748B]">{merged.length} {merged.length === 1 ? "purpose" : "purposes"} linked</p>
+                <p className="mt-3 text-xs text-muted">{merged.length} {merged.length === 1 ? "purpose" : "purposes"} linked</p>
             </Section>
 
             <Section letter="C" title="Title, summary & translations" hint="One tab per language. The primary language is the notice title. All tabs are saved together.">
-                <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3">
+                <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
                     {form.translations.map((t) => (
-                        <button key={t.language} type="button" onClick={() => setLang(t.language)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${lang === t.language ? "bg-[#0F766E] text-white" : "border border-[#E2E8F0] text-[#334155] hover:border-[#0F766E]"}`}>
+                        <button key={t.language} type="button" onClick={() => setLang(t.language)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${lang === t.language ? "bg-brand text-white" : "border border-line text-ink-2 hover:border-brand"}`}>
                             {langLabel(t.language)} ({t.language}){t.language === form.defaultLanguage && " · Primary"}
                         </button>
                     ))}
@@ -288,25 +288,25 @@ export default function NoticeEditor() {
                 {current ? (
                     <div className="mt-4 space-y-4">
                         <div className="text-sm">
-                            <p className="font-medium text-[#334155]">{current.language === form.defaultLanguage ? "Primary title" : "Translated title"}</p>
+                            <p className="font-medium text-ink-2">{current.language === form.defaultLanguage ? "Primary title" : "Translated title"}</p>
                             {published ? <p className="mt-1">{current.title || "-"}</p> : <input value={current.title} maxLength={500} onChange={(e) => setTranslation(lang, { title: e.target.value })} className={field} />}
                         </div>
                         <div className="text-sm">
-                            <p className="font-medium text-[#334155]">{current.language === form.defaultLanguage ? "Summary" : "Translated summary"}</p>
+                            <p className="font-medium text-ink-2">{current.language === form.defaultLanguage ? "Summary" : "Translated summary"}</p>
                             {published ? <p className="mt-1 whitespace-pre-wrap">{current.summary || "-"}</p> : <textarea value={current.summary} onChange={(e) => setTranslation(lang, { summary: e.target.value })} rows={4} className={field} />}
                         </div>
                         <div className="flex flex-wrap items-center justify-between gap-3">
-                            <label className="flex items-center gap-2 text-sm font-medium text-[#0F172A]">
-                                <input type="checkbox" checked={current.isTranslated} disabled={published} onChange={(e) => setTranslation(lang, { isTranslated: e.target.checked })} className="h-4 w-4 accent-[#0F766E]" />
+                            <label className="flex items-center gap-2 text-sm font-medium text-ink">
+                                <input type="checkbox" checked={current.isTranslated} disabled={published} onChange={(e) => setTranslation(lang, { isTranslated: e.target.checked })} className="h-4 w-4 accent-brand" />
                                 Translation complete
                             </label>
                             {!published && current.language !== form.defaultLanguage && (
-                                <button type="button" onClick={() => removeLanguage(current.language)} className="text-xs font-semibold text-[#B91C1C] hover:underline">Remove this language</button>
+                                <button type="button" onClick={() => removeLanguage(current.language)} className="text-xs font-semibold text-bad-ink hover:underline">Remove this language</button>
                             )}
                         </div>
                     </div>
                 ) : (
-                    <p className="mt-4 text-sm text-[#64748B]">No translations yet.</p>
+                    <p className="mt-4 text-sm text-muted">No translations yet.</p>
                 )}
             </Section>
         </div>

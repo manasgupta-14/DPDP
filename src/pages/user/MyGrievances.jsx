@@ -15,11 +15,11 @@ function Card({ g }) {
     const body = (
         <>
             <div className="flex flex-wrap items-start justify-between gap-2">
-                <h3 className="min-w-0 break-words font-semibold text-[#0F172A]">{g.subject}</h3>
+                <h3 className="min-w-0 break-words font-semibold text-ink">{g.subject}</h3>
                 <span className={`${pill} ${grievanceStatusTone(g.status)}`}>{g.status}</span>
             </div>
-            <p className="mt-1 font-mono text-xs text-[#64748B]">{g.referenceId || "-"}</p>
-            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-[#475569]">
+            <p className="mt-1 font-mono text-xs text-muted">{g.referenceId || "-"}</p>
+            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-ink-3">
                 <div><dt className="inline font-semibold">Category: </dt><dd className="inline">{g.category}</dd></div>
                 <div><dt className="inline font-semibold">Raised: </dt><dd className="inline">{formatDate(g.createdAt)}</dd></div>
             </dl>
@@ -27,9 +27,9 @@ function Card({ g }) {
     );
 
     return (
-        <Link to={`/user/grievance/${g.id}`} className="pg-card block rounded-xl border border-[#E2E8F0] bg-white p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+        <Link to={`/user/grievance/${g.id}`} className="pg-card block rounded-xl border border-line bg-surface p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
             {body}
-            <p className="mt-3 text-xs font-semibold text-[#0F766E]">View conversation &rarr;</p>
+            <p className="mt-3 text-xs font-semibold text-brand-ink">View conversation &rarr;</p>
         </Link>
     );
 }
@@ -88,8 +88,8 @@ export default function MyGrievances() {
         <div className="mx-auto max-w-3xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Grievance</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Your raised grievances and how the Data Protection team has responded. Status is set by the team, you cannot change it.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Grievance</h1>
+                    <p className="mt-1 text-sm text-ink-3">Your raised grievances and how the Data Protection team has responded. Status is set by the team, you cannot change it.</p>
                 </div>
                 <div className="flex items-center gap-2.5">
                     <button type="button" onClick={refresh} disabled={loading || refreshing} className={`${ghostBtn} px-3 py-2 text-xs`}>{refreshing ? "Refreshing..." : "Refresh"}</button>
@@ -98,7 +98,7 @@ export default function MyGrievances() {
             </div>
 
             {ticket && (
-                <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setTicket("")} className="shrink-0 text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>
+                <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setTicket("")} className="shrink-0 text-lg leading-none text-muted hover:text-ink">&times;</button>}>
                     Your grievance was submitted. Keep this ticket number: <span className="font-mono font-semibold">{ticket}</span>
                 </Alert>
             )}
@@ -108,7 +108,7 @@ export default function MyGrievances() {
                 {filters.length > 0 && (
                     <div className="mb-4 flex flex-wrap gap-2" role="tablist" aria-label="Filter by status">
                         {filters.map((s) => (
-                            <button key={s} type="button" role="tab" aria-selected={filter === s} onClick={() => { setFilter(s); setLimit(PAGE); }} className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${filter === s ? "bg-[#0F766E] text-white ring-[#0F766E]" : "bg-white text-[#334155] ring-[#CBD5E1] hover:ring-[#0F766E]"}`}>
+                            <button key={s} type="button" role="tab" aria-selected={filter === s} onClick={() => { setFilter(s); setLimit(PAGE); }} className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 transition ${filter === s ? "bg-brand text-white ring-brand" : "bg-surface text-ink-2 ring-line-strong hover:ring-brand"}`}>
                                 {s}
                             </button>
                         ))}
@@ -116,11 +116,11 @@ export default function MyGrievances() {
                 )}
 
                 {loading ? (
-                    <p className="py-12 text-center text-sm text-[#475569]">Loading your grievances...</p>
+                    <p className="py-12 text-center text-sm text-ink-3">Loading your grievances...</p>
                 ) : shown.length === 0 ? (
                     <div className="py-12 text-center">
-                        <p className="font-medium text-[#0F172A]">{rows.length ? "No grievances match your filter" : "No grievances yet"}</p>
-                        <p className="mt-1 text-sm text-[#475569]">{rows.length ? "Try another status or clear the search." : "Use the Raise a grievance button to submit one. It will appear here."}</p>
+                        <p className="font-medium text-ink">{rows.length ? "No grievances match your filter" : "No grievances yet"}</p>
+                        <p className="mt-1 text-sm text-ink-3">{rows.length ? "Try another status or clear the search." : "Use the Raise a grievance button to submit one. It will appear here."}</p>
                     </div>
                 ) : (
                     <div className="space-y-3">

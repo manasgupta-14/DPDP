@@ -8,12 +8,12 @@ import { formatDate, timeOf } from "../../utils/breach.js";
 import { CONSENT_STATUS, PURPOSE_STATE, questionFor, STATUS_LABEL, allowedPurposes, notAllowedPurposes } from "../../utils/consent.js";
 
 const PILL = {
-    [PURPOSE_STATE.allowed]: "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25",
-    [PURPOSE_STATE.denied]: "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/25",
-    [PURPOSE_STATE.withdrawn]: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
-    [PURPOSE_STATE.expired]: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
-    Required: "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/25",
-    "Not answered": "bg-[#F1F5F9] text-[#475569] ring-[#CBD5E1]",
+    [PURPOSE_STATE.allowed]: "bg-ok/10 text-ok-ink ring-ok/25",
+    [PURPOSE_STATE.denied]: "bg-bad/10 text-bad-ink ring-bad/25",
+    [PURPOSE_STATE.withdrawn]: "bg-warn/10 text-warn-ink ring-warn/25",
+    [PURPOSE_STATE.expired]: "bg-warn/10 text-warn-ink ring-warn/25",
+    Required: "bg-brand-soft text-brand-ink ring-brand/25",
+    "Not answered": "bg-subtle text-ink-3 ring-line-strong",
 };
 
 function Pill({ label }) {
@@ -29,21 +29,21 @@ function Summary({ allowed, blocked }) {
     return (
         <div className="grid gap-4 sm:grid-cols-2">
             <div className={`${panel} p-5`}>
-                <p className="text-sm font-semibold text-[#15803D]">You allowed ({allowed.length})</p>
+                <p className="text-sm font-semibold text-ok-ink">You allowed ({allowed.length})</p>
                 {allowed.length === 0 ? (
-                    <p className="mt-1.5 text-sm text-[#475569]">Nothing yet. Your details are not being used.</p>
+                    <p className="mt-1.5 text-sm text-ink-3">Nothing yet. Your details are not being used.</p>
                 ) : (
-                    <ul className="mt-2 flex flex-wrap gap-1.5">{allowed.map((p) => <li key={p.id} className="rounded-md bg-[#16A34A]/10 px-2 py-1 text-xs font-medium text-[#15803D] ring-1 ring-[#16A34A]/25">{p.name}</li>)}</ul>
+                    <ul className="mt-2 flex flex-wrap gap-1.5">{allowed.map((p) => <li key={p.id} className="rounded-md bg-ok/10 px-2 py-1 text-xs font-medium text-ok-ink ring-1 ring-ok/25">{p.name}</li>)}</ul>
                 )}
             </div>
             <div className={`${panel} p-5`}>
-                <p className="text-sm font-semibold text-[#B91C1C]">You did not allow ({blocked.length})</p>
+                <p className="text-sm font-semibold text-bad-ink">You did not allow ({blocked.length})</p>
                 {blocked.length === 0 ? (
-                    <p className="mt-1.5 text-sm text-[#475569]">You have allowed everything.</p>
+                    <p className="mt-1.5 text-sm text-ink-3">You have allowed everything.</p>
                 ) : (
-                    <ul className="mt-2 flex flex-wrap gap-1.5">{blocked.map((p) => <li key={p.id} className="rounded-md bg-[#DC2626]/10 px-2 py-1 text-xs font-medium text-[#B91C1C] ring-1 ring-[#DC2626]/25">{p.name}</li>)}</ul>
+                    <ul className="mt-2 flex flex-wrap gap-1.5">{blocked.map((p) => <li key={p.id} className="rounded-md bg-bad/10 px-2 py-1 text-xs font-medium text-bad-ink ring-1 ring-bad/25">{p.name}</li>)}</ul>
                 )}
-                {blocked.length > 0 && <p className="mt-2 text-xs text-[#64748B]">These details are not used or shared.</p>}
+                {blocked.length > 0 && <p className="mt-2 text-xs text-muted">These details are not used or shared.</p>}
             </div>
         </div>
     );
@@ -137,8 +137,8 @@ export default function MyConsents() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">My consents</h1>
-                    <p className="mt-1 text-sm text-[#475569]">See which of your details your organisation may use and which you did not allow. You can change any choice whenever you want. Every change is recorded as a new version.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">My consents</h1>
+                    <p className="mt-1 text-sm text-ink-3">See which of your details your organisation may use and which you did not allow. You can change any choice whenever you want. Every change is recorded as a new version.</p>
                 </div>
                 <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
                     <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -161,15 +161,15 @@ export default function MyConsents() {
                     <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-20 pg-shimmer rounded-2xl" />)}</div>
                 ) : purposes.length === 0 && error ? (
                     <div className={`${panel} px-5 py-12 text-center`}>
-                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#FEF2F2] text-[#B91C1C]"><Icon name="alert" className="h-6 w-6" /></span>
+                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-bad-soft text-bad-ink"><Icon name="alert" className="h-6 w-6" /></span>
                         <p className="mt-3 font-semibold">Your choices could not be loaded</p>
-                        <p className="mx-auto mt-1 max-w-md text-sm text-[#475569]">See the message above. Once it is fixed, press Refresh.</p>
+                        <p className="mx-auto mt-1 max-w-md text-sm text-ink-3">See the message above. Once it is fixed, press Refresh.</p>
                     </div>
                 ) : purposes.length === 0 ? (
                     <div className={`${panel} px-5 py-12 text-center`}>
-                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-6 w-6" /></span>
+                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="consent" className="h-6 w-6" /></span>
                         <p className="mt-3 font-semibold">Nothing to consent to yet</p>
-                        <p className="mt-1 text-sm text-[#475569]">Your organisation has not asked for any permissions yet. When it does, they will appear here.</p>
+                        <p className="mt-1 text-sm text-ink-3">Your organisation has not asked for any permissions yet. When it does, they will appear here.</p>
                     </div>
                 ) : (
                     <ul className="space-y-3">
@@ -181,14 +181,14 @@ export default function MyConsents() {
                                 <li key={p.id} className={`${panel} flex flex-wrap items-center justify-between gap-4 p-5`}>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2.5">
-                                            <p className="font-semibold text-[#0F172A]">{questionFor(p)}</p>
+                                            <p className="font-semibold text-ink">{questionFor(p)}</p>
                                             <Pill label={label} />
                                         </div>
-                                        {p.mandatory && <p className="mt-1 text-xs text-[#64748B]">Needed to run your account, so this is always on.</p>}
+                                        {p.mandatory && <p className="mt-1 text-xs text-muted">Needed to run your account, so this is always on.</p>}
                                     </div>
                                     {!p.mandatory && (
                                         isOn ? (
-                                            <button type="button" onClick={() => setOne(p, false)} disabled={!!busyId} className={`${ghostBtn} px-3 py-1.5 text-[#B91C1C]`}>{busyId === p.id ? "Saving..." : "Stop allowing"}</button>
+                                            <button type="button" onClick={() => setOne(p, false)} disabled={!!busyId} className={`${ghostBtn} px-3 py-1.5 text-bad-ink`}>{busyId === p.id ? "Saving..." : "Stop allowing"}</button>
                                         ) : (
                                             <button type="button" onClick={() => setOne(p, true)} disabled={!!busyId} className={primaryBtn}>{busyId === p.id ? "Saving..." : "Allow"}</button>
                                         )
@@ -203,12 +203,12 @@ export default function MyConsents() {
                     <div className="flex flex-wrap items-center gap-3 pt-1">
                         {confirmWithdraw ? (
                             <>
-                                <span className="text-sm text-[#334155]">Withdraw all your consent?</span>
-                                <button type="button" onClick={withdrawAll} disabled={!!busyId} className="text-sm font-semibold text-[#B91C1C] hover:underline disabled:opacity-60">{busyId === "all" ? "Withdrawing..." : "Yes, withdraw all"}</button>
-                                <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={!!busyId} className="text-sm font-semibold text-[#475569] hover:underline">Cancel</button>
+                                <span className="text-sm text-ink-2">Withdraw all your consent?</span>
+                                <button type="button" onClick={withdrawAll} disabled={!!busyId} className="text-sm font-semibold text-bad-ink hover:underline disabled:opacity-60">{busyId === "all" ? "Withdrawing..." : "Yes, withdraw all"}</button>
+                                <button type="button" onClick={() => setConfirmWithdraw(false)} disabled={!!busyId} className="text-sm font-semibold text-ink-3 hover:underline">Cancel</button>
                             </>
                         ) : (
-                            <button type="button" onClick={() => setConfirmWithdraw(true)} className={`${ghostBtn} text-[#B91C1C]`}>Withdraw all consent</button>
+                            <button type="button" onClick={() => setConfirmWithdraw(true)} className={`${ghostBtn} text-bad-ink`}>Withdraw all consent</button>
                         )}
                     </div>
                 )}
@@ -219,21 +219,21 @@ export default function MyConsents() {
                     <h2 className="text-lg font-semibold">My consent history</h2>
                     <div className={`${panel} overflow-x-auto`}>
                         <table className="w-full min-w-[720px] text-sm">
-                            <thead className="border-b border-[#E2E8F0] bg-[#F8FAFC]">
+                            <thead className="border-b border-line bg-soft">
                                 <tr>
                                     {["Version", "Status", "Allowed", "Not allowed", "Recorded"].map((h) => (
-                                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#475569]">{h}</th>
+                                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
+                            <tbody className="divide-y divide-line">
                                 {history.map((c) => (
                                     <tr key={c.id} className="align-top">
-                                        <td className="px-5 py-3.5 font-medium text-[#0F172A]">v{c.version}</td>
-                                        <td className="px-5 py-3.5 text-[#334155]">{STATUS_LABEL[c.status] || c.status}</td>
-                                        <td className="px-5 py-3.5 text-[#15803D]">{allowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
-                                        <td className="px-5 py-3.5 text-[#B91C1C]">{notAllowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
-                                        <td className="whitespace-nowrap px-5 py-3.5 text-[#334155]">{formatDate(c.submittedAt)}</td>
+                                        <td className="px-5 py-3.5 font-medium text-ink">v{c.version}</td>
+                                        <td className="px-5 py-3.5 text-ink-2">{STATUS_LABEL[c.status] || c.status}</td>
+                                        <td className="px-5 py-3.5 text-ok-ink">{allowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
+                                        <td className="px-5 py-3.5 text-bad-ink">{notAllowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
+                                        <td className="whitespace-nowrap px-5 py-3.5 text-ink-2">{formatDate(c.submittedAt)}</td>
                                     </tr>
                                 ))}
                             </tbody>

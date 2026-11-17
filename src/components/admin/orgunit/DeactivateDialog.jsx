@@ -19,13 +19,13 @@ export default function DeactivateDialog({ unit, onDone, onClose }) {
     return (
         <div className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Deactivate {unit.name}?</h2>
-            <p className="mt-2 text-sm text-[#475569]">
-                <span className="font-mono text-[#0F172A]">{unit.code}</span> will be marked inactive and you will not be able to add children to it. It stays in the tree for records and audit. You can activate it again later.
+            <p className="mt-2 text-sm text-ink-3">
+                <span className="font-mono text-ink">{unit.code}</span> will be marked inactive and you will not be able to add children to it. It stays in the tree for records and audit. You can activate it again later.
             </p>
             <div className="mt-4"><Alert>{error}</Alert></div>
             <div className="mt-5 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                 <button type="button" onClick={onClose} className={ghostBtn}>Cancel</button>
-                <button type="button" onClick={confirm} disabled={busy} className="inline-flex items-center justify-center rounded-xl bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#B91C1C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="button" onClick={confirm} disabled={busy} className="inline-flex items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-60">
                     {busy ? "Deactivating..." : "Deactivate unit"}
                 </button>
             </div>

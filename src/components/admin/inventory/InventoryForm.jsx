@@ -34,28 +34,28 @@ export default function InventoryForm({ item = null, onSubmit, onSaved, onCancel
     };
 
     const text = (k, label, props = {}) => (
-        <label className="block text-sm font-medium text-[#334155]">
+        <label className="block text-sm font-medium text-ink-2">
             {label}
             <input value={form[k]} onChange={set(k)} className={field} aria-invalid={!!errors[k]} {...props} />
-            <span className="mt-1 block text-xs text-[#DC2626]">{errors[k]}</span>
+            <span className="mt-1 block text-xs text-bad-ink">{errors[k]}</span>
         </label>
     );
 
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">{editing ? "Edit data point" : "Add data point"}</h2>
-            <p className="mt-1 text-sm text-[#475569]">
+            <p className="mt-1 text-sm text-ink-3">
                 {editing ? "Changes apply to this data point everywhere it is used, including consent campaigns." : "Record what personal data you hold and why. Consent campaigns link to these."}
             </p>
             <div className="mt-5 space-y-4">
                 {text("name", "Name", { maxLength: 150, placeholder: "e.g. Email address" })}
                 {text("dataCategory", "Category", { maxLength: 100, placeholder: "e.g. Contact info" })}
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Purpose
                     <textarea value={form.purpose} onChange={set("purpose")} rows={3} maxLength={300} placeholder="Why do you collect this data?" className={`${field} resize-y`} aria-invalid={!!errors.purpose} />
                     <span className="mt-1 flex justify-between text-xs">
-                        <span className="text-[#DC2626]">{errors.purpose}</span>
-                        <span className="text-[#64748B]">{form.purpose.length}/300</span>
+                        <span className="text-bad-ink">{errors.purpose}</span>
+                        <span className="text-muted">{form.purpose.length}/300</span>
                     </span>
                 </label>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -70,7 +70,7 @@ export default function InventoryForm({ item = null, onSubmit, onSaved, onCancel
                     </button>
                     {onCancel && <button type="button" onClick={onCancel} disabled={busy} className={ghostBtn}>Cancel</button>}
                 </div>
-                {editing && !changed && <p className="text-center text-xs text-[#64748B]">Change a field to enable saving.</p>}
+                {editing && !changed && <p className="text-center text-xs text-muted">Change a field to enable saving.</p>}
             </div>
         </form>
     );

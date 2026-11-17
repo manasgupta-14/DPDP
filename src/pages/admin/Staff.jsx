@@ -44,30 +44,30 @@ function AddStaffForm({ roles, units, onSaved, onClose }) {
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Add staff</h2>
             <div className="mt-5 space-y-4">
-                <label className="block text-sm font-medium text-[#334155]">
-                    Name <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Name <span className="text-bad-ink">*</span>
                     <input value={form.name} onChange={set("name")} className={field} aria-invalid={!!errors.name} autoFocus />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.name}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.name}</span>
                 </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Email <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Email <span className="text-bad-ink">*</span>
                     <input type="email" value={form.email} onChange={set("email")} className={field} aria-invalid={!!errors.email} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.email}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.email}</span>
                 </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Password <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Password <span className="text-bad-ink">*</span>
                     <input type="password" value={form.password} onChange={set("password")} autoComplete="new-password" className={field} aria-invalid={!!errors.password} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.password}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.password}</span>
                 </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Role <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Role <span className="text-bad-ink">*</span>
                     <select value={form.roleId} onChange={set("roleId")} className={field} aria-invalid={!!errors.roleId}>
                         <option value="">Select a role</option>
                         {roles.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleId}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>
                 </label>
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Org unit (branch)
                     <select value={form.orgUnitId} onChange={set("orgUnitId")} className={field}>
                         <option value="">None</option>
@@ -75,7 +75,7 @@ function AddStaffForm({ roles, units, onSaved, onClose }) {
                             <option key={u.id} value={u.id}>{`${"\u00A0\u00A0".repeat(u.depth - 1)}${u.name} (${u.kind})`}</option>
                         ))}
                     </select>
-                    <span className="mt-1 block text-xs text-[#475569]">Optional. Loaded from the organisation hierarchy.</span>
+                    <span className="mt-1 block text-xs text-ink-3">Optional. Loaded from the organisation hierarchy.</span>
                 </label>
                 <Alert>{apiError}</Alert>
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -138,8 +138,8 @@ export default function Staff() {
             <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Staff</h1>
-                        <p className="mt-1 text-sm text-[#475569]">Branch staff of your organisation, with their role and org unit.</p>
+                        <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Staff</h1>
+                        <p className="mt-1 text-sm text-ink-3">Branch staff of your organisation, with their role and org unit.</p>
                     </div>
                     <div className="flex gap-2">
                         <button type="button" onClick={load} className={ghostBtn}>Refresh</button>
@@ -152,23 +152,23 @@ export default function Staff() {
 
                 <div className={`${panel} overflow-x-auto`}>
                     {loading ? (
-                        <p className="px-5 py-6 text-sm text-[#475569]">Loading staff...</p>
+                        <p className="px-5 py-6 text-sm text-ink-3">Loading staff...</p>
                     ) : rows.length === 0 ? (
-                        <p className="px-5 py-6 text-sm text-[#475569]">{query ? "No staff match your search." : error ? "The staff list could not be loaded." : "No staff yet. Use \"Add staff\" to create the first one."}</p>
+                        <p className="px-5 py-6 text-sm text-ink-3">{query ? "No staff match your search." : error ? "The staff list could not be loaded." : "No staff yet. Use \"Add staff\" to create the first one."}</p>
                     ) : (
                         <table className="w-full min-w-[640px] text-sm">
-                            <thead className="bg-[#F8FAFC] text-left text-xs uppercase tracking-wide text-[#475569]">
+                            <thead className="bg-soft text-left text-xs uppercase tracking-wide text-ink-3">
                                 <tr>{["Name", "Email", "Role", "Org unit", "Status"].map((h) => <th key={h} className="px-5 py-3 font-semibold">{h}</th>)}</tr>
                             </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
+                            <tbody className="divide-y divide-line">
                                 {rows.map((s) => (
-                                    <tr key={s.id} className="hover:bg-[#F8FAFC]">
-                                        <td className="px-5 py-3 font-semibold text-[#0F172A]">{s.name}</td>
-                                        <td className="px-5 py-3 text-[#334155]">{s.email}</td>
-                                        <td className="px-5 py-3 text-[#334155]">{s.role}</td>
-                                        <td className="px-5 py-3 text-[#334155]">{s.orgUnitName || <span className="text-[#64748B]">—</span>}</td>
+                                    <tr key={s.id} className="hover:bg-soft">
+                                        <td className="px-5 py-3 font-semibold text-ink">{s.name}</td>
+                                        <td className="px-5 py-3 text-ink-2">{s.email}</td>
+                                        <td className="px-5 py-3 text-ink-2">{s.role}</td>
+                                        <td className="px-5 py-3 text-ink-2">{s.orgUnitName || <span className="text-muted">—</span>}</td>
                                         <td className="px-5 py-3">
-                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${s.active ? "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25" : "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25"}`}>{s.active ? "Active" : "Inactive"}</span>
+                                            <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${s.active ? "bg-ok/10 text-ok-ink ring-ok/25" : "bg-warn/10 text-warn-ink ring-warn/25"}`}>{s.active ? "Active" : "Inactive"}</span>
                                         </td>
                                     </tr>
                                 ))}

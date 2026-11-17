@@ -51,8 +51,8 @@ export default function NoticeTemplates() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Notice templates</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Reusable notices that list the purposes a consumer is told about, with your logo and colour.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Notice templates</h1>
+                    <p className="mt-1 text-sm text-ink-3">Reusable notices that list the purposes a consumer is told about, with your logo and colour.</p>
                 </div>
                 <button type="button" onClick={() => setModal({ type: "form" })} className={primaryBtn}>+ New template</button>
             </div>

@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { getAdminAlerts } from "../api/adminAlerts.js";
-import { getProfile } from "../auth/authStore.js";
+import { getProfile, roleInfo } from "../auth/authStore.js";
 import { ADMIN_SECTIONS } from "../config/navigation.js";
 import DashboardShell from "./DashboardShell.jsx";
 
@@ -9,13 +9,18 @@ const REFRESH_MS = 2 * 60 * 1000;
 
 export default function AdminLayout() {
     const profile = getProfile();
+    const info = roleInfo(profile);
     const { pathname } = useLocation();
     const [alerts, setAlerts] = useState({ total: 0, items: [] });
-
     const last = useRef(0);
 
-    // Bell ka data: page khulne ke thodi der baad, phir page badalne par (max har 30 sec me ek baar)
-    // aur har 2 minute me. Isse page ki speed par asar nahi padta.
+    // Menu me profile ka naam login ke role se: Admin -> "Admin profile", DPO -> "DPO profile"
+    const sections = useMemo(
+        () => ADMIN_SECTIONS.map((s) => ({ ...s, items: s.items.map((i) => (i.profile ? { ...i, label: info.profileLabel } : i)) })),
+        [info.profileLabel],
+    );
+
+    // Bell ka data: page khulne ke thodi der baad, phir page badalne par (max har 30 sec me ek baar) aur har 2 minute me.
     useEffect(() => {
         let active = true;
         const t = setTimeout(() => {
@@ -43,11 +48,11 @@ export default function AdminLayout() {
 
     return (
         <DashboardShell
-            sections={ADMIN_SECTIONS}
-            subtitle="DPDP Act 2023 · Admin console"
-            roleLabel="Admin"
+            sections={sections}
+            subtitle={`DPDP Act 2023 · ${info.long}`}
+            roleLabel={info.label}
             profileLink="/dashboard/admin"
-            profileLabel="Admin profile"
+            profileLabel={info.profileLabel}
             bell={{
                 title: alerts.total > alerts.items.length ? `Needs attention · showing ${alerts.items.length} of ${alerts.total}` : "Needs attention",
                 items: alerts.items,

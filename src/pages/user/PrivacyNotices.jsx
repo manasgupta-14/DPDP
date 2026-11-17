@@ -18,11 +18,11 @@ function NoticeReader({ code, lang, purposeNames, onClose }) {
     }, [code, lang]);
 
     const n = state.data;
-    const color = n?.primaryColor || "#0F766E";
+    const color = n?.primaryColor || "#2B59C3";
 
     return (
         <Modal title="Privacy notice" onClose={onClose}>
-            <div className="max-h-[88vh] overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white text-[#0F172A] shadow-xl">
+            <div className="max-h-[88vh] overflow-y-auto rounded-2xl border border-line bg-surface text-ink shadow-xl">
                 {state.loading ? (
                     <div className="space-y-2 p-6" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : state.error ? (
@@ -30,20 +30,20 @@ function NoticeReader({ code, lang, purposeNames, onClose }) {
                 ) : (
                     <>
                         <div className="flex items-center gap-3 rounded-t-2xl px-6 py-4 pr-14 text-white" style={{ background: color }}>
-                            {n.logoUrl && <img src={n.logoUrl} alt="" className="h-8 w-8 rounded bg-white object-contain" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
+                            {n.logoUrl && <img src={n.logoUrl} alt="" className="h-8 w-8 rounded bg-surface object-contain" onError={(e) => { e.currentTarget.style.display = "none"; }} />}
                             <div className="min-w-0">
                                 <h2 className="text-lg font-semibold">{n.title}</h2>
                                 <p className="text-xs opacity-80">Version {n.version}</p>
                             </div>
                         </div>
                         <div className="space-y-5 p-6">
-                            <p className="whitespace-pre-line text-sm leading-relaxed text-[#334155]">{n.summary}</p>
+                            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-2">{n.summary}</p>
                             {n.purposes.length > 0 && (
                                 <div>
                                     <p className="text-sm font-semibold">We use your data for</p>
                                     <ul className="mt-2 space-y-1.5">
                                         {n.purposes.map((c) => (
-                                            <li key={c} className="flex items-center gap-2 rounded-lg border border-[#E2E8F0] px-3 py-2 text-sm">
+                                            <li key={c} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
                                                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
                                                 {purposeNames.get(c) ?? c}
                                             </li>
@@ -51,7 +51,7 @@ function NoticeReader({ code, lang, purposeNames, onClose }) {
                                     </ul>
                                 </div>
                             )}
-                            {n.hash && <p className="break-all font-mono text-[11px] text-[#64748B]">Integrity hash: {n.hash}</p>}
+                            {n.hash && <p className="break-all font-mono text-[11px] text-muted">Integrity hash: {n.hash}</p>}
                             <div className="flex justify-end"><button type="button" onClick={onClose} className={ghostBtn}>Close</button></div>
                         </div>
                     </>
@@ -91,10 +91,10 @@ export default function PrivacyNotices() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Privacy notices</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Read how the organisation collects and uses your personal data.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Privacy notices</h1>
+                    <p className="mt-1 text-sm text-ink-3">Read how the organisation collects and uses your personal data.</p>
                 </div>
-                <label className="text-xs font-medium text-[#475569]">
+                <label className="text-xs font-medium text-ink-3">
                     Language
                     <select value={lang} onChange={(e) => { setLang(e.target.value); setState((s) => ({ ...s, loading: true })); }} className={`${field} min-w-[150px] py-2`}>
                         {NOTICE_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
@@ -107,20 +107,20 @@ export default function PrivacyNotices() {
             {state.loading ? (
                 <div className="grid gap-4 md:grid-cols-2" aria-busy="true">{[0, 1].map((i) => <div key={i} className={`${panel} h-36 animate-pulse`} />)}</div>
             ) : state.rows.length === 0 && !state.error ? (
-                <div className={`${panel} px-5 py-12 text-center text-sm text-[#475569]`}>No privacy notices have been published yet.</div>
+                <div className={`${panel} px-5 py-12 text-center text-sm text-ink-3`}>No privacy notices have been published yet.</div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                     {state.rows.map((n) => (
                         <article key={n.code} className={`${panel} flex flex-col overflow-hidden`}>
-                            <div className="h-1.5" style={{ background: n.primaryColor || "#0F766E" }} />
+                            <div className="h-1.5" style={{ background: n.primaryColor || "#2B59C3" }} />
                             <div className="flex flex-1 flex-col p-5">
                                 <div className="flex items-start justify-between gap-3">
                                     <h2 className="font-semibold">{n.title}</h2>
-                                    <span className="shrink-0 rounded-md bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-medium text-[#334155] ring-1 ring-[#CBD5E1]">v{n.version}</span>
+                                    <span className="shrink-0 rounded-md bg-subtle px-2 py-0.5 text-[11px] font-medium text-ink-2 ring-1 ring-line-strong">v{n.version}</span>
                                 </div>
-                                <p className="mt-2 line-clamp-3 text-sm text-[#475569]">{n.summary}</p>
+                                <p className="mt-2 line-clamp-3 text-sm text-ink-3">{n.summary}</p>
                                 <div className="mt-auto pt-4">
-                                    <button type="button" onClick={() => setOpen(n.code)} className="text-sm font-semibold text-[#0F766E] hover:underline">Read full notice</button>
+                                    <button type="button" onClick={() => setOpen(n.code)} className="text-sm font-semibold text-brand-ink hover:underline">Read full notice</button>
                                 </div>
                             </div>
                         </article>
