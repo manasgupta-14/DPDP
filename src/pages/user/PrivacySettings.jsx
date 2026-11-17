@@ -38,17 +38,17 @@ function RaiseForm({ principalId, onSubmitted }) {
         <form onSubmit={submit} className={`${panel} space-y-5 p-5 sm:p-6`} noValidate>
             <div>
                 <h2 className="text-lg font-semibold">Raise a privacy request</h2>
-                <p className="mt-1 text-sm text-[#475569]">Your organisation has 30 days to respond. You can follow the status under History.</p>
+                <p className="mt-1 text-sm text-ink-3">Your organisation has 30 days to respond. You can follow the status under History.</p>
             </div>
             <Alert>{error}</Alert>
-            <label className="block text-sm font-medium text-[#0F172A]">
+            <label className="block text-sm font-medium text-ink">
                 Request type
                 <select value={type} onChange={(e) => setType(e.target.value)} className={field}>
                     {REQUEST_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
-                <span className="mt-1.5 block text-xs font-normal text-[#64748B]">{hint}</span>
+                <span className="mt-1.5 block text-xs font-normal text-muted">{hint}</span>
             </label>
-            <label className="block text-sm font-medium text-[#0F172A]">
+            <label className="block text-sm font-medium text-ink">
                 Details
                 <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={6} placeholder="Tell us what you need, for example which data or which record this is about." className={field} />
             </label>
@@ -62,20 +62,20 @@ function HistoryItem({ r }) {
     return (
         <li className={`${panel} p-5`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-[#0F172A]">{typeLabel(r.type)}{r.referenceId && <span className="ml-2 font-mono text-xs font-normal text-[#64748B]">{r.referenceId}</span>}</p>
+                <p className="font-semibold text-ink">{typeLabel(r.type)}{r.referenceId && <span className="ml-2 font-mono text-xs font-normal text-muted">{r.referenceId}</span>}</p>
                 <StatusBadge status={r.status} />
             </div>
-            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[#334155]">{r.details}</p>
-            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-[#64748B]">
-                <div className="flex gap-1.5"><dt>Raised</dt><dd className="font-medium text-[#334155]">{dateTimeText(r.created)}</dd></div>
-                <div className="flex gap-1.5"><dt>Respond by</dt><dd className="font-medium text-[#334155]">{dateText(r.target)}</dd></div>
-                {due && <div className={`font-semibold ${due.overdue ? "text-[#B91C1C]" : "text-[#0F766E]"}`}>{due.text}</div>}
-                {isClosed(r.status) && r.resolved && <div className="flex gap-1.5"><dt>Closed</dt><dd className="font-medium text-[#334155]">{dateTimeText(r.resolved)}</dd></div>}
+            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-ink-2">{r.details}</p>
+            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted">
+                <div className="flex gap-1.5"><dt>Raised</dt><dd className="font-medium text-ink-2">{dateTimeText(r.created)}</dd></div>
+                <div className="flex gap-1.5"><dt>Respond by</dt><dd className="font-medium text-ink-2">{dateText(r.target)}</dd></div>
+                {due && <div className={`font-semibold ${due.overdue ? "text-bad-ink" : "text-brand-ink"}`}>{due.text}</div>}
+                {isClosed(r.status) && r.resolved && <div className="flex gap-1.5"><dt>Closed</dt><dd className="font-medium text-ink-2">{dateTimeText(r.resolved)}</dd></div>}
             </dl>
             {r.remarks && (
-                <div className="mt-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
-                    <p className="text-xs font-semibold text-[#475569]">Response from your organisation</p>
-                    <p className="mt-1 whitespace-pre-wrap break-words text-sm text-[#0F172A]">{r.remarks}</p>
+                <div className="mt-3 rounded-xl border border-line bg-soft px-4 py-3">
+                    <p className="text-xs font-semibold text-ink-3">Response from your organisation</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm text-ink">{r.remarks}</p>
                 </div>
             )}
         </li>
@@ -130,19 +130,19 @@ export default function PrivacySettings() {
             role="tab"
             aria-selected={view === id}
             onClick={() => { setView(id); if (id === "raise") setNotice(""); }}
-            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${view === id ? "bg-[#0F766E] text-white shadow" : "border border-[#E2E8F0] bg-white text-[#334155] hover:border-[#0F766E] hover:text-[#0F766E]"}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${view === id ? "bg-brand text-white shadow" : "border border-line bg-surface text-ink-2 hover:border-brand hover:text-brand-ink"}`}
         >
             {label}
-            {count > 0 && <span className={`rounded-full px-2 py-0.5 text-[11px] ${view === id ? "bg-white/20" : "bg-[#F1F5F9]"}`}>{count}</span>}
+            {count > 0 && <span className={`rounded-full px-2 py-0.5 text-[11px] ${view === id ? "bg-white/20" : "bg-subtle"}`}>{count}</span>}
         </button>
     );
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#0F766E]">Help center</p>
-                <h1 className="mt-1 text-3xl font-bold tracking-tight">Privacy settings</h1>
-                <p className="mt-1 text-sm text-[#475569]">Use your rights under the DPDP Act: ask to access, correct, update, erase or export your data.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink">Help center</p>
+                <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Privacy settings</h1>
+                <p className="mt-1 text-sm text-ink-3">Use your rights under the DPDP Act: ask to access, correct, update, erase or export your data.</p>
             </div>
 
             {!isDataPrincipal(getProfile()) && (
@@ -162,7 +162,7 @@ export default function PrivacySettings() {
             {view === "history" && (
                 <section aria-label="Request history" className="max-w-3xl space-y-4">
                     <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm text-[#475569]">{items.length} request{items.length === 1 ? "" : "s"}, newest first</p>
+                        <p className="text-sm text-ink-3">{items.length} request{items.length === 1 ? "" : "s"}, newest first</p>
                         <button type="button" onClick={load} disabled={refreshing || !principalId} className={`${ghostBtn} px-3 py-1.5`}>
                             <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                             Refresh
@@ -174,9 +174,9 @@ export default function PrivacySettings() {
                         <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-28 pg-shimmer rounded-2xl" />)}</div>
                     ) : items.length === 0 && !error ? (
                         <div className={`${panel} px-5 py-12 text-center`}>
-                            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="rights" className="h-6 w-6" /></span>
+                            <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="rights" className="h-6 w-6" /></span>
                             <p className="mt-3 font-semibold">No requests yet</p>
-                            <p className="mt-1 text-sm text-[#475569]">Requests you raise will show up here with their status.</p>
+                            <p className="mt-1 text-sm text-ink-3">Requests you raise will show up here with their status.</p>
                             <button type="button" onClick={() => setView("raise")} className={`${primaryBtn} mt-4`}>Raise a request</button>
                         </div>
                     ) : (

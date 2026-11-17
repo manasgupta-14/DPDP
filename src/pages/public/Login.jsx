@@ -60,13 +60,13 @@ export default function Login() {
         >
             <form onSubmit={onSubmit} noValidate className="space-y-5">
                 {sessionExpired && !formError && (
-                    <div role="status" className="rounded-lg border border-[#D97706]/30 bg-[#D97706]/5 px-3.5 py-2.5 text-sm text-[#D97706]">
+                    <div role="status" className="rounded-lg border border-warn/30 bg-warn/5 px-3.5 py-2.5 text-sm text-warn-ink">
                         Your session has expired. Please sign in again.
                     </div>
                 )}
 
                 {formError && (
-                    <div role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/5 px-3.5 py-2.5 text-sm text-[#DC2626]">
+                    <div role="alert" className="rounded-lg border border-bad/30 bg-bad/5 px-3.5 py-2.5 text-sm text-bad-ink">
                         {formError}
                     </div>
                 )}
@@ -90,16 +90,16 @@ export default function Login() {
                 </Field>
 
                 <div className="flex items-center justify-between">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-[#334155]">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
                         <input
                             type="checkbox"
                             checked={form.remember}
                             onChange={set("remember")}
-                            className="h-4 w-4 rounded border-[#CBD5E1] accent-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
+                            className="h-4 w-4 rounded border-line-strong accent-brand focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                         />
                         Keep me signed in
                     </label>
-                    <a href="/forgot-password" className="text-sm font-medium text-[#0F766E] hover:text-[#115E59] hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                    <a href="/forgot-password" className="text-sm font-medium text-brand-ink hover:text-brand-ink hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         Forgot password?
                     </a>
                 </div>

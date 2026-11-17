@@ -1,25 +1,25 @@
-# PrivyGuard frontend structure
+# Kavach frontend structure
 
 ```
 src/
-  api/          HTTP calls only (client.js, campaign.js, breach.js, dataInventory.js, users.js)
-  auth/         token storage, session helpers, ProtectedRoute (role="admin" | "user")
-  config/       navigation.js: sidebar items for the admin and user dashboards
-  layouts/      DashboardShell (shared chrome), AdminLayout, UserLayout, PublicLayout
-  routes/       AppRoutes (root), AdminRoutes (/dashboard/*), UserRoutes (/user/*)
+  api/          HTTP calls (client.js + one file per backend module); executive.js loads the admin dashboard
+  auth/         token storage, session helpers, roleInfo(), ProtectedRoute (admin | dpo | user)
+  config/       navigation.js: sidebar items for admin, DPO and user
+  layouts/      DashboardShell (shared frame), AdminLayout, DpoLayout, UserLayout, PublicLayout
+  routes/       AppRoutes, AdminRoutes (/dashboard/*), DpoRoutes (/dpo/*), UserRoutes (/user/*)
   pages/
     public/     Home, Login, Register
-    admin/      Dashboard, AddUsers, Campaigns, DataInventory, BreachManagement, AdminTasks, ...
-    user/       UserDashboard, MyTasks, MySecurityReports
+    admin/      Dashboard (executive summary), users, consent, notices, breach, reports, ...
+    dpo/        DpoDashboard
+    dpia/       DPIA list / form / detail (admin + DPO)
+    grievance/  grievance list / detail
+    user/       UserDashboard, MyTasks, MyConsents, MyNotices, PrivacySettings, ...
   components/
-    shared/     Alert, Badge, Icon, ui.js (used by both dashboards)
-    admin/      admin-only pieces (breach triage drawer, incident table, summary cards)
-    user/       employee-only pieces (TasksBoard, IncidentForm, MyReportsList)
-    public/     Navbar, Hero, Authui
-  utils/        pure helpers and API-response normalisers
-  data/         mock data for the admin overview
+    charts/     kit.jsx: animated SVG charts (no library)
+    shared/     Alert, Brand (Kavach logo), Icon, Modal, ThemeToggle, ui.js
+    admin/      admin-only pieces
+    user/       employee / customer pieces
+    public/     Navbar, Authui, home/data.js (website content)
+  utils/        pure helpers and API-response normalisers; executive.js = dashboard maths
+  data/         moduleInfo.js (text for module pages)
 ```
-
-Admin lives under `/dashboard`, employees under `/user`. A signed-in admin who opens `/user`
-is sent to `/dashboard` and the other way round. Old `/my-tasks` and `/my-security-reports`
-URLs redirect to `/user/tasks` and `/user/reports`.

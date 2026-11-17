@@ -6,9 +6,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { installModernSelect } from "./utils/modernSelect.js";
 import { installReveal } from "./utils/reveal.js";
-import { installSpotlight } from "./utils/spotlight.js";
 
-installSpotlight();
 installModernSelect();
 installReveal();
 

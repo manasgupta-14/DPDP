@@ -1,4 +1,4 @@
-# PrivyGuard breach reporting and investigation
+# Kavach breach reporting and investigation
 
 ## Routes
 - `/my-security-reports`: any signed-in user. Submit an incident and read their own reports (read-only).

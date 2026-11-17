@@ -31,11 +31,28 @@ const ICONS = {
     upload: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12",
     download: "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3",
     trash: "M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a1 1 0 01-1 1H7a1 1 0 01-1-1L5 6M10 11v6M14 11v6",
+    rupee: "M6 4h12M6 9h12M14 20L7 13h3a4 4 0 000-8",
+    trendUp: "M3 17l6-6 4 4 8-8M15 7h6v6",
+    trendDown: "M3 7l6 6 4-4 8 8M15 17h6v-6",
+    users: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.9M16 3.1a4 4 0 010 7.8",
+    info: "M12 16v-4M12 8h.01M12 21a9 9 0 100-18 9 9 0 000 18z",
+    flag: "M4 21V4M4 4h12l-2 4 2 4H4",
+    zap: "M13 2L3 14h9l-1 8 10-12h-9l1-8z",
+    file: "M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5",
+    pie: "M21 12A9 9 0 1112 3v9zM21 12a9 9 0 00-9-9",
+    list: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
+    chat: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
+    lock: "M5 11h14v10H5zM8 11V7a4 4 0 018 0v4",
+    eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z",
+    plus: "M12 5v14M5 12h14",
+    sun: "M12 17a5 5 0 100-10 5 5 0 000 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4",
+    arrowRight: "M5 12h14M13 6l6 6-6 6",
+    target: "M12 21a9 9 0 100-18 9 9 0 000 18zM12 17a5 5 0 100-10 5 5 0 000 10zM12 13a1 1 0 100-2 1 1 0 000 2z",
 };
 
-export default function Icon({ name, className = "h-5 w-5" }) {
+export default function Icon({ name, className = "h-5 w-5", strokeWidth = 1.8 }) {
     return (
-        <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d={ICONS[name]} />
         </svg>
     );

@@ -2,8 +2,8 @@ import Icon from "../../shared/Icon.jsx";
 import { panel } from "../../shared/ui.js";
 
 export function Switch({ checked, onChange, label, onDark = false, disabled = false }) {
-    const off = onDark ? "bg-white/30" : "bg-[#CBD5E1]";
-    const on = onDark ? "bg-[#22D3EE]" : "bg-[#0F766E]";
+    const off = onDark ? "bg-white/30" : "bg-line-strong";
+    const on = onDark ? "bg-brand" : "bg-brand";
     return (
         <button
             type="button"
@@ -12,9 +12,9 @@ export function Switch({ checked, onChange, label, onDark = false, disabled = fa
             aria-label={label}
             onClick={onChange}
             disabled={disabled}
-            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${checked ? on : off}`}
+            className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${checked ? on : off}`}
         >
-            <span className={`inline-block h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`} />
+            <span className={`inline-block h-5 w-5 rounded-full bg-surface shadow transition-transform ${checked ? "translate-x-[22px]" : "translate-x-0.5"}`} />
         </button>
     );
 }
@@ -28,7 +28,7 @@ export default function PermissionPicker({ modules, selected, onToggle, onToggle
                 const all = count === ids.length;
                 return (
                     <section key={m.name} className={`${panel} overflow-hidden`} aria-label={m.name}>
-                        <div className="flex items-center justify-between gap-3 bg-[#0F766E] px-4 py-3 text-white">
+                        <div className="flex items-center justify-between gap-3 bg-brand px-4 py-3 text-white">
                             <div className="flex min-w-0 items-center gap-2.5">
                                 <Icon name="shield" className="h-4 w-4 shrink-0" />
                                 <h3 className="truncate text-sm font-semibold">{m.name}</h3>
@@ -36,10 +36,10 @@ export default function PermissionPicker({ modules, selected, onToggle, onToggle
                             </div>
                             <Switch onDark disabled={readOnly} checked={all} onChange={() => onToggleModule(ids, !all)} label={`Turn all ${m.name} permissions ${all ? "off" : "on"}`} />
                         </div>
-                        <ul className="divide-y divide-[#E2E8F0]">
+                        <ul className="divide-y divide-line">
                             {m.actions.map((a) => (
                                 <li key={a.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                                    <span className="text-sm text-[#334155]">{a.name}</span>
+                                    <span className="text-sm text-ink-2">{a.name}</span>
                                     <Switch disabled={readOnly} checked={selected.has(a.id)} onChange={() => onToggle(a.id)} label={a.name} />
                                 </li>
                             ))}

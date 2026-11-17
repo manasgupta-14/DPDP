@@ -39,8 +39,8 @@ function trendOf(incidents) {
 function Card({ title, sub, children }) {
     return (
         <section className={`${panel} min-w-0 p-5 sm:p-6`} aria-label={title}>
-            <h2 className="text-base font-semibold text-[#0F172A]">{title}</h2>
-            <p className="mt-0.5 text-xs text-[#64748B]">{sub}</p>
+            <h2 className="text-base font-semibold text-ink">{title}</h2>
+            <p className="mt-0.5 text-xs text-muted">{sub}</p>
             <div className="mt-4">{children}</div>
         </section>
     );

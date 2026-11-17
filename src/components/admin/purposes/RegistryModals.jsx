@@ -14,7 +14,7 @@ const toCode = (v) => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g
 function Footer({ busy, error, onClose, onSubmit, label }) {
     return (
         <>
-            {error && <p role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/10 px-3 py-2 text-xs text-[#B91C1C]">{error}</p>}
+            {error && <p role="alert" className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-xs text-bad-ink">{error}</p>}
             <div className="flex justify-end gap-2.5">
                 <button type="button" onClick={onClose} disabled={busy} className={dkBtn}>Cancel</button>
                 <button type="button" onClick={onSubmit} disabled={busy} className={dkPrimary}>{busy ? "Saving..." : label}</button>

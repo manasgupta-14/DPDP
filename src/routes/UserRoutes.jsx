@@ -1,6 +1,6 @@
 import { Navigate, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute.jsx";
-import { MyConsents, MyGrievanceDetail, MyGrievances, MyNotices, MySecurityReports, MyTasks, PrivacyNotices, PrivacySettings, UserDashboard, UserLayout } from "./lazyPages.js";
+import { AdminProfile, MyConsents, MyGrievanceDetail, MyGrievances, MyNotices, MySecurityReports, MyTasks, PrivacyNotices, PrivacySettings, UserDashboard, UserLayout } from "./lazyPages.js";
 
 export default function userRoutes() {
     return (
@@ -22,6 +22,7 @@ export default function userRoutes() {
             <Route path="grievance/:id" element={<MyGrievanceDetail />} />
             <Route path="my-grievances" element={<Navigate to="/user/grievance" replace />} />
             <Route path="privacy" element={<PrivacySettings />} />
+            <Route path="profile" element={<AdminProfile />} />
             <Route path="*" element={<Navigate to="/user" replace />} />
         </Route>
     );

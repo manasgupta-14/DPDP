@@ -9,7 +9,7 @@ export async function getDashboardSummary() {
         const data = normalizeSummary(res.data);
         const has = [...data.kpis, ...data.more].some((m) => /data\s*principal|principals/i.test(m.label));
         if (count.ok && !has) {
-            const metric = { key: "dataPrincipalsTotal", label: "Data principals", value: count.data, display: count.data.toLocaleString(), icon: "adduser", tint: "bg-[#D97706]/15 text-[#B45309]" };
+            const metric = { key: "dataPrincipalsTotal", label: "Data principals", value: count.data, display: count.data.toLocaleString(), icon: "adduser", tint: "bg-warn/15 text-warn-ink" };
             if (data.kpis.length < 4) data.kpis = [...data.kpis, metric];
             else data.more = [metric, ...data.more];
         }

@@ -19,7 +19,7 @@ const ACTIONS = {
         title: "Approve this DPIA?",
         text: "The DPIA is marked Approved and the decision is recorded against your name.",
         done: "DPIA approved.",
-        button: "bg-[#16A34A] hover:bg-[#15803D]",
+        button: "bg-ok hover:bg-ok-ink",
         confirm: "Approve",
         notesRequired: false,
     },
@@ -27,7 +27,7 @@ const ACTIONS = {
         title: "Request changes?",
         text: "The DPIA goes back to the Admin with your note. They revise it and submit a new version.",
         done: "Changes requested. The Admin has been asked to revise this DPIA.",
-        button: "bg-[#D97706] hover:bg-[#B45309]",
+        button: "bg-warn hover:bg-warn-ink",
         confirm: "Request changes",
         notesRequired: true,
     },
@@ -35,7 +35,7 @@ const ACTIONS = {
         title: "Reject this DPIA?",
         text: "Use this when the processing cannot comply with the DPDP Act, 2023.",
         done: "DPIA rejected.",
-        button: "bg-[#DC2626] hover:bg-[#B91C1C]",
+        button: "bg-bad hover:bg-bad-ink",
         confirm: "Reject",
         notesRequired: true,
     },
@@ -44,8 +44,8 @@ const ACTIONS = {
 function Meta({ label, children }) {
     return (
         <div className="flex justify-between gap-4 py-2 text-sm">
-            <dt className="text-[#64748B]">{label}</dt>
-            <dd className="text-right font-medium text-[#0F172A]">{children}</dd>
+            <dt className="text-muted">{label}</dt>
+            <dd className="text-right font-medium text-ink">{children}</dd>
         </div>
     );
 }
@@ -86,7 +86,7 @@ export default function DpiaDetail() {
         };
     }, [id]);
 
-    if (loading) return <p className="text-sm text-[#475569]">Loading DPIA...</p>;
+    if (loading) return <p className="text-sm text-ink-3">Loading DPIA...</p>;
     if (error || !record) {
         return (
             <div className="mx-auto max-w-xl space-y-4">
@@ -136,12 +136,12 @@ export default function DpiaDetail() {
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <Link to={base} className="text-sm font-semibold text-[#0F766E] hover:underline">&larr; All DPIAs</Link>
+                <Link to={base} className="text-sm font-semibold text-brand-ink hover:underline">&larr; All DPIAs</Link>
                 <div className="mt-2 flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-bold tracking-tight">{record.title}</h1>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">{record.title}</h1>
                     <DpiaStatusBadge status={record.status} />
                 </div>
-                <p className="mt-1 font-mono text-sm text-[#64748B]">{record.referenceId}</p>
+                <p className="mt-1 font-mono text-sm text-muted">{record.referenceId}</p>
             </div>
 
             <Alert tone="success">{done}</Alert>
@@ -152,7 +152,7 @@ export default function DpiaDetail() {
                 <aside className="space-y-5 lg:sticky lg:top-24">
                     <section className={`${panel} px-5 py-4`}>
                         <h2 className="text-base font-semibold">Record</h2>
-                        <dl className="mt-1 divide-y divide-[#E2E8F0]">
+                        <dl className="mt-1 divide-y divide-line">
                             <Meta label="Created">{formatDate(record.createdAt)}</Meta>
                             <Meta label="Reviewed">{record.reviewedAt ? formatDate(record.reviewedAt) : "Not yet"}</Meta>
                             <Meta label="Next review due">{formatDay(record.nextReviewDate)}</Meta>
@@ -162,14 +162,14 @@ export default function DpiaDetail() {
                     {record.reviewNotes && (
                         <section className={`${panel} px-5 py-4`}>
                             <h2 className="text-base font-semibold">DPO's notes</h2>
-                            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-[#334155]">{record.reviewNotes}</p>
+                            <p className="mt-2 whitespace-pre-wrap break-words text-sm text-ink-2">{record.reviewNotes}</p>
                         </section>
                     )}
 
                     {canRevise && (
                         <section className={`${panel} space-y-3 px-5 py-4`}>
                             <h2 className="text-base font-semibold">Changes requested</h2>
-                            <p className="text-sm text-[#475569]">Revise the answers and submit a new version. This one stays on record.</p>
+                            <p className="text-sm text-ink-3">Revise the answers and submit a new version. This one stays on record.</p>
                             <Link to={`${base}/new?revise=${record.id}`} className={`${primaryBtn} w-full`}>Revise &amp; resubmit</Link>
                         </section>
                     )}
@@ -178,13 +178,13 @@ export default function DpiaDetail() {
                         <section className={`${panel} space-y-4 px-5 py-4`} aria-labelledby="dpia-review-title">
                             <div>
                                 <h2 id="dpia-review-title" className="text-base font-semibold">Your decision</h2>
-                                <p className="mt-1 text-sm text-[#475569]">The form is read-only. Approve it, or send it back with a note.</p>
+                                <p className="mt-1 text-sm text-ink-3">The form is read-only. Approve it, or send it back with a note.</p>
                             </div>
                             {isMaker ? (
                                 <Alert tone="info">You prepared this DPIA, so someone else must review it. This keeps the maker and the checker separate.</Alert>
                             ) : (
                                 <>
-                                    <label className="block text-sm font-medium text-[#334155]">
+                                    <label className="block text-sm font-medium text-ink-2">
                                         Review notes
                                         <textarea
                                             value={notes}
@@ -194,15 +194,15 @@ export default function DpiaDetail() {
                                             className={`${field} resize-y`}
                                             aria-invalid={!!notesError}
                                         />
-                                        <span role="alert" className="mt-1 block text-xs text-[#DC2626]">{notesError}</span>
-                                        <span className="mt-1 block text-xs text-[#64748B]">Required to request changes{REJECT_SUPPORTED ? " or reject" : ""}. Optional for approval.</span>
+                                        <span role="alert" className="mt-1 block text-xs text-bad-ink">{notesError}</span>
+                                        <span className="mt-1 block text-xs text-muted">Required to request changes{REJECT_SUPPORTED ? " or reject" : ""}. Optional for approval.</span>
                                     </label>
                                     <Alert>{actionError}</Alert>
                                     <div className="grid gap-2.5">
-                                        <button type="button" onClick={() => choose("Approve")} className="rounded-xl bg-[#16A34A] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#15803D] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">✅ Approve</button>
-                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-[#D97706] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#B45309] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">📝 Request Changes</button>
+                                        <button type="button" onClick={() => choose("Approve")} className="rounded-xl bg-ok px-4 py-3 text-sm font-semibold text-white transition hover:bg-ok-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">✅ Approve</button>
+                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-warn px-4 py-3 text-sm font-semibold text-white transition hover:bg-warn-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">📝 Request Changes</button>
                                         {REJECT_SUPPORTED && (
-                                            <button type="button" onClick={() => choose("Reject")} className="rounded-xl bg-[#DC2626] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#B91C1C] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">❌ Reject</button>
+                                            <button type="button" onClick={() => choose("Reject")} className="rounded-xl bg-bad px-4 py-3 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">❌ Reject</button>
                                         )}
                                     </div>
                                 </>
@@ -211,7 +211,7 @@ export default function DpiaDetail() {
                     )}
 
                     {!canReview && !canRevise && (
-                        <p className="px-1 text-xs text-[#64748B]">
+                        <p className="px-1 text-xs text-muted">
                             {isPending ? "This DPIA is waiting for the Data Protection Officer's review." : "This DPIA is read-only."}
                         </p>
                     )}
@@ -222,11 +222,11 @@ export default function DpiaDetail() {
                 <Modal title={ACTIONS[pending].title} onClose={() => !busy && setPending(null)}>
                     <div className={`${panel} p-5 sm:p-6`}>
                         <h2 className="pr-8 text-lg font-semibold">{ACTIONS[pending].title}</h2>
-                        <p className="mt-2 text-sm text-[#475569]">{ACTIONS[pending].text}</p>
-                        {notes.trim() && <p className="mt-3 whitespace-pre-wrap break-words rounded-xl bg-[#F8FAFC] p-3 text-sm text-[#334155] ring-1 ring-[#E2E8F0]">{notes.trim()}</p>}
+                        <p className="mt-2 text-sm text-ink-3">{ACTIONS[pending].text}</p>
+                        {notes.trim() && <p className="mt-3 whitespace-pre-wrap break-words rounded-xl bg-soft p-3 text-sm text-ink-2 ring-1 ring-line">{notes.trim()}</p>}
                         <div className="mt-5 flex justify-end gap-3">
                             <button type="button" className={ghostBtn} disabled={busy} onClick={() => setPending(null)}>Cancel</button>
-                            <button type="button" disabled={busy} onClick={confirm} className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:opacity-60 ${ACTIONS[pending].button}`}>
+                            <button type="button" disabled={busy} onClick={confirm} className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60 ${ACTIONS[pending].button}`}>
                                 {busy ? "Saving..." : ACTIONS[pending].confirm}
                             </button>
                         </div>

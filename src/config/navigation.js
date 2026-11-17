@@ -3,7 +3,6 @@ const ALL_ADMIN_SECTIONS = [
         label: "Overview",
         items: [
             { to: "/dashboard", label: "Dashboard", icon: "grid", end: true },
-            { to: "/dashboard/timeline", label: "Act & Rules timeline", icon: "calendar" },
             { to: "/dashboard/my-tasks", label: "My Tasks", icon: "consent" },
             { to: "/dashboard/reports", label: "Reports", icon: "download" },
         ],
@@ -39,12 +38,11 @@ const ALL_ADMIN_SECTIONS = [
         label: "Administration",
         items: [
             { to: "/dashboard/add-users", label: "Users", icon: "adduser" },
-            // Staff abhi menu me chhupa hai (code aur route /dashboard/staff waise hi hai). Dikhana ho to "hidden: true" hata do.
-            { to: "/dashboard/staff", label: "Staff", icon: "adduser", hidden: true },
+            { to: "/dashboard/staff", label: "Staff", icon: "users" },
             { to: "/dashboard/organisation", label: "Organisation", icon: "building" },
             { to: "/dashboard/imports", label: "Bulk import", icon: "upload" },
             { to: "/dashboard/roles", label: "Roles & permissions", icon: "key" },
-            { to: "/dashboard/admin", label: "Admin", icon: "gear" },
+            { to: "/dashboard/admin", label: "My profile", icon: "gear", profile: true },
         ],
     },
 ];
@@ -73,12 +71,24 @@ export const USER_SECTIONS = [
             { to: "/user/privacy-notices", label: "Privacy notices", icon: "notice" },
         ],
     },
+    {
+        label: "Account",
+        items: [{ to: "/user/profile", label: "My profile", icon: "gear" }],
+    },
 ];
 
 export const DPO_SECTIONS = [
     {
-        label: "Data Protection Officer",
+        label: "Overview",
+        items: [{ to: "/dpo", label: "Dashboard", icon: "grid", end: true }],
+    },
+    {
+        label: "Reviews",
         items: [{ to: "/dpo/dpia", label: "DPIA reviews", icon: "scale" }],
+    },
+    {
+        label: "Account",
+        items: [{ to: "/dpo/profile", label: "DPO profile", icon: "gear" }],
     },
 ];
 

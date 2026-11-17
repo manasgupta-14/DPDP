@@ -113,6 +113,8 @@ export async function updateDataPrincipal(id, form) {
         roleId: form.roleId || null,
         password: form.password || null,
     };
+    // Note: abhi backend ka UpdateDataPrincipalAsync dateOfBirth, roleId aur password save nahi karta
+    // (backend team add karegi); frontend inhe bhejta rehta hai.
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "PUT", body });
     if (res.ok) return res;
     if (res.status === 404 && !res.data) return { ...res, error: "Edit is not available on the server yet. Ask the backend team to add PUT /api/dataprincipal/{id}." };

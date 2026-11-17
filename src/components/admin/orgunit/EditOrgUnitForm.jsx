@@ -33,16 +33,16 @@ export default function EditOrgUnitForm({ unit, flat, onSaved, onClose }) {
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Edit {unit.name}</h2>
             <div className="mt-5 space-y-4">
-                <label className="block text-sm font-medium text-[#334155]">
-                    Name <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Name <span className="text-bad-ink">*</span>
                     <input value={form.name} onChange={(e) => { setForm((f) => ({ ...f, name: e.target.value })); setErrors((er) => ({ ...er, name: undefined })); }} maxLength={100} className={field} aria-invalid={!!errors.name} autoFocus />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.name}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.name}</span>
                 </label>
-                <label className="block text-sm font-medium text-[#334155]">
-                    Code <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Code <span className="text-bad-ink">*</span>
                     <input value={form.code} onChange={(e) => { setForm((f) => ({ ...f, code: e.target.value.toLowerCase().replace(/\s+/g, "-") })); setErrors((er) => ({ ...er, code: undefined })); }} maxLength={60} spellCheck={false} className={`${field} font-mono`} aria-invalid={!!errors.code} />
-                    <span className="mt-1 block text-xs text-[#475569]">Kind ({unit.kind}) and parent cannot be changed here. Only name and code can be edited.</span>
-                    <span className="block text-xs text-[#DC2626]">{errors.code}</span>
+                    <span className="mt-1 block text-xs text-ink-3">Kind ({unit.kind}) and parent cannot be changed here. Only name and code can be edited.</span>
+                    <span className="block text-xs text-bad-ink">{errors.code}</span>
                 </label>
                 <Alert>{apiError}</Alert>
                 <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
