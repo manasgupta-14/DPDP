@@ -87,7 +87,7 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
                             <label className="block text-sm font-medium text-ink-2">
                                 Code
                                 <input value={code} onChange={(e) => { setCodeTouched(true); set("code")(e); }} readOnly={editing} maxLength={100} disabled={busy} placeholder="general_service_notice" className={`${field} font-mono ${editing ? "cursor-not-allowed bg-subtle" : ""}`} aria-invalid={!!errors.code} />
-                                <span className={hint}>{editing ? "Codes cannot be changed once created." : "Stable machine name for this template."}</span>
+                                <span className={hint}>{editing ? "Codes cannot be changed once created." : "Short unique code for this template."}</span>
                                 <span className={err}>{errors.code}</span>
                             </label>
                         </div>

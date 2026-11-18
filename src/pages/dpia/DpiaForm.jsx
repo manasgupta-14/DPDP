@@ -84,9 +84,9 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
 
     const saveAsDraft = () => {
         const id = saveDraft(form, draftId);
-        if (!id) return setApiError("Could not save the draft in this browser (storage is full or blocked).");
+        if (!id) return setApiError("Could not save the draft on this device (storage is full or blocked).");
         setDraftId(id);
-        navigate(base, { state: { flash: "Draft saved in this browser. Open it from the list with Edit to continue." } });
+        navigate(base, { state: { flash: "Draft saved on this device. Open it from the list with Edit to continue." } });
     };
 
     const submit = async () => {
@@ -326,7 +326,7 @@ export default function DpiaForm() {
 
     return (
         <>
-            {seed.missingDraft && <div className="mx-auto mb-4 max-w-4xl"><Alert>That draft was not found in this browser, so a blank form is shown.</Alert></div>}
+            {seed.missingDraft && <div className="mx-auto mb-4 max-w-4xl"><Alert>That draft was not found on this device, so a blank form is shown.</Alert></div>}
             <Wizard key={draftParam || reviseParam || "new"} initial={seed.form} draftId={seed.draftId} feedback={seed.feedback} />
         </>
     );

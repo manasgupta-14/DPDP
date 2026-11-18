@@ -17,5 +17,5 @@ export function RowBadge({ status }) {
 }
 
 export function GuardianBadge() {
-    return <span className={`${base} bg-warn-soft text-warn-ink ring-warn/40`}>Requires Guardian Consent (Sec. 9)</span>;
+    return <span className={`${base} bg-warn-soft text-warn-ink ring-warn/40`}>Needs guardian consent (Sec 9)</span>;
 }

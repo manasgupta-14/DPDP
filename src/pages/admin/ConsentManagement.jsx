@@ -113,7 +113,7 @@ export default function ConsentManagement() {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Consent records</h1>
-                    <p className="mt-1 text-xs text-ink-3">Every consent artifact taken, in any channel. Each one is signed and independently verifiable.</p>
+                    <p className="mt-1 text-xs text-ink-3">Every consent given, from any channel. Each one is signed and can be verified.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={reload} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>

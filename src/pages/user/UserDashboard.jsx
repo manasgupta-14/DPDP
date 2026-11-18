@@ -69,13 +69,13 @@ export default function UserDashboard() {
                 eyebrow={customer ? "Customer portal" : `${info.label} portal`}
                 greeting="Welcome"
                 name={firstName}
-                sub={customer ? "See how your data is used, change your consent any time, and ask for a copy, correction or erasure." : "Answer consent requests from your organisation and report anything suspicious."}
+                sub={customer ? "See and control how your data is used." : "Answer requests and report anything unusual."}
                 status={
-                    tasks.loading
-                        ? { tone: "muted", label: "Checking your tasks" }
+                    tasks.loading || tasks.error
+                        ? null
                         : tasks.items.length
                           ? { tone: "warn", label: `${tasks.items.length} task${tasks.items.length === 1 ? "" : "s"} waiting` }
-                          : { tone: "ok", label: "You are all caught up" }
+                          : { tone: "ok", label: "All done" }
                 }
                 actions={
                     <>
@@ -114,7 +114,7 @@ export default function UserDashboard() {
             <div className="grid gap-4 lg:grid-cols-3">
                 <section className="kd-card p-5" style={rise(1)} aria-label="Privacy health">
                     <h2 className="kd-title">Privacy health</h2>
-                    <p className="kd-sub">Drops while consent tasks are pending</p>
+                    <p className="kd-sub">Goes down while tasks are waiting</p>
                     <div className="mt-4 flex items-center gap-5">
                         <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`}>
                             <div>

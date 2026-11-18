@@ -111,13 +111,11 @@ export default function DpoDashboard() {
                 eyebrow={info.long}
                 greeting="Welcome"
                 name={first}
-                sub="Risky processing waits for your decision before it starts."
+                sub="Review risky data use before it starts."
                 status={
-                    state.loading
-                        ? { tone: "muted", label: "Checking reviews" }
-                        : state.error
-                          ? { tone: "warn", label: "Some data did not load" }
-                          : m.pending.length
+                    state.loading || state.error
+                        ? null
+                        : m.pending.length
                             ? { tone: "warn", label: `${m.pending.length} review${m.pending.length === 1 ? "" : "s"} waiting` }
                             : { tone: "ok", label: "No reviews waiting" }
                 }

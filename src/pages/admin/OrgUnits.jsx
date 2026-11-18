@@ -101,7 +101,7 @@ export default function OrgUnits() {
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
                         <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Organisation hierarchy</h1>
-                        <p className="mt-1 text-sm text-ink-3">Zones, circles and divisions — the reporting and assignment tree for Data Principals and staff.</p>
+                        <p className="mt-1 text-sm text-ink-3">Zones, circles and divisions that staff and customers belong to.</p>
                     </div>
                     <button type="button" onClick={() => setDialog({ type: "form", parent: null })} className={primaryBtn}>New top-level unit</button>
                 </div>

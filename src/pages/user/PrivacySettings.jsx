@@ -146,7 +146,7 @@ export default function PrivacySettings() {
             </div>
 
             {!isDataPrincipal(getProfile()) && (
-                <Alert tone="info">This page is meant for customer (data principal) logins. You are signed in with a staff account, so privacy requests may not be saved. Sign in as a customer to test it.</Alert>
+                <Alert tone="info">This page is for customer accounts. You are signed in with a staff account, so privacy requests may not be saved.</Alert>
             )}
             {!principalId && <Alert>Your session has no user ID, so requests cannot be linked to you. Please sign in again.</Alert>}
 

@@ -289,7 +289,7 @@ export default function Retention() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Retention &amp; erasure</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Erase once the purpose is served or consent is withdrawn, unless another law requires the record to be kept (Sec 8(7)).</p>
+                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Delete data once its purpose is done or consent is withdrawn, unless another law says to keep it (Sec 8(7)).</p>
                 </div>
                 {tab === "policies" && (
                     <div className="flex gap-2">
@@ -300,7 +300,7 @@ export default function Retention() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
-                <StatTile label="Jobs in the queue" icon="clock" tone="info" value={metrics.loading ? "—" : metrics.data ? metrics.data.jobsInQueue : "—"} total={metrics.data ? metrics.data.jobsInQueue + metrics.data.overdue : 0} hint="Pending erasures across all purposes" />
+                <StatTile label="Jobs in the queue" icon="clock" tone="info" value={metrics.loading ? "—" : metrics.data ? metrics.data.jobsInQueue : "—"} total={metrics.data ? metrics.data.jobsInQueue + metrics.data.overdue : 0} hint="Records waiting to be erased" />
                 <StatTile label="Overdue" icon="alert" tone={metrics.data?.overdue ? "bad" : "ok"} colorValue value={metrics.loading ? "—" : metrics.data ? metrics.data.overdue : "—"} total={metrics.data ? metrics.data.jobsInQueue + metrics.data.overdue : 0} hint="Past their erasure date" />
                 <StatTile label="Active policies" icon="shield" tone="ok" value={metrics.loading && state.loading ? "—" : metrics.data ? metrics.data.activePolicies : activeCount} total={state.rows.length} hint={state.loading ? "Loading..." : `${state.rows.length} polic${state.rows.length === 1 ? "y" : "ies"} in total`} />
             </div>

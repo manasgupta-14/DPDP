@@ -15,7 +15,7 @@ export async function getDashboardSummary() {
         }
         return { ...res, data };
     }
-    if (res.status === 403) return { ...res, error: "The organisation overview is only available to users whose role is named Admin. Your other pages still work." };
+    if (res.status === 403) return { ...res, error: "You do not have access to the organisation overview. Your other pages still work." };
     return res;
 }
 
@@ -32,7 +32,8 @@ export async function getUserSummary() {
     return {
         ...res,
         data: {
-            healthScore: Number(pick(d, "privacyHealthScore", "PrivacyHealthScore") ?? 0),
+            // Field na aaye to null ("No data yet"), nakli 0% nahi
+            healthScore: pick(d, "privacyHealthScore", "PrivacyHealthScore") == null ? null : Number(pick(d, "privacyHealthScore", "PrivacyHealthScore")),
             pendingActions: Number(pick(d, "pendingActionsCount", "PendingActionsCount") ?? 0),
             activeConsents: Number(pick(d, "activeConsentsCount", "ActiveConsentsCount") ?? 0),
             requestsRaised: Number(pick(d, "totalRequestsRaised", "TotalRequestsRaised") ?? 0),

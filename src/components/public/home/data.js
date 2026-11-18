@@ -47,22 +47,22 @@ export const ECOSYSTEM = [
 
 export const FEATURES = [
     {
-        key: "consent", size: "lg", icon: "consent", title: "One register for every consent",
+        key: "consent", size: "lg", icon: "consent", title: "Consent register",
         text: "Users allow or deny each purpose in a popup on login. Withdrawing takes one click, and every change keeps its date.",
         visual: "consent",
     },
-    { key: "notice", size: "sm", icon: "notice", title: "Notices people can read", text: "Write once, publish with translations, keep each version.", visual: "lang" },
-    { key: "rights", size: "sm", icon: "rights", title: "Deadlines you can see", text: "Every rights request shows its due date and overdue state.", visual: "timer" },
-    { key: "breach", size: "md", icon: "breach", title: "Breach desk", text: "From a user's security report to a closed incident, with severity and owner.", visual: "steps" },
-    { key: "dpia", size: "md", icon: "dpia", title: "DPO sign-off", text: "Risky processing waits for the DPO's approval before it starts.", visual: "approve" },
-    { key: "audit", size: "wide", icon: "audit", title: "Proof for the auditor", text: "Audit trail of who changed what, plus 13 report types you can download as PDF or CSV, each with a SHA-256 fingerprint.", visual: "bars" },
+    { key: "notice", size: "sm", icon: "notice", title: "Privacy notices", text: "Write once, publish with translations, keep each version.", visual: "lang" },
+    { key: "rights", size: "sm", icon: "rights", title: "Rights request tracking", text: "Every rights request shows its due date and overdue state.", visual: "timer" },
+    { key: "breach", size: "md", icon: "breach", title: "Breach management", text: "From a user's security report to a closed incident, with severity and owner.", visual: "steps" },
+    { key: "dpia", size: "md", icon: "dpia", title: "DPIA approvals", text: "Risky processing waits for the DPO's approval before it starts.", visual: "approve" },
+    { key: "audit", size: "wide", icon: "audit", title: "Audit trail and reports", text: "Audit trail of who changed what, plus 13 report types you can download as PDF or CSV, each with a SHA-256 fingerprint.", visual: "bars" },
 ];
 
 export const STEPS = [
-    { title: "Set up", text: "Add users, roles, offices, purposes and the data you hold." },
-    { title: "Ask", text: "Publish notices and send consent campaigns to customers and staff." },
-    { title: "Answer", text: "Handle rights requests, grievances and security reports on time." },
-    { title: "Prove", text: "Download reports and show the audit trail when asked." },
+    { title: "Configure", text: "Add users, roles, offices, purposes and the data you hold." },
+    { title: "Collect consent", text: "Publish notices and send consent campaigns to customers and staff." },
+    { title: "Respond", text: "Handle rights requests, grievances and security reports on time." },
+    { title: "Evidence", text: "Download reports and show the audit trail when asked." },
 ];
 
 // Sirf product ke asli tathya
@@ -83,9 +83,9 @@ export const COMPARE_ROWS = [
 ];
 
 export const MILESTONES = [
-    { label: "Phase 1", date: "13 Nov 2025", text: "DPDP Rules notified; Data Protection Board provisions apply" },
-    { label: "Phase 2", date: "13 Nov 2026", text: "Consent Manager registration rules apply" },
-    { label: "Phase 3", date: "13 May 2027", text: "Core duties apply: notices, security, breach reporting, rights" },
+    { label: "Phase 1", date: "13 Nov 2025", text: "DPDP Rules notified and the Data Protection Board set up" },
+    { label: "Phase 2", date: "13 Nov 2026", text: "Rules for registering Consent Managers apply" },
+    { label: "Phase 3", date: "13 May 2027", text: "Main duties apply: notices, security, breach reporting and rights" },
 ];
 
 export const FAQ = [

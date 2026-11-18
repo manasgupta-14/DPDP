@@ -77,7 +77,7 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
             <form onSubmit={submit} noValidate className="max-h-[90vh] space-y-4 overflow-y-auto rounded-2xl border border-line bg-surface p-5 text-ink shadow-xl sm:p-6">
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold">Add new user</h2>
-                    <p className="mt-1 text-sm text-ink-3">Adds one data principal, with the same checks as a bulk import row. The user is saved through <span className="font-mono text-xs">POST /api/dataprincipal/add</span> and appears under Data principals.</p>
+                    <p className="mt-1 text-sm text-ink-3">Adds one customer, with the same checks as a bulk import. They will appear under Data principals.</p>
                 </div>
 
                 {errors.identifier && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{errors.identifier}</p>}

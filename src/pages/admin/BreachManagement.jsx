@@ -105,7 +105,7 @@ export default function BreachManagement() {
             <header className="flex flex-wrap items-end justify-between gap-4">
                 <div className="max-w-2xl">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-bad-ink">Governance · Breach</p>
-                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Incident command desk</h1>
+                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Breach incidents</h1>
                     <p className="mt-1 text-sm leading-relaxed text-muted">{headline}</p>
                 </div>
                 <button type="button" onClick={reload} disabled={loading} className={ghostBtn}>
