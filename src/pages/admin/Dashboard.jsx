@@ -112,7 +112,7 @@ function ModuleModal({ mod, onClose }) {
                 <div className={`mt-5 flex items-center gap-4 rounded-xl border p-4 ${mod.band.tone === "ok" ? "border-ok/25 bg-ok-soft" : mod.band.tone === "warn" ? "border-warn/25 bg-warn-soft" : mod.band.tone === "bad" ? "border-bad/25 bg-bad-soft" : "border-line bg-soft"}`}>
                     <p className={`kd-big text-[40px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score ?? "—"}</p>
                     <div className="min-w-0 flex-1">
-                        <Progress value={mod.score ?? 0} color={mod.band.color} />
+                        <Progress value={mod.score ?? 0} color={mod.band.color} name={mod.title} valueName={mod.band.label || "Score"} />
                         <p className={`mt-1.5 text-sm font-semibold ${TONE_TEXT[mod.band.tone]}`}>{mod.band.label}</p>
                     </div>
                 </div>
@@ -253,16 +253,6 @@ export default function Dashboard() {
                 greeting={greeting()}
                 name={firstName}
                 sub="Your privacy work at a glance."
-                status={
-                    // Sirf tab dikhao jab data aa chuka ho (loading / error par koi anumaan wala label nahi)
-                    !m || m.error
-                        ? null
-                        : m.attention?.tone === "bad"
-                          ? { tone: "bad", label: "Action needed" }
-                          : m.attention
-                            ? { tone: "warn", label: "Needs attention" }
-                            : { tone: "ok", label: "All on track" }
-                }
                 meta={
                     <>
                         {m?.org && <span className="font-medium">{m.org}</span>}
@@ -316,7 +306,7 @@ export default function Dashboard() {
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
                             {m.health.map((h, hi) => (
                                 <Link key={h.key} to={h.to} className="kd-tile-tint group flex flex-col items-center rounded-xl border border-line px-2 py-4 text-center" style={{ "--kv-tint": HEALTH_COLORS[hi % HEALTH_COLORS.length] }}>
-                                    <Ring value={h.value ?? 0} size={92} stroke={9} color={HEALTH_COLORS[hi % HEALTH_COLORS.length]} label={`${h.label}: ${h.value ?? "no data"}`}>
+                                    <Ring value={h.value ?? 0} size={92} stroke={9} color={HEALTH_COLORS[hi % HEALTH_COLORS.length]} label={`${h.label}: ${h.value ?? "no data"}`} tip={{ title: h.label, rows: [{ name: h.band.label || "Score", value: h.value, display: h.value === null ? "No data" : `${Math.round(h.value)}%`, color: HEALTH_COLORS[hi % HEALTH_COLORS.length] }] }}>
                                         <span className="kd-big text-[19px]" style={{ color: `color-mix(in srgb, ${HEALTH_COLORS[hi % HEALTH_COLORS.length]} 80%, var(--k-ink))` }}>{h.value === null ? "—" : <CountUp value={Math.round(h.value)} suffix="%" />}</span>
                                     </Ring>
                                     <p className="kv-cap mt-2.5 text-[13px] font-semibold text-ink">{h.label}</p>
@@ -349,7 +339,7 @@ export default function Dashboard() {
                                         </span>
                                     </div>
                                     <div className="mt-3">
-                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} />
+                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} name={`${m.checklist.complete} of ${m.checklist.tracked} items complete`} valueName="Complete" />
                                     </div>
                                     <div className="mt-4 grid grid-cols-3 gap-2 text-center">
                                         <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.ok }}>
@@ -435,7 +425,7 @@ export default function Dashboard() {
                                 {d.data ? (
                                     d.center ? (
                                         <div className="flex items-center gap-4">
-                                            <Donut parts={d.parts} size={132} stroke={18}>
+                                            <Donut parts={d.parts} size={132} stroke={18} name={d.title}>
                                                 <div>
                                                     <p className="kd-big kd-num kd-num-info text-[24px]">
                                                         <CountUp value={d.center} />
@@ -511,7 +501,7 @@ export default function Dashboard() {
                     <div className="grid gap-4 lg:grid-cols-3">
                         <Card i={5} title="Compliance score" sub="Worked out live from your records">
                             <div className="flex items-center gap-5">
-                                <Ring value={m.score ?? 0} color={m.scoreBand.color} size={128} stroke={12} label={`Compliance score ${m.score ?? "no data"}`}>
+                                <Ring value={m.score ?? 0} color={m.scoreBand.color} size={128} stroke={12} label={`Compliance score ${m.score ?? "no data"}`} tip={{ title: "Compliance score", rows: [{ name: m.scoreBand.label || "Score", value: m.score, display: m.score === null || m.score === undefined ? "No data" : `${m.score} / 100`, color: m.scoreBand.color }] }}>
                                     <div>
                                         <p className={`kd-big kd-num kd-num-${m.scoreBand.tone} text-[30px]`}>{m.score === null || m.score === undefined ? "—" : <CountUp value={m.score} suffix="%" />}</p>
                                         <p className="text-[11px] text-muted">score</p>
@@ -673,9 +663,9 @@ export default function Dashboard() {
                                     </span>
                                 </div>
                                 <div className="mt-2.5">
-                                    <Progress value={m.inventory.coverage} color={m.inventory.coverage >= 80 ? C.ok : m.inventory.coverage >= 60 ? C.warn : C.bad} height={12} />
+                                    <Progress value={m.inventory.coverage} color={m.inventory.coverage >= 80 ? C.ok : m.inventory.coverage >= 60 ? C.warn : C.bad} height={12} name="Data points fully described" valueName="Covered" />
                                 </div>
-                                {m.inventory.missing.length > 0 && <p className="mt-2 text-xs font-medium text-warn-ink">{m.inventory.missing.length} data point{m.inventory.missing.length === 1 ? " still needs" : "s still need"} a purpose, storage place or retention period.</p>}
+                                {m.inventory.missing.length > 0 && <p className="mt-2 text-xs font-medium text-warn-ink">{m.inventory.missing.length} data point{m.inventory.missing.length === 1 ? " is" : "s are"} missing a purpose, lawful basis, whose data, storage place or retention period.</p>}
                             </div>
                         ) : (
                             <NoAccess />
@@ -694,7 +684,7 @@ export default function Dashboard() {
                                         <span className={`kd-big text-[28px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score === null ? "—" : <CountUp value={mod.score} suffix="%" />}</span>
                                     </div>
                                     <div className="mt-3">
-                                        <Progress value={mod.score ?? 0} color={mod.band.color} height={6} delay={idx * 90} />
+                                        <Progress value={mod.score ?? 0} color={mod.band.color} height={6} delay={idx * 90} name={mod.title} valueName={mod.band.label || "Score"} />
                                     </div>
                                     <p className="mt-3 text-sm font-semibold leading-snug text-ink">{mod.title}</p>
                                     <p className="mt-1 font-mono text-[11px] text-muted">
@@ -741,7 +731,7 @@ export default function Dashboard() {
                                             <span className="block truncate text-sm font-semibold text-ink">{x.name}</span>
                                             <span className="block truncate text-xs text-muted">{x.detail}</span>
                                         </span>
-                                        <Ring value={x.score ?? 0} size={38} stroke={4} color={x.band.color} label={`${x.name}: ${x.score ?? "no data"}`}>
+                                        <Ring value={x.score ?? 0} size={38} stroke={4} color={x.band.color} label={`${x.name}: ${x.score ?? "no data"}`} tip={{ title: x.name, rows: [{ name: "Score", value: x.score, display: x.score === null || x.score === undefined ? "No data" : `${x.score}%`, color: x.band.color }] }}>
                                             <span className="text-[10px] font-bold tabular-nums text-ink">{x.score ?? "–"}</span>
                                         </Ring>
                                         <span className="hidden w-[88px] shrink-0 rounded-md border border-bad/25 px-2 py-0.5 text-center text-[11px] font-semibold text-bad-ink sm:inline-block">₹{x.max} Cr</span>

@@ -5,7 +5,7 @@ import { normalizeInventory } from "../utils/inventory.js";
 const seg = (id) => encodeURIComponent(id);
 const unwrap = (d) => d?.data ?? d;
 
-const FIELDS = ["name", "dataCategory", "purpose", "dataSource", "storageLocation", "retentionPeriodDays"];
+const FIELDS = ["name", "dataCategory", "purpose", "dataSource", "storageLocation", "retentionPeriodDays", "lawfulBasis", "dataPrincipalCategory", "sharedWithProcessors"];
 const toBody = (p) => Object.fromEntries(FIELDS.map((k) => [k, p[k] ?? null]));
 
 export async function getDataInventory() {
