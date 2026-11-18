@@ -87,7 +87,7 @@ function GenerateCard({ onGenerated }) {
     return (
         <section className={`${panel} p-5 sm:p-6`} aria-label="Generate a report">
             <h2 className="text-lg font-semibold">Generate a report</h2>
-            <p className="mt-1 text-sm text-ink-3">The server builds a PDF or CSV file and stores a SHA-256 checksum so the file can be proven unchanged later.</p>
+            <p className="mt-1 text-sm text-ink-3">Kavach creates a PDF or CSV file with a fingerprint (SHA-256) that proves it has not been changed.</p>
 
             <div className="mt-4 grid gap-4 md:grid-cols-[240px_1fr_140px_auto] md:items-end">
                 <label className="block text-sm font-medium text-ink-2">
@@ -216,7 +216,7 @@ export default function Reports() {
                                                 <p className="mt-0.5 font-mono text-[11px] text-muted">{job.format} · {job.id.slice(0, 8)}</p>
                                                 {job.error && <p className="mt-1 text-xs text-bad-ink">{job.error}</p>}
                                                 {h && (
-                                                    <p className="mt-1.5 break-all font-mono text-[11px] text-ink-3" title="SHA-256 of the file you downloaded. It should match the checksum the server stored.">
+                                                    <p className="mt-1.5 break-all font-mono text-[11px] text-ink-3" title="Fingerprint of the file you downloaded. It should match the one saved when the report was made.">
                                                         SHA-256: {h.hash}
                                                     </p>
                                                 )}

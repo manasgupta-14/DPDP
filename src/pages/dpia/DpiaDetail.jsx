@@ -152,6 +152,7 @@ export default function DpiaDetail() {
                 <aside className="space-y-5 lg:sticky lg:top-24">
                     <section className={`${panel} px-5 py-4`}>
                         <h2 className="text-base font-semibold">Record</h2>
+                        <p className="mt-0.5 text-xs text-muted">Reference, owner and review dates for this DPIA.</p>
                         <dl className="mt-1 divide-y divide-line">
                             <Meta label="Created">{formatDate(record.createdAt)}</Meta>
                             <Meta label="Reviewed">{record.reviewedAt ? formatDate(record.reviewedAt) : "Not yet"}</Meta>
@@ -200,7 +201,7 @@ export default function DpiaDetail() {
                                     <Alert>{actionError}</Alert>
                                     <div className="grid gap-2.5">
                                         <button type="button" onClick={() => choose("Approve")} className="rounded-xl bg-ok px-4 py-3 text-sm font-semibold text-white transition hover:bg-ok-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">✅ Approve</button>
-                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-warn px-4 py-3 text-sm font-semibold text-white transition hover:bg-warn-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">📝 Request Changes</button>
+                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-warn px-4 py-3 text-sm font-semibold text-white transition hover:bg-warn-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">Request changes</button>
                                         {REJECT_SUPPORTED && (
                                             <button type="button" onClick={() => choose("Reject")} className="rounded-xl bg-bad px-4 py-3 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">❌ Reject</button>
                                         )}

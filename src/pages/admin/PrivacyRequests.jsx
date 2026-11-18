@@ -3,7 +3,6 @@ import { Link, useOutletContext } from "react-router-dom";
 import { getPrivacyRequests } from "../../api/privacyRequest.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
-import NotInApi from "../../components/shared/NotInApi.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
 import { REQUEST_TYPES, STATUSES, dateText, dueInfo, shortId, statusLabel } from "../../utils/privacyRequest.js";
@@ -99,8 +98,8 @@ export default function PrivacyRequests() {
 
             {!loading && overdue > 0 && (
                 <div role="alert" className="rounded-2xl border border-bad/30 bg-bad/10 px-5 py-4 text-sm text-ink">
-                    <p className="font-semibold text-bad-ink">{overdue} request(s) on this page are past their deadline</p>
-                    <p className="mt-0.5 text-ink-3">A request that misses its statutory deadline is a contravention in itself. Work these first, and record why the delay happened on each one.</p>
+                    <p className="font-semibold text-bad-ink">{overdue} request{overdue === 1 ? " on this page is" : "s on this page are"} past the deadline</p>
+                    <p className="mt-0.5 text-ink-3">Missing the legal deadline is itself a breach of the Act. Handle these first and note the reason for each delay.</p>
                 </div>
             )}
 
@@ -142,16 +141,14 @@ export default function PrivacyRequests() {
                 </div>
             ) : (
                 <div className={`${panel} overflow-x-auto transition-opacity ${refreshing ? "opacity-60" : ""}`}>
-                    <table className="w-full min-w-[980px] text-sm">
+                    <table className="w-full min-w-[760px] text-sm">
                         <thead className="border-b border-line bg-soft">
                             <tr>
                                 <th className={th}>Request ID</th>
                                 <th className={th}>Right exercised</th>
                                 <th className={th}>Data principal</th>
                                 <th className={th}>Status</th>
-                                <th className={th}>Tasks</th>
                                 <th className={th}>Deadline</th>
-                                <th className={th}>Assigned to</th>
                                 <th className={th}>Raised</th>
                             </tr>
                         </thead>
@@ -166,9 +163,7 @@ export default function PrivacyRequests() {
                                         <span className="font-medium text-ink" title="Name is masked">{r.principalName || shortId(r.principalId)}</span>
                                     </td>
                                     <td className="px-4 py-3.5"><StatusBadge status={r.status} /></td>
-                                    <td className="px-4 py-3.5"><NotInApi /></td>
                                     <td className="px-4 py-3.5"><Deadline r={r} /></td>
-                                    <td className="px-4 py-3.5"><NotInApi /></td>
                                     <td className="px-4 py-3.5 text-ink-2">{dateText(r.created)}</td>
                                 </tr>
                             ))}

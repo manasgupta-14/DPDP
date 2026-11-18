@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate, useOutletContext } from "react-router-d
 import { getAllDpia } from "../../api/dpia.js";
 import { isAdmin, isDpo } from "../../auth/authStore.js";
 import { usePermissions } from "../../auth/usePermissions.js";
-import { PERM } from "../../config/dpia.js";
+import { PERM, REJECT_SUPPORTED } from "../../config/dpia.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
@@ -98,7 +98,8 @@ export default function DpiaList() {
         setFlash("Draft deleted.");
     };
 
-    const filters = ["All", ...STATUS_LIST].filter((s) => s !== STATUS.DRAFT || canCreate);
+    // Backend me "Rejected" status nahi hai (sirf In Review / Approved / Needs Changes), isliye wo filter nahi dikhate
+    const filters = ["All", ...STATUS_LIST].filter((s) => (s !== STATUS.DRAFT || canCreate) && (s !== STATUS.REJECTED || REJECT_SUPPORTED));
 
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
@@ -119,7 +120,7 @@ export default function DpiaList() {
                     <StatTile label="All DPIAs" value={counts.All} total={counts.All} icon="scale" tone="info" hint="Drafts and submitted" />
                     <StatTile label="Waiting for review" value={counts[STATUS.PENDING] ?? 0} total={counts.All} icon="clock" tone="warn" colorValue hint="With the DPO" onClick={() => { setFilter(STATUS.PENDING); setPage(1); }} pressed={filter === STATUS.PENDING} />
                     <StatTile label="Approved" value={counts[STATUS.APPROVED] ?? 0} total={counts.All} icon="check" tone="ok" colorValue hint="Processing can start" onClick={() => { setFilter(STATUS.APPROVED); setPage(1); }} pressed={filter === STATUS.APPROVED} />
-                    <StatTile label="Rejected or sent back" value={(counts[STATUS.REJECTED] ?? 0) + (counts[STATUS.CHANGES] ?? 0)} total={counts.All} icon="refresh" tone="bad" colorValue hint="Need changes before use" />
+                    <StatTile label="Needs changes" value={counts[STATUS.CHANGES] ?? 0} total={counts.All} icon="refresh" tone="bad" colorValue hint="Sent back by the DPO" onClick={() => { setFilter(STATUS.CHANGES); setPage(1); }} pressed={filter === STATUS.CHANGES} />
                 </section>
             )}
 
@@ -218,14 +219,14 @@ export default function DpiaList() {
 
             <p className="text-xs text-muted">
                 Submitted DPIAs cannot be edited or deleted: they are kept as an audit record. A DPIA that needs changes is revised as a new, linked version.
-                Drafts are saved in this browser only.
+                Drafts are saved on this device until you submit them.
             </p>
 
             {toDelete && (
                 <Modal title="Delete draft" onClose={() => setToDelete(null)}>
                     <div className={`${panel} p-5 sm:p-6`}>
                         <h2 className="pr-8 text-lg font-semibold">Delete this draft?</h2>
-                        <p className="mt-2 text-sm text-ink-3">"{toDelete.title}" will be removed from this browser. This cannot be undone.</p>
+                        <p className="mt-2 text-sm text-ink-3">"{toDelete.title}" will be removed from this device. This cannot be undone.</p>
                         <div className="mt-5 flex justify-end gap-3">
                             <button type="button" className={ghostBtn} onClick={() => setToDelete(null)}>Cancel</button>
                             <button type="button" onClick={confirmDelete} className="inline-flex items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">Delete draft</button>

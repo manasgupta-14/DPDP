@@ -26,7 +26,10 @@ export default function BatchList({ batches, kinds: knownKinds, statuses: knownS
     return (
         <section className={`${panel} p-6`}>
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Batches</h2>
+                <div>
+                    <h2 className="text-lg font-semibold">Batches</h2>
+                    <p className="mt-0.5 text-xs text-muted">Every file you uploaded, with its row counts and status.</p>
+                </div>
                 <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">{batches.length} total</span>
             </div>
 
@@ -57,7 +60,7 @@ export default function BatchList({ batches, kinds: knownKinds, statuses: knownS
             ) : shown.length === 0 ? (
                 <div className="py-14 text-center">
                     <p className="text-sm font-semibold text-ink">{batches.length === 0 ? "No batches yet" : "No records found"}</p>
-                    <p className="mt-1 text-xs text-muted">{batches.length === 0 ? "Stage a CSV above and it will appear here." : "Try widening your filters."}</p>
+                    <p className="mt-1 text-xs text-muted">{batches.length === 0 ? "Upload a CSV above and it will appear here." : "Try widening your filters."}</p>
                 </div>
             ) : (
                 <div className="mt-4 overflow-x-auto">

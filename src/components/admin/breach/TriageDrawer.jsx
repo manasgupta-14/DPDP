@@ -131,8 +131,8 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
     // aur scroll nahi hota tha. Body par render karne se drawer screen ki height me rehta hai.
     return createPortal(
         <div className="fixed inset-0 z-50 overscroll-contain">
-            <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="absolute inset-0 bg-deep/60" />
-            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="pg-pop absolute inset-y-0 right-0 flex h-[100dvh] max-h-screen w-full max-w-xl flex-col bg-surface shadow-2xl">
+            <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="pg-modal-backdrop absolute inset-0" />
+            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="kv-drawer pg-pop absolute inset-y-0 right-0 flex h-[100dvh] max-h-screen w-full max-w-xl flex-col bg-surface shadow-2xl">
                 <div className="flex items-start justify-between gap-3 border-b border-line p-5">
                     <div className="min-w-0">
                         <h2 id="triage-title" className="mt-1 break-words text-xl font-bold text-ink">{incident.title}</h2>

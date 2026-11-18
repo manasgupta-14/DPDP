@@ -84,9 +84,9 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
 
     const saveAsDraft = () => {
         const id = saveDraft(form, draftId);
-        if (!id) return setApiError("Could not save the draft in this browser (storage is full or blocked).");
+        if (!id) return setApiError("Could not save the draft on this device (storage is full or blocked).");
         setDraftId(id);
-        navigate(base, { state: { flash: "Draft saved in this browser. Open it from the list with Edit to continue." } });
+        navigate(base, { state: { flash: "Draft saved on this device. Open it from the list with Edit to continue." } });
     };
 
     const submit = async () => {
@@ -134,6 +134,7 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 0 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 1: Project details</h2>
+                        <p className="mt-0.5 text-xs text-muted">Name the project and the team that owns it.</p>
                         <label className="block text-sm font-medium text-ink-2">
                             Project / process name
                             <input value={form.title} onChange={text("title")} maxLength={200} placeholder="e.g. Employee health screening programme" className={field} aria-invalid={!!errors.title} />
@@ -155,6 +156,7 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 1 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 2: Data processing</h2>
+                        <p className="mt-0.5 text-xs text-muted">What personal data is used, why, and where it goes.</p>
                         <label className="block text-sm font-medium text-ink-2">
                             What personal data is collected?
                             <textarea value={form.dataTypes} onChange={text("dataTypes")} rows={3} placeholder="e.g. Name, phone number, Aadhaar number, medical history" className={`${field} resize-y`} aria-invalid={!!errors.dataTypes} />
@@ -216,6 +218,7 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                 {step === 2 && (
                     <>
                         <h2 className="text-lg font-semibold">Step 3: Risk assessment</h2>
+                        <p className="mt-0.5 text-xs text-muted">Rate the risks and the safeguards that reduce them.</p>
                         <div className="grid gap-5 sm:grid-cols-2">
                             {[["inherentRisk", "Risk of a data leak before safeguards"], ["residualRisk", "Risk that remains after safeguards"]].map(([k, label]) => (
                                 <Block key={k} title={label} error={errors[k]}>
@@ -323,7 +326,7 @@ export default function DpiaForm() {
 
     return (
         <>
-            {seed.missingDraft && <div className="mx-auto mb-4 max-w-4xl"><Alert>That draft was not found in this browser, so a blank form is shown.</Alert></div>}
+            {seed.missingDraft && <div className="mx-auto mb-4 max-w-4xl"><Alert>That draft was not found on this device, so a blank form is shown.</Alert></div>}
             <Wizard key={draftParam || reviseParam || "new"} initial={seed.form} draftId={seed.draftId} feedback={seed.feedback} />
         </>
     );

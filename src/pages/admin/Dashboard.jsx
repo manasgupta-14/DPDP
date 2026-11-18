@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { loadExecutiveData } from "../../api/executive.js";
 import { getProfile, roleInfo } from "../../auth/authStore.js";
-import { AreaChart, C, ColumnChart, CountUp, Donut, HBars, Legend, Progress, Ring, fmtNum } from "../../components/charts/kit.jsx";
+import { AreaChart, BAR3D, C, ColumnChart, CountUp, Donut, HBars, Legend, Progress, Ring, fmtNum } from "../../components/charts/kit.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
+import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { buildExecutive, executiveToCsv } from "../../utils/executive.js";
 
@@ -34,9 +35,14 @@ function download(model) {
     URL.revokeObjectURL(url);
 }
 
+// Har card ka apna halka rang: gradient background aur scroll par ghoomta border isi se banta hai
+const CARD_TINTS = [C.brand, C.violet, C.teal, C.amber, C.pink, C.sky, C.lime, C.orange, C.indigo];
+const TONE_TINT = { ok: C.ok, warn: C.amber, bad: C.red, info: C.brand, violet: C.violet, muted: C.sky };
+const tint = (i, extra) => ({ ...extra, "--kv-tint": CARD_TINTS[i % CARD_TINTS.length] });
+
 function Card({ title, sub, action, children, className = "", i = 0, ...rest }) {
     return (
-        <section className={`kd-card min-w-0 p-5 ${className}`} style={rise(i)} {...rest}>
+        <section className={`kd-card kv-glow-border min-w-0 p-5 ${className}`} style={tint(i, rise(i))} {...rest}>
             {(title || action) && (
                 <div className="mb-4 flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -51,7 +57,9 @@ function Card({ title, sub, action, children, className = "", i = 0, ...rest }) 
     );
 }
 
-function NoAccess({ text = "You do not have access to this data, or the server did not return it." }) {
+const HEALTH_COLORS = [C.brand, C.teal, C.violet, C.orange, C.pink, C.lime];
+
+function NoAccess({ text = "You do not have access to this data." }) {
     return (
         <p className="flex items-center gap-2 rounded-lg bg-soft px-3 py-3 text-sm text-muted">
             <Icon name="lock" className="h-4 w-4" />
@@ -65,12 +73,12 @@ function Kpi({ label, value, icon, tone = "info", note, noteTone = "muted", to, 
     const body = (
         <>
             <div className="flex items-center justify-between gap-3">
-                <p className="text-[13px] font-medium text-ink-3">{label}</p>
-                <span className={`kd-ico ${TONE_ICON_BG[tone]}`}>
+                <p className="kv-cap text-[13px] font-medium text-ink-3">{label}</p>
+                <span className={`kd-ico kd-ico-glow ${TONE_ICON_BG[tone]}`}>
                     <Icon name={icon} />
                 </span>
             </div>
-            <p className="kd-big mt-3 text-[34px]">{value === null || value === undefined ? <span className="text-faint">—</span> : <CountUp value={value} />}</p>
+            <p className={`kd-big kd-num kd-num-${tone} mt-3 text-[34px]`}>{value === null || value === undefined ? <span className="text-faint">—</span> : <CountUp value={value} />}</p>
             {note && (
                 <p className={`mt-2 flex items-center gap-1 text-xs font-medium ${TONE_TEXT[noteTone]}`}>
                     {noteTone === "ok" && <Icon name="trendUp" className="h-3.5 w-3.5" />}
@@ -81,11 +89,11 @@ function Kpi({ label, value, icon, tone = "info", note, noteTone = "muted", to, 
         </>
     );
     return to ? (
-        <Link to={to} className="kd-card pg-card block p-5" style={rise(i)} aria-label={`${label}: ${value ?? "no data"}. Open`}>
+        <Link to={to} className={`kd-card kv-glow-border kd-kpi kd-kpi-${tone} pg-card block p-5`} style={{ ...rise(i), "--kv-tint": TONE_TINT[tone] }} aria-label={`${label}: ${value ?? "no data"}. Open`}>
             {body}
         </Link>
     ) : (
-        <div className="kd-card p-5" style={rise(i)}>
+        <div className={`kd-card kv-glow-border kd-kpi kd-kpi-${tone} p-5`} style={{ ...rise(i), "--kv-tint": TONE_TINT[tone] }}>
             {body}
         </div>
     );
@@ -182,6 +190,15 @@ function Skeleton() {
     );
 }
 
+// Consent KPI ka note: 100% se zyada wala ajeeb pratishat kabhi nahi (ek vyakti kai purpose par consent deta hai)
+function consentNote(m) {
+    const base = m.kpi.consentBase;
+    const share = base ? Math.round(((m.kpi.activeConsents || 0) / base) * 100) : null;
+    if (share !== null && share <= 100) return `${share}% of users`;
+    if (m.consent) return `${m.consent.rate}% of records active`;
+    return "Across all purposes";
+}
+
 /* ------------------------------------------------------------------ page */
 export default function Dashboard() {
     const location = useLocation();
@@ -230,38 +247,49 @@ export default function Dashboard() {
                 </Alert>
             )}
 
-            {/* Page header */}
-            <header className="kv-hero flex flex-wrap items-end justify-between gap-4" style={rise(0)}>
-                <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-ink">Executive summary</p>
-                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">
-                        {greeting()}
-                        {firstName ? `, ${firstName}` : ""}
-                    </h1>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm text-muted">
-                        {m?.org && <span className="font-medium text-ink-2">{m.org}</span>}
+            {/* Page header: welcome hero (status asli data se) */}
+            <WelcomeHero
+                style={rise(0)}
+                greeting={greeting()}
+                name={firstName}
+                sub="Your privacy work at a glance."
+                status={
+                    // Sirf tab dikhao jab data aa chuka ho (loading / error par koi anumaan wala label nahi)
+                    !m || m.error
+                        ? null
+                        : m.attention?.tone === "bad"
+                          ? { tone: "bad", label: "Action needed" }
+                          : m.attention
+                            ? { tone: "warn", label: "Needs attention" }
+                            : { tone: "ok", label: "All on track" }
+                }
+                meta={
+                    <>
+                        {m?.org && <span className="font-medium">{m.org}</span>}
                         {m?.org && <span aria-hidden>·</span>}
                         <span className="inline-flex items-center gap-1.5">
                             <span className="kv-live-dot" /> Live
                         </span>
                         {updated && <span>· Last updated {updated}</span>}
-                    </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={refresh} disabled={state.loading || refreshing} className="kd-btn">
-                        <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                        {refreshing ? "Refreshing" : "Refresh"}
-                    </button>
-                    <Link to="/dashboard/reports" className="kd-btn">
-                        <Icon name="file" className="h-4 w-4" />
-                        Reports
-                    </Link>
-                    <button type="button" onClick={() => m && download(m)} disabled={!m} className="kd-btn is-primary">
-                        <Icon name="download" className="h-4 w-4" />
-                        Export summary
-                    </button>
-                </div>
-            </header>
+                    </>
+                }
+                actions={
+                    <>
+                        <button type="button" onClick={refresh} disabled={state.loading || refreshing} className="kd-btn">
+                            <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                            {refreshing ? "Refreshing" : "Refresh"}
+                        </button>
+                        <Link to="/dashboard/reports" className="kd-btn">
+                            <Icon name="barChart" className="h-4 w-4" />
+                            Reports
+                        </Link>
+                        <button type="button" onClick={() => m && download(m)} disabled={!m} className="kd-btn is-primary">
+                            <Icon name="download" className="h-4 w-4" />
+                            Export summary
+                        </button>
+                    </>
+                }
+            />
 
             {state.loading && <Skeleton />}
             {m?.error && <Alert action={<button type="button" onClick={refresh} className="shrink-0 font-semibold underline">Retry</button>}>{m.error}</Alert>}
@@ -282,37 +310,217 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    {/* KPI row */}
-                    <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        <Kpi i={1} label="Total users" icon="users" tone="info" value={m.kpi.users} note="In your organisation" to="/dashboard/add-users" />
-                        <Kpi
-                            i={2}
-                            label="Active consents"
-                            icon="consent"
-                            tone="ok"
-                            value={m.kpi.activeConsents}
-                            note={m.kpi.consentBase ? `${Math.round(((m.kpi.activeConsents || 0) / m.kpi.consentBase) * 100)}% of users` : m.consent ? `${m.consent.rate}% of records active` : "Across all purposes"}
-                            noteTone="ok"
-                            to="/dashboard/consent"
-                        />
-                        <Kpi i={3} label="Open rights requests" icon="rights" tone="warn" value={m.kpi.pending} note={m.kpi.slaRisk ? `${m.kpi.slaRisk} past 30-day deadline` : "All within deadline"} noteTone={m.kpi.slaRisk ? "bad" : "ok"} to="/dashboard/rights-requests" />
-                        <Kpi i={4} label="Data breaches" icon="alert" tone="bad" value={m.kpi.breaches} note={m.kpi.openBreaches ? `${m.kpi.openBreaches} still open` : m.kpi.openBreaches === 0 ? "None open" : "Recorded in total"} noteTone={m.kpi.openBreaches ? "bad" : "ok"} to="/dashboard/breach" />
-                    </section>
+
+                    {/* Health at a glance: chhote ring charts */}
+                    <Card i={12} title="Health at a glance" sub="Six quick checks">
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
+                            {m.health.map((h, hi) => (
+                                <Link key={h.key} to={h.to} className="kd-tile-tint group flex flex-col items-center rounded-xl border border-line px-2 py-4 text-center" style={{ "--kv-tint": HEALTH_COLORS[hi % HEALTH_COLORS.length] }}>
+                                    <Ring value={h.value ?? 0} size={92} stroke={9} color={HEALTH_COLORS[hi % HEALTH_COLORS.length]} label={`${h.label}: ${h.value ?? "no data"}`}>
+                                        <span className="kd-big text-[19px]" style={{ color: `color-mix(in srgb, ${HEALTH_COLORS[hi % HEALTH_COLORS.length]} 80%, var(--k-ink))` }}>{h.value === null ? "—" : <CountUp value={Math.round(h.value)} suffix="%" />}</span>
+                                    </Ring>
+                                    <p className="kv-cap mt-2.5 text-[13px] font-semibold text-ink">{h.label}</p>
+                                    <p className={`text-[11px] font-medium ${TONE_TEXT[h.band.tone]}`}>{h.band.label}</p>
+                                </Link>
+                            ))}
+                        </div>
+                    </Card>
+
+                    {/* Compliance checklist (backend: GET /api/ComplianceChecklist) */}
+                    {m.checklist && (
+                        <Card
+                            i={13}
+                            title="Compliance checklist"
+                            sub="Each DPDP duty, checked against your records"
+                            action={
+                                <Link to="/dashboard/checklist" className="kd-link">
+                                    View checklist <Icon name="arrowRight" className="h-3.5 w-3.5" />
+                                </Link>
+                            }
+                        >
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+                                <div>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                                        <span className="text-ink-3">
+                                            <b className="text-ink">{m.checklist.complete}</b> of <b className="text-ink">{m.checklist.tracked}</b> tracked items complete
+                                        </span>
+                                        <span className={`kd-big kd-num kd-num-${m.checklist.progress >= 80 ? "ok" : m.checklist.progress >= 50 ? "warn" : "bad"} text-[22px]`}>
+                                            <CountUp value={m.checklist.progress} suffix="%" />
+                                        </span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} />
+                                    </div>
+                                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.ok }}>
+                                            <p className="text-lg font-bold text-ok-ink">{m.checklist.complete}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Complete</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                            <p className="text-lg font-bold text-warn-ink">{m.checklist.attention}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Needs attention</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.muted }}>
+                                            <p className="text-lg font-bold text-ink-2">{m.checklist.untracked}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Tracked outside</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul className="space-y-2">
+                                    {m.checklist.items.filter((it) => it.status.key === "attention").slice(0, 4).map((it) => (
+                                        <li key={it.id}>
+                                            <Link to={it.to || "/dashboard/checklist"} className="kd-tile-tint flex items-start gap-3 rounded-lg border px-3 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                                <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0 text-warn-ink" />
+                                                <span className="min-w-0">
+                                                    <span className="block text-sm font-semibold text-ink">{it.requirement}</span>
+                                                    <span className="block text-xs text-ink-3">{it.evidence}</span>
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    {m.checklist.attention === 0 && (
+                                        <li className="flex items-center gap-2 rounded-lg border border-ok/25 bg-ok-soft px-3 py-3 text-sm text-ok-ink">
+                                            <Icon name="check" className="h-4 w-4" /> Every tracked item is complete.
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        </Card>
+                    )}
+
+                    {/* Three donuts: grievances · DPIA · data categories */}
+                    <div className="grid gap-4 lg:grid-cols-3">
+                        {[
+                            {
+                                i: 15,
+                                title: "Grievances",
+                                sub: "Complaints by status",
+                                to: "/dashboard/grievances",
+                                data: m.grievanceMix,
+                                parts: m.grievanceMix ? [
+                                    { label: "Open", value: m.grievanceMix.open, color: C.amber },
+                                    { label: "In progress", value: m.grievanceMix.progress, color: C.brand },
+                                    { label: "Resolved", value: m.grievanceMix.resolved, color: C.ok },
+                                    { label: "Escalated", value: m.grievanceMix.escalated, color: C.red },
+                                ] : [],
+                                center: m.grievanceMix?.total,
+                                caption: "grievances",
+                            },
+                            {
+                                i: 16,
+                                title: "DPIA reviews",
+                                sub: "Assessments by decision",
+                                to: "/dashboard/dpia",
+                                data: m.dpiaMix,
+                                parts: m.dpiaMix ? [
+                                    { label: "Approved", value: m.dpiaMix.approved, color: C.ok },
+                                    { label: "Waiting", value: m.dpiaMix.pending, color: C.amber },
+                                    { label: "Needs changes", value: m.dpiaMix.changes, color: C.brand },
+                                ] : [],
+                                center: m.dpiaMix?.total,
+                                caption: "DPIAs",
+                            },
+                            {
+                                i: 17,
+                                title: "Data by category",
+                                sub: "Data points in your inventory",
+                                to: "/dashboard/inventory",
+                                data: m.categories,
+                                parts: (m.categories || []).map((c, k) => ({ label: c.label, value: c.value, color: [C.brand, C.teal, C.violet, C.amber, C.sky][k % 5] })),
+                                center: m.inventory?.total,
+                                caption: "data points",
+                            },
+                        ].map((d) => (
+                            <Card key={d.title} i={d.i} title={d.title} sub={d.sub} action={<Link to={d.to} className="kd-link">Open</Link>}>
+                                {d.data ? (
+                                    d.center ? (
+                                        <div className="flex items-center gap-4">
+                                            <Donut parts={d.parts} size={132} stroke={18}>
+                                                <div>
+                                                    <p className="kd-big kd-num kd-num-info text-[24px]">
+                                                        <CountUp value={d.center} />
+                                                    </p>
+                                                    <p className="text-[10px] text-muted">{d.caption}</p>
+                                                </div>
+                                            </Donut>
+                                            <ul className="min-w-0 flex-1 space-y-1.5">
+                                                {d.parts.map((p) => (
+                                                    <li key={p.label} className="flex items-center justify-between gap-2 text-[13px]">
+                                                        <span className="inline-flex min-w-0 items-center gap-2 text-ink-2">
+                                                            <i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.color }} />
+                                                            <span className="truncate">{p.label}</span>
+                                                        </span>
+                                                        <b className="tabular-nums" style={{ color: `color-mix(in srgb, ${p.color} 78%, var(--k-ink))` }}>{fmtNum(p.value)}</b>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ) : (
+                                        <p className="py-10 text-center text-sm text-muted">Nothing recorded yet.</p>
+                                    )
+                                ) : (
+                                    <NoAccess />
+                                )}
+                            </Card>
+                        ))}
+                    </div>
+
+                    {/* Consent by purpose · campaigns */}
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        <Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
+                            {m.consent ? (
+                                m.consent.purposes.length ? (
+                                    <HBars rows={m.consent.purposes.map((p, i) => ({ label: p.label, value: p.rate, display: `${p.rate}%`, note: `${fmtNum(p.allowed)} of ${fmtNum(p.total)} allowed`, color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6] }))} max={100} />
+                                ) : (
+                                    <p className="py-8 text-center text-sm text-muted">No purpose decisions recorded yet.</p>
+                                )
+                            ) : (
+                                <NoAccess />
+                            )}
+                        </Card>
+
+                        <Card
+                            i={13}
+                            title="Campaign performance"
+                            sub={m.campaignTotals ? `${m.campaigns.length} campaign${m.campaigns.length === 1 ? "" : "s"} · ${fmtNum(m.campaignTotals.total)} responses` : "Responses by campaign"}
+                            action={<Link to="/dashboard/campaigns" className="kd-link">View all</Link>}
+                        >
+                            {m.campaigns.length ? (
+                                <>
+                                    <ColumnChart
+                                        labels={m.campaigns.slice(0, 6).map((c) => c.title)}
+                                        series={[
+                                            { name: "Accepted", values: m.campaigns.slice(0, 6).map((c) => c.accepted), color: C.ok },
+                                            { name: "Rejected", values: m.campaigns.slice(0, 6).map((c) => c.rejected), color: C.red },
+                                            { name: "Completed", values: m.campaigns.slice(0, 6).map((c) => c.completed), color: C.sky },
+                                        ]}
+                                        height={220}
+                                        ariaLabel="Accepted, rejected and completed responses per campaign"
+                                    />
+                                    <div className="mt-3">
+                                        <Legend items={[{ label: "Accepted", color: C.ok, value: m.campaignTotals.accepted }, { label: "Rejected", color: C.red, value: m.campaignTotals.rejected }, { label: "Completed", color: C.sky, value: m.campaignTotals.completed }]} />
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="py-8 text-center text-sm text-muted">No campaign responses yet. Create a campaign to start collecting consent.</p>
+                            )}
+                        </Card>
+                    </div>
 
                     {/* Score · exposure · incidents */}
                     <div className="grid gap-4 lg:grid-cols-3">
-                        <Card i={5} title="Compliance score" sub="Live, from your records" action={<Link to="/dashboard/checklist" className="kd-link">Checklist</Link>}>
+                        <Card i={5} title="Compliance score" sub="Worked out live from your records">
                             <div className="flex items-center gap-5">
                                 <Ring value={m.score ?? 0} color={m.scoreBand.color} size={128} stroke={12} label={`Compliance score ${m.score ?? "no data"}`}>
                                     <div>
-                                        <p className="kd-big text-[30px]">{m.score === null || m.score === undefined ? "—" : <CountUp value={m.score} suffix="%" />}</p>
+                                        <p className={`kd-big kd-num kd-num-${m.scoreBand.tone} text-[30px]`}>{m.score === null || m.score === undefined ? "—" : <CountUp value={m.score} suffix="%" />}</p>
                                         <p className="text-[11px] text-muted">score</p>
                                     </div>
                                 </Ring>
                                 <div className="min-w-0 space-y-2">
                                     <span className={`kd-pill is-${m.scoreBand.tone === "muted" ? "muted" : m.scoreBand.tone}`}>{m.scoreBand.label}</span>
                                     <p className="text-sm text-ink-3">
-                                        <b className="text-ink">{m.sections.filter((x) => x.score !== null && x.score >= 80).length}</b> of {m.sections.length} DPDP areas in good standing.
+                                        <b className="text-ok-ink">{m.sections.filter((x) => x.score !== null && x.score >= 80).length}</b> of {m.sections.length} DPDP areas in good standing.
                                     </p>
                                     {m.atRisk.length > 0 && (
                                         <p className="text-xs text-bad-ink">
@@ -323,7 +531,7 @@ export default function Dashboard() {
                             </div>
                         </Card>
 
-                        <Card i={6} title="Penalty exposure" sub="DPDP Schedule maximum, for areas at risk">
+                        <Card i={6} title="Penalty exposure" sub="Highest fine if gaps stay open">
                             <div className="flex items-center gap-3">
                                 <span className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 ${m.exposure ? "border-bad/30 bg-bad-soft text-bad-ink" : "border-ok/30 bg-ok-soft text-ok-ink"}`}>
                                     <Icon name="shield" className="h-4 w-4" />
@@ -373,7 +581,7 @@ export default function Dashboard() {
 
                     {/* Deadline donut · consent trend */}
                     <div className="grid gap-4 lg:grid-cols-5">
-                        <Card i={8} className="lg:col-span-2" title="Rights request deadlines" sub="Open requests against the 30-day deadline" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
+                        <Card i={8} className="lg:col-span-2" title="Rights request deadlines" sub="Open requests vs. the 30-day limit" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
                             {m.requests ? (
                                 <div className="flex flex-col items-center gap-5 sm:flex-row lg:flex-col xl:flex-row">
                                     <Donut
@@ -386,7 +594,7 @@ export default function Dashboard() {
                                         ]}
                                     >
                                         <div>
-                                            <p className="kd-big text-[28px]">{m.requests.open ? <CountUp value={Math.round((m.requests.onTrack / m.requests.open) * 100)} suffix="%" /> : "100%"}</p>
+                                            <p className={`kd-big kd-num kd-num-${m.requests.overdue ? "warn" : "ok"} text-[28px]`}>{m.requests.open ? <CountUp value={Math.round((m.requests.onTrack / m.requests.open) * 100)} suffix="%" /> : "100%"}</p>
                                             <p className="text-[11px] text-muted">on time</p>
                                         </div>
                                     </Donut>
@@ -396,12 +604,12 @@ export default function Dashboard() {
                                             ["Overdue", m.requests.overdue, C.bad],
                                             ["Closed", m.requests.done, C.brand],
                                         ].map(([l, v, c]) => (
-                                            <div key={l} className="flex items-center justify-between rounded-lg bg-soft px-3 py-2 text-sm">
+                                            <div key={l} className="kd-tile-tint flex items-center justify-between rounded-lg px-3 py-2 text-sm" style={{ "--kv-tint": c }}>
                                                 <span className="inline-flex items-center gap-2 text-ink-2">
                                                     <i className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
                                                     {l}
                                                 </span>
-                                                <b className="tabular-nums text-ink">{fmtNum(v)}</b>
+                                                <b className="tabular-nums" style={{ color: `color-mix(in srgb, ${c} 80%, var(--k-ink))` }}>{fmtNum(v)}</b>
                                             </div>
                                         ))}
                                     </div>
@@ -411,7 +619,7 @@ export default function Dashboard() {
                             )}
                         </Card>
 
-                        <Card i={9} className="lg:col-span-3" title="Consent over time" sub="Consent records per month, and how many are still active" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
+                        <Card i={9} className="lg:col-span-3" title="Consent over time" sub="New and still-active consents per month" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
                             {m.consent ? (
                                 m.consent.total ? (
                                     <AreaChart
@@ -434,22 +642,40 @@ export default function Dashboard() {
                         </Card>
                     </div>
 
+                    {/* KPI row: score, deadlines aur consent trend ke neeche (PDF ke hisaab se) */}
+                    <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                        <Kpi i={1} label="Staff users" icon="users" tone="info" value={m.kpi.users} note="Accounts in your organisation" to="/dashboard/add-users" />
+                        <Kpi i={2} label="Data principals" icon="adduser" tone="violet" value={m.kpi.principals} note="Customers on record" to="/dashboard/data-principals" />
+                        <Kpi
+                            i={3}
+                            label="Consents granted"
+                            icon="consent"
+                            tone="ok"
+                            value={m.kpi.activeConsents}
+                            note={consentNote(m)}
+                            noteTone="ok"
+                            to="/dashboard/consent"
+                        />
+                        <Kpi i={4} label="Open rights requests" icon="rights" tone="warn" value={m.kpi.pending} note={m.kpi.slaRisk ? `${m.kpi.slaRisk} past 30-day deadline` : "All within deadline"} noteTone={m.kpi.slaRisk ? "bad" : "ok"} to="/dashboard/rights-requests" />
+                        <Kpi i={5} label="Data breaches" icon="alert" tone="bad" value={m.kpi.breaches} note={m.kpi.openBreaches ? `${m.kpi.openBreaches} still open` : m.kpi.openBreaches === 0 ? "None open" : "Recorded in total"} noteTone={m.kpi.openBreaches ? "bad" : "ok"} to="/dashboard/breach" />
+                    </section>
+
                     {/* RoPA / inventory coverage */}
-                    <Card i={10} title="Data inventory coverage" sub="Data points with purpose, storage and retention recorded (Record of Processing)" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
+                    <Card i={10} title="Data inventory coverage" sub="Data with purpose, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
                         {m.inventory ? (
                             <div>
                                 <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
                                     <span className="text-ink-3">
                                         <b className="text-ink">{m.inventory.documented}</b> of <b className="text-ink">{m.inventory.total}</b> data points documented
                                     </span>
-                                    <span className="kd-big text-[22px]">
+                                    <span className={`kd-big kd-num kd-num-${m.inventory.coverage >= 80 ? "ok" : m.inventory.coverage >= 60 ? "warn" : "bad"} text-[22px]`}>
                                         <CountUp value={m.inventory.coverage} suffix="%" />
                                     </span>
                                 </div>
                                 <div className="mt-2.5">
                                     <Progress value={m.inventory.coverage} color={m.inventory.coverage >= 80 ? C.ok : m.inventory.coverage >= 60 ? C.warn : C.bad} height={12} />
                                 </div>
-                                {m.inventory.missing.length > 0 && <p className="mt-2 text-xs font-medium text-warn-ink">{m.inventory.missing.length} data point(s) still need purpose, storage or retention.</p>}
+                                {m.inventory.missing.length > 0 && <p className="mt-2 text-xs font-medium text-warn-ink">{m.inventory.missing.length} data point{m.inventory.missing.length === 1 ? " still needs" : "s still need"} a purpose, storage place or retention period.</p>}
                             </div>
                         ) : (
                             <NoAccess />
@@ -457,15 +683,15 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Module health */}
-                    <Card i={11} title="Module health" sub="Each DPDP area scored from your records and mapped to its maximum penalty">
+                    <Card i={11} title="Module health" sub="Score and highest fine for each area">
                         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                             {m.modules.map((mod, idx) => (
-                                <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="group rounded-xl border border-line bg-soft p-4 text-left hover:border-line-strong hover:bg-surface hover:shadow-[var(--k-shadow)]">
+                                <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="kd-tile-tint group rounded-xl border border-line p-4 text-left hover:shadow-[var(--k-shadow)]" style={{ "--kv-tint": mod.band.color || CARD_TINTS[idx % CARD_TINTS.length] }}>
                                     <div className="flex items-center gap-2">
                                         <span className={`grid h-6 w-6 place-items-center rounded-full ${TONE_ICON_BG[mod.band.tone]}`}>
                                             <Icon name={mod.band.tone === "ok" ? "check" : mod.band.tone === "muted" ? "info" : "alert"} className="h-3.5 w-3.5" strokeWidth={2.2} />
                                         </span>
-                                        <span className={`kd-big text-[28px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score === null ? "—" : <CountUp value={mod.score} />}</span>
+                                        <span className={`kd-big text-[28px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score === null ? "—" : <CountUp value={mod.score} suffix="%" />}</span>
                                     </div>
                                     <div className="mt-3">
                                         <Progress value={mod.score ?? 0} color={mod.band.color} height={6} delay={idx * 90} />
@@ -482,27 +708,12 @@ export default function Dashboard() {
                         </div>
                     </Card>
 
-                    {/* Health at a glance: chhote ring charts */}
-                    <Card i={12} title="Health at a glance" sub="Six quick checks from your live records">
-                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
-                            {m.health.map((h) => (
-                                <Link key={h.key} to={h.to} className="group flex flex-col items-center rounded-xl border border-line bg-soft px-2 py-4 text-center hover:border-line-strong hover:bg-surface">
-                                    <Ring value={h.value ?? 0} size={92} stroke={9} color={h.band.color} label={`${h.label}: ${h.value ?? "no data"}`}>
-                                        <span className="kd-big text-[19px]">{h.value === null ? "—" : <CountUp value={Math.round(h.value)} suffix="%" />}</span>
-                                    </Ring>
-                                    <p className="mt-2.5 text-[13px] font-semibold text-ink">{h.label}</p>
-                                    <p className={`text-[11px] font-medium ${TONE_TEXT[h.band.tone]}`}>{h.band.label}</p>
-                                </Link>
-                            ))}
-                        </div>
-                    </Card>
-
                     {/* Request types (bar) · breach trend (column) */}
                     <div className="grid gap-4 lg:grid-cols-2">
                         <Card i={13} title="Rights requests by type" sub="Access, correction, erasure and more" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
                             {m.requests ? (
                                 m.requestTypes.length ? (
-                                    <ColumnChart labels={m.requestTypes.map((r) => r.label)} series={m.requestTypes.map((r, i) => ({ name: "Requests", color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6], values: m.requestTypes.map((_, j) => (j === i ? r.value : 0)) }))} stacked height={230} ariaLabel="Rights requests by type" />
+                                    <ColumnChart labels={m.requestTypes.map((r) => r.label)} series={[{ name: "Requests", values: m.requestTypes.map((r) => r.value) }]} barColors={BAR3D} height={250} ariaLabel="Rights requests by type" />
                                 ) : (
                                     <p className="py-10 text-center text-sm text-muted">No rights request yet.</p>
                                 )
@@ -510,138 +721,18 @@ export default function Dashboard() {
                                 <NoAccess />
                             )}
                         </Card>
-                        <Card i={14} title="Breaches over time" sub="Reported each month, and how many are now closed" action={<Legend items={[{ label: "Reported", color: C.red }, { label: "Closed", color: C.ok }]} />}>
+                        <Card i={14} title="Breaches over time" sub="Reported and closed each month" action={<Legend items={[{ label: "Closed", color: C.teal }, { label: "Still open", color: C.pink }]} />}>
                             {m.incidentTrend ? (
-                                <ColumnChart labels={m.incidentTrend.labels} series={[{ name: "Reported", values: m.incidentTrend.reported, color: C.red }, { name: "Closed", values: m.incidentTrend.closed, color: C.ok }]} height={230} ariaLabel="Breaches per month" />
+                                <ColumnChart labels={m.incidentTrend.labels} series={[{ name: "Closed", values: m.incidentTrend.closed, color: C.teal }, { name: "Still open", values: m.incidentTrend.reported.map((v, k) => Math.max(0, v - (m.incidentTrend.closed[k] || 0))), color: C.pink }]} stacked height={230} ariaLabel="Breaches per month: closed and still open" />
                             ) : (
                                 <NoAccess />
-                            )}
-                        </Card>
-                    </div>
-
-                    {/* Three donuts: grievances · DPIA · data categories */}
-                    <div className="grid gap-4 lg:grid-cols-3">
-                        {[
-                            {
-                                i: 15,
-                                title: "Grievances",
-                                sub: "Complaints by status",
-                                to: "/dashboard/grievances",
-                                data: m.grievanceMix,
-                                parts: m.grievanceMix ? [
-                                    { label: "Open", value: m.grievanceMix.open, color: C.amber },
-                                    { label: "In progress", value: m.grievanceMix.progress, color: C.brand },
-                                    { label: "Resolved", value: m.grievanceMix.resolved, color: C.ok },
-                                    { label: "Escalated", value: m.grievanceMix.escalated, color: C.red },
-                                ] : [],
-                                center: m.grievanceMix?.total,
-                                caption: "grievances",
-                            },
-                            {
-                                i: 16,
-                                title: "DPIA reviews",
-                                sub: "Assessments by decision",
-                                to: "/dashboard/dpia",
-                                data: m.dpiaMix,
-                                parts: m.dpiaMix ? [
-                                    { label: "Approved", value: m.dpiaMix.approved, color: C.ok },
-                                    { label: "Waiting", value: m.dpiaMix.pending, color: C.amber },
-                                    { label: "Changes", value: m.dpiaMix.changes, color: C.brand },
-                                    { label: "Rejected", value: m.dpiaMix.rejected, color: C.red },
-                                ] : [],
-                                center: m.dpiaMix?.total,
-                                caption: "DPIAs",
-                            },
-                            {
-                                i: 17,
-                                title: "Data by category",
-                                sub: "Data points in your inventory",
-                                to: "/dashboard/inventory",
-                                data: m.categories,
-                                parts: (m.categories || []).map((c, k) => ({ label: c.label, value: c.value, color: [C.brand, C.teal, C.violet, C.amber, C.sky][k % 5] })),
-                                center: m.inventory?.total,
-                                caption: "data points",
-                            },
-                        ].map((d) => (
-                            <Card key={d.title} i={d.i} title={d.title} sub={d.sub} action={<Link to={d.to} className="kd-link">Open</Link>}>
-                                {d.data ? (
-                                    d.center ? (
-                                        <div className="flex items-center gap-4">
-                                            <Donut parts={d.parts} size={132} stroke={18}>
-                                                <div>
-                                                    <p className="kd-big text-[24px]">
-                                                        <CountUp value={d.center} />
-                                                    </p>
-                                                    <p className="text-[10px] text-muted">{d.caption}</p>
-                                                </div>
-                                            </Donut>
-                                            <ul className="min-w-0 flex-1 space-y-1.5">
-                                                {d.parts.map((p) => (
-                                                    <li key={p.label} className="flex items-center justify-between gap-2 text-[13px]">
-                                                        <span className="inline-flex min-w-0 items-center gap-2 text-ink-2">
-                                                            <i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.color }} />
-                                                            <span className="truncate">{p.label}</span>
-                                                        </span>
-                                                        <b className="tabular-nums text-ink">{fmtNum(p.value)}</b>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    ) : (
-                                        <p className="py-10 text-center text-sm text-muted">Nothing recorded yet.</p>
-                                    )
-                                ) : (
-                                    <NoAccess />
-                                )}
-                            </Card>
-                        ))}
-                    </div>
-
-                    {/* Consent by purpose · campaigns */}
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        <Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
-                            {m.consent ? (
-                                m.consent.purposes.length ? (
-                                    <HBars rows={m.consent.purposes.map((p, i) => ({ label: p.label, value: p.rate, display: `${p.rate}%`, note: `${fmtNum(p.allowed)} of ${fmtNum(p.total)} allowed`, color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6] }))} max={100} />
-                                ) : (
-                                    <p className="py-8 text-center text-sm text-muted">No purpose decisions recorded yet.</p>
-                                )
-                            ) : (
-                                <NoAccess />
-                            )}
-                        </Card>
-
-                        <Card
-                            i={13}
-                            title="Campaign performance"
-                            sub={m.campaignTotals ? `${m.campaigns.length} campaign${m.campaigns.length === 1 ? "" : "s"} · ${fmtNum(m.campaignTotals.total)} responses` : "Responses by campaign"}
-                            action={<Link to="/dashboard/campaigns" className="kd-link">View all</Link>}
-                        >
-                            {m.campaigns.length ? (
-                                <>
-                                    <ColumnChart
-                                        labels={m.campaigns.slice(0, 6).map((c) => c.title)}
-                                        series={[
-                                            { name: "Accepted", values: m.campaigns.slice(0, 6).map((c) => c.accepted), color: C.ok },
-                                            { name: "Rejected", values: m.campaigns.slice(0, 6).map((c) => c.rejected), color: C.red },
-                                            { name: "Completed", values: m.campaigns.slice(0, 6).map((c) => c.completed), color: C.violet },
-                                        ]}
-                                        height={220}
-                                        ariaLabel="Accepted, rejected and completed responses per campaign"
-                                    />
-                                    <div className="mt-3">
-                                        <Legend items={[{ label: "Accepted", color: C.ok, value: m.campaignTotals.accepted }, { label: "Rejected", color: C.red, value: m.campaignTotals.rejected }, { label: "Completed", color: C.violet, value: m.campaignTotals.completed }]} />
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="py-8 text-center text-sm text-muted">No campaign responses yet. Create a campaign to start collecting consent.</p>
                             )}
                         </Card>
                     </div>
 
                     {/* Section-by-section · deadlines */}
                     <div className="grid gap-4 xl:grid-cols-5">
-                        <Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each duty mapped to its maximum statutory penalty">
+                        <Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each legal duty and its highest fine">
                             <ul className="-mx-1 divide-y divide-line">
                                 {m.sections.map((x) => (
                                     <li key={x.key} className="flex items-center gap-3 px-1 py-2.5">
@@ -660,7 +751,7 @@ export default function Dashboard() {
                             </ul>
                         </Card>
 
-                        <Card i={15} className="xl:col-span-2" title="Upcoming deadlines & tasks" sub="Soonest first" action={<Link to="/dashboard/my-tasks" className="kd-link">My tasks</Link>}>
+                        <Card i={15} className="xl:col-span-2" title="Upcoming deadlines & tasks" sub="Most urgent first" action={<Link to="/dashboard/my-tasks" className="kd-link">My tasks</Link>}>
                             {m.deadlines.length ? (
                                 <ul className="space-y-2">
                                     {m.deadlines.map((d) => (

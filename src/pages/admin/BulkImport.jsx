@@ -48,7 +48,7 @@ export default function BulkImport() {
     }, [apply]);
 
     const staged = (batchId) => {
-        setNotice({ id: batchId, text: "Batch staged. Review it before executing." });
+        setNotice({ id: batchId, text: "File uploaded. Check the rows, then import." });
         load();
     };
 
@@ -64,7 +64,7 @@ export default function BulkImport() {
             <header className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Bulk import</h1>
-                    <p className="mt-1.5 max-w-3xl text-[15px] text-ink-3">Migrate an existing consumer base from a CSV. Rows are staged and validated first, and nothing is written to consumer records until you execute the batch.</p>
+                    <p className="mt-1.5 max-w-3xl text-[15px] text-ink-3">Bring in existing customers from a CSV file. Rows are checked first, and nothing is saved until you import the batch.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>

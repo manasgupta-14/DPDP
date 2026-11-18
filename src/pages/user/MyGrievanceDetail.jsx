@@ -120,6 +120,7 @@ export default function MyGrievanceDetail() {
 
                 <aside className={`${panel} h-fit p-5`}>
                     <h2 className="text-base font-semibold">Ticket</h2>
+                    <p className="mt-0.5 text-xs text-muted">Your complaint and its current status.</p>
                     <dl className="mt-1 divide-y divide-line">
                         <Meta label="Status"><span className={`${pill} ${grievanceStatusTone(ticket.status)}`}>{ticket.status}</span></Meta>
                         <Meta label="Category">{ticket.category}</Meta>

@@ -5,6 +5,7 @@ import { getProfile, roleInfo } from "../../auth/authStore.js";
 import { C, ColumnChart, CountUp, Donut, HBars, Legend, fmtNum } from "../../components/charts/kit.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
+import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
 import { DPIA_CHANGED } from "../../config/dpia.js";
 import { RISKS, STATUS, displayStatus } from "../../utils/dpia.js";
 import { PHASES } from "../../utils/executive.js";
@@ -22,8 +23,8 @@ function Kpi({ label, value, icon, tone, note, i }) {
     return (
         <div className="kd-card p-5" style={rise(i)}>
             <div className="flex items-center justify-between">
-                <p className="text-[13px] font-medium text-ink-3">{label}</p>
-                <span className={`kd-ico ${bg}`}>
+                <p className="kv-cap text-[13px] font-medium text-ink-3">{label}</p>
+                <span className={`kd-ico kd-ico-glow ${bg}`}>
                     <Icon name={icon} />
                 </span>
             </div>
@@ -93,7 +94,6 @@ export default function DpoDashboard() {
             pending,
             approved: by(STATUS.APPROVED).length,
             changes: by(STATUS.CHANGES).length,
-            rejected: by(STATUS.REJECTED).length,
             draft: by(STATUS.DRAFT).length,
             months,
             risk,
@@ -106,30 +106,39 @@ export default function DpoDashboard() {
 
     return (
         <div className="space-y-5">
-            <header className="kv-hero flex flex-wrap items-end justify-between gap-4" style={rise(0)}>
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-ink">{info.long}</p>
-                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Welcome{first ? `, ${first}` : ""}</h1>
-                    <p className="mt-1 text-sm text-muted">Risky processing waits for your decision before it starts.</p>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        className="kd-btn"
-                        onClick={async () => {
-                            await load();
-                            setRound((r) => r + 1);
-                        }}
-                    >
-                        <Icon name="refresh" className="h-4 w-4" />
-                        Refresh
-                    </button>
-                    <Link to="/dpo/dpia" className="kd-btn is-primary">
-                        <Icon name="scale" className="h-4 w-4" />
-                        Open DPIA reviews
-                    </Link>
-                </div>
-            </header>
+            <WelcomeHero
+                style={rise(0)}
+                eyebrow={info.long}
+                greeting="Welcome"
+                name={first}
+                sub="Review risky data use before it starts."
+                status={
+                    state.loading || state.error
+                        ? null
+                        : m.pending.length
+                            ? { tone: "warn", label: `${m.pending.length} review${m.pending.length === 1 ? "" : "s"} waiting` }
+                            : { tone: "ok", label: "No reviews waiting" }
+                }
+                actions={
+                    <>
+                        <button
+                            type="button"
+                            className="kd-btn"
+                            onClick={async () => {
+                                await load();
+                                setRound((r) => r + 1);
+                            }}
+                        >
+                            <Icon name="refresh" className="h-4 w-4" />
+                            Refresh
+                        </button>
+                        <Link to="/dpo/dpia" className="kd-btn is-primary">
+                            <Icon name="fileSearch" className="h-4 w-4" />
+                            Open DPIA reviews
+                        </Link>
+                    </>
+                }
+            />
 
             {state.error && <Alert>{state.error}</Alert>}
             {state.loading && (
@@ -157,8 +166,8 @@ export default function DpoDashboard() {
                     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Key numbers">
                         <Kpi i={1} label="Waiting for review" value={m.pending.length} icon="clock" tone="warn" note={m.pending.length ? `Oldest: ${m.oldest} days` : "Queue is clear"} />
                         <Kpi i={2} label="Approved" value={m.approved} icon="check" tone="ok" note="Processing can start" />
-                        <Kpi i={3} label="Changes requested" value={m.changes} icon="refresh" tone="info" note="Sent back to the team" />
-                        <Kpi i={4} label="Rejected" value={m.rejected} icon="x" tone="bad" note={`${fmtNum(m.total)} DPIAs in total`} />
+                        <Kpi i={3} label="Needs changes" value={m.changes} icon="refresh" tone="info" note="Sent back to the team" />
+                        <Kpi i={4} label="Due for re-review" value={m.reviewDue.length} icon="calendar" tone="bad" note={`${fmtNum(m.total)} DPIAs in total`} />
                     </section>
 
                     <div className="grid gap-4 lg:grid-cols-5">
@@ -170,8 +179,7 @@ export default function DpoDashboard() {
                                     parts={[
                                         { label: "Approved", value: m.approved, color: C.ok },
                                         { label: "Waiting", value: m.pending.length, color: C.amber },
-                                        { label: "Changes", value: m.changes, color: C.brand },
-                                        { label: "Rejected", value: m.rejected, color: C.red },
+                                        { label: "Needs changes", value: m.changes, color: C.brand },
                                     ]}
                                 >
                                     <div>
@@ -185,8 +193,7 @@ export default function DpoDashboard() {
                                     {[
                                         ["Approved", m.approved, C.ok],
                                         ["Waiting", m.pending.length, C.amber],
-                                        ["Changes requested", m.changes, C.brand],
-                                        ["Rejected", m.rejected, C.red],
+                                        ["Needs changes", m.changes, C.brand],
                                     ].map(([l, v, c]) => (
                                         <div key={l} className="flex items-center justify-between rounded-lg bg-soft px-3 py-2 text-sm">
                                             <span className="inline-flex items-center gap-2 text-ink-2">

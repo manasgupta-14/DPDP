@@ -106,7 +106,7 @@ export default function RolesPermissions() {
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">Roles in your organisation</h2>
-                        <p className="text-xs text-muted">Live from the server. Open a role to see the permissions it includes.</p>
+                        <p className="text-xs text-muted">Open a role to see what it is allowed to do.</p>
                     </div>
                     <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">{roles.length} total</span>
                 </div>

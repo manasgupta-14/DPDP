@@ -5,7 +5,7 @@ import MyReportsList from "../../components/user/MyReportsList.jsx";
 import { timeOf } from "../../utils/breach.js";
 
 const FALLBACK_NOTICE =
-    "This list shows the reports submitted from this browser.";
+    "This list shows the reports you submitted from this device.";
 
 export default function MySecurityReports() {
     const [reports, setReports] = useState([]);

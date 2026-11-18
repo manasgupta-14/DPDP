@@ -6,7 +6,7 @@ import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.j
 import { LANGUAGES, isPublished, langLabel } from "../../utils/noticeApi.js";
 import { StatusPill } from "../../components/admin/notices/NoticeBadges.jsx";
 
-const PUBLISH_WARNING = "Publish this notice? A published notice is locked and hashed. To change it later you will need to create a new version.";
+const PUBLISH_WARNING = "Publish this notice? A published notice is locked. To change it later you will need to create a new version.";
 
 const DASH = <span className="text-faint">-</span>;
 
@@ -218,7 +218,7 @@ export default function NoticeEditor() {
                         {notice.hash ? <p className="mt-1 break-all rounded-lg bg-subtle px-3 py-2 font-mono text-sm text-ink">{notice.hash}</p> : <p className="mt-1">{DASH}</p>}
                     </div>
                 )}
-                {!published && <p className="text-xs text-muted">Draft: editable. Once published, this notice becomes read-only and is hashed. To change it later, create a new version.</p>}
+                {!published && <p className="text-xs text-muted">Draft: editable. Once published, this notice becomes read-only. To change it later, create a new version.</p>}
             </div>
 
             <Section letter="A" title="Template & settings" hint="The template gives this notice its layout, logo, colour and default purposes.">

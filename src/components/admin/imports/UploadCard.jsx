@@ -21,7 +21,7 @@ export default function UploadCard({ kinds, onStaged }) {
 
     const canStage = !!activeKind && (!!picked || pasted.trim() !== "");
 
-    const downloadSample = () => downloadText("sample-consumers.csv", SAMPLE_CSV);
+    const downloadSample = () => downloadText("kavach-data-principals-template.csv", SAMPLE_CSV);
 
     const onFile = (e) => {
         const file = e.target.files?.[0];
@@ -64,7 +64,7 @@ export default function UploadCard({ kinds, onStaged }) {
     return (
         <section className={`${panel} p-6`}>
             <h2 className="text-lg font-semibold">Upload a batch</h2>
-            <p className="mt-1 text-sm text-ink-3">Every row is staged and validated first. Nothing is written to consumer records until you execute the batch.</p>
+            <p className="mt-1 text-sm text-ink-3">Every row is checked first. Nothing is saved to customer records until you import the batch.</p>
 
             <form onSubmit={stage} noValidate className="mt-5 space-y-5">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -86,7 +86,7 @@ export default function UploadCard({ kinds, onStaged }) {
                     <div className="flex items-center justify-between gap-3">
                         <span className={label}>CSV file</span>
                         <button type="button" onClick={downloadSample} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-ink hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                            <Icon name="download" className="h-4 w-4" /> Download Sample CSV
+                            <Icon name="download" className="h-4 w-4" /> Download CSV template
                         </button>
                     </div>
                     <div className="mt-1.5 flex h-11 items-center gap-3 rounded-xl border border-line bg-surface px-2 text-sm">
@@ -112,7 +112,7 @@ export default function UploadCard({ kinds, onStaged }) {
                     <button type="submit" disabled={!canStage || staging} className={primaryBtn}>
                         <Icon name="upload" className="h-4 w-4" /> {staging ? "Staging..." : "Stage batch"}
                     </button>
-                    <span className="text-xs text-muted">Nothing is written to any consumer record until you execute.</span>
+                    <span className="text-xs text-muted">Nothing is saved to customer records until you import.</span>
                 </div>
             </form>
         </section>

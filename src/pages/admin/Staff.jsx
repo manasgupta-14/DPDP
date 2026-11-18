@@ -43,6 +43,7 @@ function AddStaffForm({ roles, units, onSaved, onClose }) {
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Add staff</h2>
+            <p className="mt-0.5 text-xs text-muted">Add a team member who works on privacy tasks.</p>
             <div className="mt-5 space-y-4">
                 <label className="block text-sm font-medium text-ink-2">
                     Name <span className="text-bad-ink">*</span>
@@ -139,7 +140,7 @@ export default function Staff() {
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
                         <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Staff</h1>
-                        <p className="mt-1 text-sm text-ink-3">Branch staff of your organisation, with their role and org unit.</p>
+                        <p className="mt-1 text-sm text-ink-3">Branch staff of your organisation, with their role and office.</p>
                     </div>
                     <div className="flex gap-2">
                         <button type="button" onClick={load} className={ghostBtn}>Refresh</button>

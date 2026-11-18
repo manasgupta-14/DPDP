@@ -51,7 +51,7 @@ export function ContentCard({ form, set, errors, readOnly, isNew, busy }) {
                     <label className={lbl}>
                         Code <span className="text-bad-ink">*</span>
                         <input value={form.code} onChange={set("code")} maxLength={100} disabled={busy} placeholder="general_service_notice" className={`${field} font-mono`} aria-invalid={!!errors.code} />
-                        <span className={hint}>Stable machine name. New versions of the same notice share this code.</span>
+                        <span className={hint}>Short unique code. All versions of this notice share it.</span>
                         <span className={err}>{errors.code}</span>
                     </label>
                 )}
@@ -74,7 +74,7 @@ export function ContentCard({ form, set, errors, readOnly, isNew, busy }) {
 export function DesignCard({ form, set, errors, readOnly, busy }) {
     if (readOnly) {
         return (
-            <Card title="Capture page design" subtitle="Applied to the public consent capture page for this notice. Frozen at publish time, like everything else here.">
+            <Card title="Consent page design" subtitle="Used on the consent page for this notice. It is locked when you publish.">
                 <dl className="divide-y divide-line">
                     <Row label="Logo">{form.logoUrl || "—"}</Row>
                     <Row label="Primary color">
@@ -87,12 +87,12 @@ export function DesignCard({ form, set, errors, readOnly, busy }) {
     }
     const swatch = isHex(form.primaryColor) ? form.primaryColor : DEFAULT_COLOR;
     return (
-        <Card title="Capture page design" subtitle="Applied to the public consent capture page for this notice. Frozen into the evidence snapshot at publish time.">
+        <Card title="Consent page design" subtitle="Used on the consent page for this notice. It is locked when you publish.">
             <div className="grid gap-4 sm:grid-cols-2">
                 <label className={lbl}>
                     Logo URL
                     <input value={form.logoUrl} onChange={set("logoUrl")} disabled={busy} placeholder="https://.../logo.svg" className={field} />
-                    <span className={hint}>Shown at the top of the capture page.</span>
+                    <span className={hint}>Shown at the top of the consent page.</span>
                 </label>
                 <label className={lbl}>
                     Primary color
@@ -119,7 +119,7 @@ export function PurposesCard({ form, toggle, options, optionsError, errors, read
     const shown = readOnly ? all.filter((p) => form.purposes.includes(p.code)) : all;
 
     return (
-        <Card title="Purposes covered" subtitle="Sec 5(1) requires each purpose to be itemised, with the data it needs and who receives it.">
+        <Card title="Purposes covered" subtitle="Sec 5(1): list each purpose, the data it needs and who receives it.">
             {optionsError && all.length === 0 ? (
                 <p className="text-xs text-bad-ink">Could not load purposes: {optionsError}</p>
             ) : shown.length === 0 ? (
@@ -137,7 +137,7 @@ export function PurposesCard({ form, toggle, options, optionsError, errors, read
                                     {p.retention && <span>Kept for {p.retention}</span>}
                                     {names(p.categories) && <span>{names(p.categories)}</span>}
                                 </span>
-                                {p.prohibitedForChildren && <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-bad/10 px-2 py-0.5 text-[11px] font-semibold text-bad-ink ring-1 ring-bad/25"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />Barred for children</span>}
+                                {p.prohibitedForChildren && <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-bad/10 px-2 py-0.5 text-[11px] font-semibold text-bad-ink ring-1 ring-bad/25"><span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />Not for children</span>}
                             </>
                         );
                         return readOnly ? (
@@ -160,7 +160,7 @@ export function PurposesCard({ form, toggle, options, optionsError, errors, read
 
 export function TranslationsCard({ form, setTr, readOnly, busy }) {
     return (
-        <Card title="Translations" subtitle="Sec 5(3): the notice must be available in English and the Eighth Schedule languages.">
+        <Card title="Translations" subtitle="Sec 5(3): offer the notice in English and other Indian languages (Eighth Schedule).">
             <div className="space-y-4">
                 {LANGS.map((l) => {
                     const tr = form.translations?.[l.code] ?? { title: "", summary: "" };
@@ -201,7 +201,7 @@ export function RecordCard({ form, meta, status }) {
                 <Row label="Code"><span className="font-mono text-xs">{form.code || "—"}</span></Row>
                 <Row label="Version">{meta.version}</Row>
                 <Row label="Status"><StatusPill status={status} /></Row>
-                <Row label="Content hash">{meta.hash ? <span className="break-all font-mono text-[11px]" title="SHA-256 calculated in this browser when the notice was published">{meta.hash}</span> : "—"}</Row>
+                <Row label="Content hash">{meta.hash ? <span className="break-all font-mono text-[11px]" title="SHA-256 fingerprint calculated when the notice was published">{meta.hash}</span> : "—"}</Row>
                 <Row label="Published">{meta.publishedAt ? formatDateTime(meta.publishedAt) : "Not published"}</Row>
                 <Row label="Languages"><LangChips translations={form.translations} /></Row>
             </dl>

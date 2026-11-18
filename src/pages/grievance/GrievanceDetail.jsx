@@ -155,6 +155,7 @@ export default function GrievanceDetail() {
                 <div className="space-y-5">
                     <section className={`${panel} p-5`}>
                         <h2 className="text-base font-semibold text-ink">Complaint</h2>
+                        <p className="mt-0.5 text-xs text-muted">What the person reported, in their own words.</p>
                         <dl className="mt-3 divide-y divide-line">
                             <Row label="Reference"><span className="font-mono text-xs">{ticket.referenceId}</span></Row>
                             <Row label="Category">{ticket.category}</Row>

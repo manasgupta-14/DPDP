@@ -23,8 +23,8 @@ function extractError(data, status, method, path) {
     }
     if (status === 401) return "Your session has expired. Please sign in again.";
     if (status === 403) return "You do not have permission to do this.";
-    if (status === 404) return "This API endpoint was not found on the backend. Rebuild and restart the backend, then try again.";
-    if (status === 502 || status === 503 || status === 504) return "Cannot reach the backend. Start the backend (https://localhost:7139), wait until it is running, then try again.";
+    if (status === 404) return "This feature is not available on the server yet. Please contact your administrator.";
+    if (status === 502 || status === 503 || status === 504) return "Cannot reach the server right now. Please try again in a moment.";
     if (status >= 500) return "Server error. Please try again in a moment.";
     return "Something went wrong. Please try again.";
 }
@@ -69,7 +69,7 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
         const error =
             err.name === "AbortError"
                 ? "The server took too long to respond. Please try again."
-                : "Cannot reach the server. Make sure the backend is running on https://localhost:7139.";
+                : "Cannot reach the server. Check your connection and try again.";
         return { ok: false, status: 0, data: null, error };
     } finally {
         clearTimeout(timer);

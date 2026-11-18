@@ -100,7 +100,7 @@ export default function PurposeFormModal({ purpose, existing, categories, proces
                 {editing && <p className="rounded-lg border border-line bg-soft px-3 py-2 text-[11px] text-ink-3">Saving creates version {purpose.version + 1}. The current version (v{purpose.version}) is archived, and its history stays available.</p>}
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Code" hint={editing ? "Code stays the same across versions." : "Stable machine name, appears in consent artifacts"}>
+                    <Field label="Code" hint={editing ? "Code stays the same across versions." : "Short unique code, shown on consent records"}>
                         <input value={code} placeholder="billing_metering" onChange={(e) => { setCodeTouched(true); set("code")(e); }} disabled={busy || editing} className={`${dkInput} font-mono`} />
                     </Field>
                     <Field label="Display name">

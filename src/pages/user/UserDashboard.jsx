@@ -6,6 +6,7 @@ import { getUserSummary } from "../../api/dashboard.js";
 import { isDataPrincipal, roleInfo } from "../../auth/authStore.js";
 import { C, CountUp, Ring } from "../../components/charts/kit.jsx";
 import Icon from "../../components/shared/Icon.jsx";
+import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { formatDay, typeLabel } from "../../utils/campaign.js";
 import { band } from "../../utils/executive.js";
@@ -19,8 +20,8 @@ function Stat({ icon, tone, label, value, to, hint, i }) {
     return (
         <Link to={to} className="kd-card pg-card block p-5" style={rise(i)}>
             <div className="flex items-center justify-between">
-                <p className="text-[13px] font-medium text-ink-3">{label}</p>
-                <span className={`kd-ico ${TONE_BG[tone]}`}>
+                <p className="kv-cap text-[13px] font-medium text-ink-3">{label}</p>
+                <span className={`kd-ico kd-ico-glow ${TONE_BG[tone]}`}>
                     <Icon name={icon} />
                 </span>
             </div>
@@ -63,18 +64,24 @@ export default function UserDashboard() {
 
     return (
         <div className="space-y-5">
-            <header className="kv-hero flex flex-wrap items-end justify-between gap-4" style={rise(0)}>
-                <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-ink">{customer ? "Customer portal" : `${info.label} portal`}</p>
-                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Welcome, {firstName}</h1>
-                    <p className="mt-1 max-w-2xl text-sm text-muted">
-                        {customer ? "See how your data is used, change your consent any time, and ask for a copy, correction or erasure of your data." : "Respond to consent requests from your organisation and report anything suspicious to the security team."}
-                    </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
+            <WelcomeHero
+                style={rise(0)}
+                eyebrow={customer ? "Customer portal" : `${info.label} portal`}
+                greeting="Welcome"
+                name={firstName}
+                sub={customer ? "See and control how your data is used." : "Answer requests and report anything unusual."}
+                status={
+                    tasks.loading || tasks.error
+                        ? null
+                        : tasks.items.length
+                          ? { tone: "warn", label: `${tasks.items.length} task${tasks.items.length === 1 ? "" : "s"} waiting` }
+                          : { tone: "ok", label: "All done" }
+                }
+                actions={
+                    <>
                     {customer ? (
                         <Link to="/user/privacy" className="kd-btn">
-                            <Icon name="rights" className="h-4 w-4" />
+                            <Icon name="inbox" className="h-4 w-4" />
                             Raise a privacy request
                         </Link>
                     ) : (
@@ -84,12 +91,13 @@ export default function UserDashboard() {
                         </Link>
                     )}
                     <Link to="/user/tasks" className="kd-btn is-primary">
-                        <Icon name="tasks" className="h-4 w-4" />
+                        <Icon name="clipboardCheck" className="h-4 w-4" />
                         Review my tasks
                         {tasks.items.length > 0 && <span className="rounded-full bg-white/25 px-1.5 text-[11px] font-bold">{tasks.items.length}</span>}
                     </Link>
-                </div>
-            </header>
+                    </>
+                }
+            />
 
             {tasks.items.length > 0 && (
                 <div className="pg-alert flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-warn/30 bg-warn-soft px-4 py-3 text-sm">
@@ -106,7 +114,7 @@ export default function UserDashboard() {
             <div className="grid gap-4 lg:grid-cols-3">
                 <section className="kd-card p-5" style={rise(1)} aria-label="Privacy health">
                     <h2 className="kd-title">Privacy health</h2>
-                    <p className="kd-sub">Drops while consent tasks are pending</p>
+                    <p className="kd-sub">Goes down while tasks are waiting</p>
                     <div className="mt-4 flex items-center gap-5">
                         <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`}>
                             <div>

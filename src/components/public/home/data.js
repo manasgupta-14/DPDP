@@ -10,6 +10,9 @@ export const ICONS = {
     grievance: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
     breach: "M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",
     dpia: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",
+    dpiaCheck: "M12 21a9 9 0 100-18 9 9 0 000 18zM8 12l3 3 5-6",
+    play: "M8 5.5v13l11-6.5z",
+    grid: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
     audit: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 13h6M9 17h4",
     retention: "M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     report: "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6",
@@ -34,40 +37,40 @@ export const CAPABILITIES = [
 
 // Hub-and-spoke: beech me Kavach, chaaron taraf modules
 export const ECOSYSTEM = [
-    { key: "consent", icon: "consent", title: "Consent", text: "Allow / deny per purpose, withdraw any time", status: "Recorded" },
-    { key: "notice", icon: "notice", title: "Privacy notices", text: "Versioned, in English, Hindi and Marathi", status: "Published" },
-    { key: "rights", icon: "rights", title: "Rights requests", text: "Access, correction, erasure, portability", status: "30-day timer" },
-    { key: "grievance", icon: "grievance", title: "Grievances", text: "Assign, reply, resolve or escalate", status: "Tracked" },
-    { key: "breach", icon: "breach", title: "Breach response", text: "Severity, owner, status and mitigation", status: "Monitored" },
-    { key: "dpia", icon: "dpia", title: "DPIA reviews", text: "DPO approves, asks for changes or rejects", status: "In review" },
+    { key: "consent", icon: "consent", title: "Consent", text: "Allow / deny per purpose, withdraw any time.", status: "Recorded", tone: "blue", statusTone: "ok", to: "/dashboard/consent" },
+    { key: "notice", icon: "notice", title: "Privacy notices", text: "Versioned, in English, Hindi and Marathi.", status: "Published", tone: "pink", statusTone: "ok", to: "/dashboard/notices" },
+    { key: "rights", icon: "rights", title: "Rights requests", text: "Access, correction, erasure, portability.", status: "30-day timer", tone: "mint", statusTone: "warn", to: "/dashboard/rights-requests" },
+    { key: "grievance", icon: "grievance", title: "Grievances", text: "Assign, reply, resolve or escalate.", status: "Tracked", tone: "orange", statusTone: "ok", to: "/dashboard/grievances" },
+    { key: "breach", icon: "breach", title: "Breach response", text: "Severity, owner, status and mitigation.", status: "Monitored", tone: "purple", statusTone: "info", to: "/dashboard/breach" },
+    { key: "dpia", icon: "dpiaCheck", title: "DPIA reviews", text: "DPO approves, asks for changes or rejects.", status: "In review", tone: "emerald", statusTone: "violet", to: "/dashboard/dpia" },
 ];
 
 export const FEATURES = [
     {
-        key: "consent", size: "lg", icon: "consent", title: "One register for every consent",
+        key: "consent", size: "lg", icon: "consent", title: "Consent register",
         text: "Users allow or deny each purpose in a popup on login. Withdrawing takes one click, and every change keeps its date.",
         visual: "consent",
     },
-    { key: "notice", size: "sm", icon: "notice", title: "Notices people can read", text: "Write once, publish with translations, keep each version.", visual: "lang" },
-    { key: "rights", size: "sm", icon: "rights", title: "Deadlines you can see", text: "Every rights request shows its due date and overdue state.", visual: "timer" },
-    { key: "breach", size: "md", icon: "breach", title: "Breach desk", text: "From a user's security report to a closed incident, with severity and owner.", visual: "steps" },
-    { key: "dpia", size: "md", icon: "dpia", title: "DPO sign-off", text: "Risky processing waits for the DPO's approval before it starts.", visual: "approve" },
-    { key: "audit", size: "wide", icon: "audit", title: "Proof for the auditor", text: "Audit trail of who changed what, plus 13 report types you can download as PDF or CSV, each with a SHA-256 fingerprint.", visual: "bars" },
+    { key: "notice", size: "sm", icon: "notice", title: "Privacy notices", text: "Write once, publish with translations, keep each version.", visual: "lang" },
+    { key: "rights", size: "sm", icon: "rights", title: "Rights request tracking", text: "Every rights request shows its due date and overdue state.", visual: "timer" },
+    { key: "breach", size: "md", icon: "breach", title: "Breach management", text: "From a user's security report to a closed incident, with severity and owner.", visual: "steps" },
+    { key: "dpia", size: "md", icon: "dpia", title: "DPIA approvals", text: "Risky processing waits for the DPO's approval before it starts.", visual: "approve" },
+    { key: "audit", size: "wide", icon: "audit", title: "Audit trail and reports", text: "Audit trail of who changed what, plus 13 report types you can download as PDF or CSV, each with a SHA-256 fingerprint.", visual: "bars" },
 ];
 
 export const STEPS = [
-    { title: "Set up", text: "Add users, roles, offices, purposes and the data you hold." },
-    { title: "Ask", text: "Publish notices and send consent campaigns to customers and staff." },
-    { title: "Answer", text: "Handle rights requests, grievances and security reports on time." },
-    { title: "Prove", text: "Download reports and show the audit trail when asked." },
+    { title: "Configure", text: "Add users, roles, offices, purposes and the data you hold." },
+    { title: "Collect consent", text: "Publish notices and send consent campaigns to customers and staff." },
+    { title: "Respond", text: "Handle rights requests, grievances and security reports on time." },
+    { title: "Evidence", text: "Download reports and show the audit trail when asked." },
 ];
 
 // Sirf product ke asli tathya
 export const STATS = [
-    { value: 3, suffix: "", label: "panels", sub: "Admin, User and DPO" },
-    { value: 3, suffix: "", label: "notice languages", sub: "English, Hindi and Marathi" },
-    { value: 13, suffix: "", label: "report types", sub: "PDF or CSV, with a SHA-256 fingerprint" },
-    { value: 30, suffix: " days", label: "request deadline", sub: "tracked on every rights request" },
+    { value: 3, suffix: "", label: "panels", sub: "Admin, User and DPO", icon: "grid" },
+    { value: 3, suffix: "", label: "notice languages", sub: "English, Hindi and Marathi", icon: "globe" },
+    { value: 13, suffix: "", label: "report types", sub: "PDF or CSV, with a SHA-256 fingerprint", icon: "report" },
+    { value: 30, suffix: " days", label: "request deadline", sub: "tracked on every rights request", icon: "retention" },
 ];
 
 export const COMPARE_ROWS = [
@@ -80,9 +83,9 @@ export const COMPARE_ROWS = [
 ];
 
 export const MILESTONES = [
-    { label: "Phase 1", date: "13 Nov 2025", text: "DPDP Rules notified; Data Protection Board provisions apply" },
-    { label: "Phase 2", date: "13 Nov 2026", text: "Consent Manager registration rules apply" },
-    { label: "Phase 3", date: "13 May 2027", text: "Core duties apply: notices, security, breach reporting, rights" },
+    { label: "Phase 1", date: "13 Nov 2025", text: "DPDP Rules notified and the Data Protection Board set up" },
+    { label: "Phase 2", date: "13 Nov 2026", text: "Rules for registering Consent Managers apply" },
+    { label: "Phase 3", date: "13 May 2027", text: "Main duties apply: notices, security, breach reporting and rights" },
 ];
 
 export const FAQ = [

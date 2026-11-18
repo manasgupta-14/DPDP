@@ -22,6 +22,7 @@ export default function AuditDetailModal({ log, onClose }) {
         <Modal title={`Audit entry ${log.seq ?? ""}`} onClose={onClose}>
             <div className="max-h-[85vh] overflow-y-auto rounded-xl border border-line bg-surface p-5 text-ink shadow-xl">
                 <h2 className="pr-10 text-base font-semibold">Audit entry {log.seq ?? "-"}</h2>
+                <p className="mt-0.5 text-xs text-muted">Who did what, and when, for this recorded change.</p>
 
                 <dl className="mt-3 divide-y divide-line">
                     <Row label="Sequence" mono>{log.seq ?? notInApi}</Row>
