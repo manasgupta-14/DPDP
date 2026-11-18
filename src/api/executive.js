@@ -2,6 +2,7 @@ import { getAllIncidents } from "./breach.js";
 import { getConsentRecords } from "./consent.js";
 import { getDashboardSummary } from "./dashboard.js";
 import { getDataInventory } from "./dataInventory.js";
+import { getDataPrincipalCount } from "./dataPrincipal.js";
 import { getAllDpia } from "./dpia.js";
 import { getAllGrievances } from "./grievance.js";
 import { getNotices } from "./notice.js";
@@ -23,6 +24,7 @@ export async function loadExecutiveData() {
         grievances: getAllGrievances(),
         notices: getNotices(),
         retention: getRetentionMetrics(),
+        principals: getDataPrincipalCount(),
     };
     const keys = Object.keys(calls);
     const settled = await Promise.allSettled(Object.values(calls));

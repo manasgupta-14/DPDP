@@ -81,6 +81,7 @@ export default function OrgUnitForm({ flat, parent, onSaved, onClose }) {
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">{selectedParent ? `New unit under ${selectedParent.name}` : "New top-level unit"}</h2>
+            <p className="mt-0.5 text-xs text-muted">Add a branch, department or team to your organisation.</p>
 
             <div className="mt-5 space-y-4">
                 <label className="block text-sm font-medium text-ink-2">

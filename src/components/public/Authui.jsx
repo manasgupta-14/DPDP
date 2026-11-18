@@ -93,27 +93,17 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
     return (
         <div className="ap-auth min-h-screen">
             <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-                <aside className="relative m-3 hidden overflow-hidden rounded-[28px] bg-deep/90 backdrop-blur-xl lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-10 xl:px-16">
-                    <div
-                        aria-hidden
-                        className="pointer-events-none absolute inset-0 opacity-40"
-                        style={{
-                            backgroundImage: "radial-gradient(rgba(255,255,255,0.09) 1px, transparent 1.4px)",
-                            backgroundSize: "22px 22px",
-                            WebkitMaskImage: "linear-gradient(160deg, #000 10%, transparent 75%)",
-                            maskImage: "linear-gradient(160deg, #000 10%, transparent 75%)",
-                        }}
-                    />
+                <aside className="relative m-3 hidden overflow-hidden kv-auth-panel rounded-[28px] border border-[#D6E4FF] lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-10 xl:px-16">
                     <Link to="/" className="relative w-fit rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                        <Logo tone="light" sub="DPDP compliance workspace" />
+                        <Logo sub="DPDP compliance workspace" />
                     </Link>
 
                     <div className="relative max-w-lg">
-                        <h2 className="text-[30px] font-bold leading-tight tracking-tight text-white">Keep your DPDP obligations organised and easy to review</h2>
+                        <h2 className="text-[30px] font-bold leading-tight tracking-tight text-[#14213D]">Keep your DPDP obligations organised and easy to review</h2>
                         <ul className="mt-8 space-y-4">
                             {POINTS.map((p, i) => (
-                                <li key={p} className="flex items-start gap-3 text-[15px] text-white/80" style={{ animation: `pg-rise .6s ease-out ${200 + i * 110}ms both` }}>
-                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-[#8EAEFF] ring-1 ring-white/15">
+                                <li key={p} className="flex items-start gap-3 text-[15px] text-[#33415C]" style={{ animation: `pg-rise .6s ease-out ${200 + i * 110}ms both` }}>
+                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[#3A4CC8] ring-1 ring-[#C9D8FF]">
                                         <Icon name="check" className="h-3 w-3" />
                                     </span>
                                     {p}
@@ -127,18 +117,18 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
                                 ["30", "days", "rights request deadline"],
                                 ["13", "reports", "PDF or CSV"],
                             ].map(([n, u, t], i) => (
-                                <div key={u} className="rounded-xl border border-white/10 bg-white/[0.04] p-3.5" style={{ animation: `pg-rise .6s ease-out ${500 + i * 100}ms both` }}>
-                                    <p className="text-2xl font-extrabold text-white">
+                                <div key={u} className="rounded-xl border border-[#D6E4FF] bg-white/80 p-3.5" style={{ animation: `pg-rise .6s ease-out ${500 + i * 100}ms both` }}>
+                                    <p className="text-2xl font-extrabold text-[#14213D]">
                                         {n}
-                                        <span className="ml-1 text-xs font-semibold text-white/60">{u}</span>
+                                        <span className="ml-1 text-xs font-semibold text-[#556070]">{u}</span>
                                     </p>
-                                    <p className="mt-1 text-[11px] leading-snug text-white/60">{t}</p>
+                                    <p className="mt-1 text-[11px] leading-snug text-[#556070]">{t}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <p className="relative max-w-md text-xs leading-relaxed text-white/50">
+                    <p className="relative max-w-md text-xs leading-relaxed text-[#556070]">
                         Accounts and records are stored securely on your organisation's Kavach server.
                     </p>
                 </aside>

@@ -24,9 +24,9 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
     const body = (
         <>
             <div className="flex items-start justify-between gap-3">
-                <p className="text-[13px] font-medium text-ink-3">{label}</p>
+                <p className="kv-cap text-[13px] font-medium text-ink-3">{label}</p>
                 {icon && (
-                    <span className={`kd-ico ${t.ico}`}>
+                    <span className={`kd-ico kd-ico-glow ${t.ico}`}>
                         <Icon name={icon} />
                     </span>
                 )}

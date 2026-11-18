@@ -166,6 +166,7 @@ export default function AddUsers() {
                 <Modal title="New user" onClose={() => setAdding(false)}>
                 <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-line bg-surface p-6">
                     <h2 className="pr-8 text-lg font-semibold">New user</h2>
+                    <p className="mt-0.5 text-xs text-muted">Create a staff account and choose what they can access.</p>
 
                     <label className="block text-sm font-medium text-ink-2">
                         Full name

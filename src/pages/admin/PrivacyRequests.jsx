@@ -99,7 +99,7 @@ export default function PrivacyRequests() {
 
             {!loading && overdue > 0 && (
                 <div role="alert" className="rounded-2xl border border-bad/30 bg-bad/10 px-5 py-4 text-sm text-ink">
-                    <p className="font-semibold text-bad-ink">{overdue} request(s) on this page are past their deadline</p>
+                    <p className="font-semibold text-bad-ink">{overdue} request{overdue === 1 ? " on this page is" : "s on this page are"} past the deadline</p>
                     <p className="mt-0.5 text-ink-3">A request that misses its statutory deadline is a contravention in itself. Work these first, and record why the delay happened on each one.</p>
                 </div>
             )}
