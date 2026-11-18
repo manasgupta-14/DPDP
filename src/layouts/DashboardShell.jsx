@@ -36,7 +36,7 @@ function Sidebar({ sections, footer, subtitle, onNavigate }) {
                         {section.items.map((item) => (
                             <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `kv-side-link ${isActive ? "is-active" : ""}`}>
                                 {item.icon && (
-                                    <span className="kv-side-ico">
+                                    <span className="kv-side-ico" data-tone={item.tone || "indigo"}>
                                         <Icon name={item.icon} className="h-[18px] w-[18px]" />
                                     </span>
                                 )}
@@ -48,7 +48,7 @@ function Sidebar({ sections, footer, subtitle, onNavigate }) {
                 ))}
             </nav>
 
-            <div className="m-3 rounded-xl border border-line bg-soft p-3 text-[11.5px] leading-relaxed text-muted">
+            <div className="kv-side-note m-3 rounded-xl border p-3 text-[11.5px] leading-relaxed text-muted">
                 <p className="flex items-center gap-1.5 font-semibold text-ink-2">
                     <Icon name="shield" className="h-3.5 w-3.5 text-brand-ink" />
                     DPDP Act, 2023
@@ -142,10 +142,10 @@ export default function DashboardShell({
                         <span className="truncate font-semibold text-ink">{pageLabel || "Dashboard"}</span>
                     </nav>
 
-                    <div className="flex-1" />
+                    <div className={search ? "hidden flex-1 sm:block" : "flex-1"} />
 
                     {search && (
-                        <label className="relative min-w-0 flex-1 sm:w-72 sm:flex-none">
+                        <label className="relative min-w-0 flex-1 sm:w-56 sm:flex-none xl:w-72">
                             <span className="sr-only">Search records</span>
                             <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                             <input
@@ -153,8 +153,8 @@ export default function DashboardShell({
                                 type="search"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search records"
-                                className="h-10 w-full rounded-[10px] border border-line bg-soft pl-9 pr-14 text-sm text-ink placeholder:text-faint focus:border-brand focus:bg-surface focus:outline-none"
+                                placeholder={typeof window !== "undefined" && window.innerWidth < 640 ? "Search" : "Search records"}
+                                className="h-10 w-full min-w-0 rounded-[10px] border border-line bg-soft pl-9 pr-3 text-sm text-ink placeholder:text-faint focus:border-brand focus:bg-surface focus:outline-none sm:pr-14"
                             />
                             <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted sm:block">Ctrl K</kbd>
                         </label>

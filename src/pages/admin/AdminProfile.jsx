@@ -98,6 +98,7 @@ export default function AdminProfile() {
             <div className="grid gap-6 lg:grid-cols-2">
                 <section className={`${panel} p-6`}>
                     <h2 className="text-base font-bold text-ink">Profile details</h2>
+                    <p className="mt-0.5 text-xs text-muted">Your name, email, role and IDs.</p>
                     <div className="mt-2">
                         <Row icon="adduser" label="Full name" value={profile.name} copy={false} />
                         <Row icon="mail" label="Email" value={profile.email} />
@@ -109,6 +110,7 @@ export default function AdminProfile() {
 
                 <section className={`${panel} p-6`}>
                     <h2 className="text-base font-bold text-ink">Session</h2>
+                    <p className="mt-0.5 text-xs text-muted">When you signed in and when the session ends.</p>
                     <div className="mt-2">
                         <Row icon="clock" label="Signed in at" value={fmt(profile.issuedAt)} copy={false} />
                         <Row icon="calendar" label="Session expires" value={fmt(profile.expiresAt)} />

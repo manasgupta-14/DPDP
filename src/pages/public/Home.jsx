@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getSession, homePath, roleInfo } from "../../auth/authStore.js";
+import { getSession, homePath, isAdmin, roleInfo } from "../../auth/authStore.js";
 import { CountUp, useInView } from "../../components/charts/kit.jsx";
-import { KavachMark, Logo } from "../../components/shared/Brand.jsx";
+import { Logo } from "../../components/shared/Brand.jsx";
 import { CAPABILITIES, COMPARE_ROWS, ECOSYSTEM, FAQ, FEATURES, ICONS, MILESTONES, ROTATING_WORDS, STATS, STEPS } from "../../components/public/home/data.js";
 
 // Kavach website: content Kavach ka hi hai, design saaf aur seedha (koi 3D / mesh nahi).
@@ -24,6 +24,9 @@ function Reveal({ children, className = "", delay = 0, as: Tag = "div" }) {
     );
 }
 
+// Har card ka apna rang (PDF: blue, pink, mint, orange, purple, emerald)
+const TONES = ["blue", "pink", "mint", "orange", "purple", "emerald"];
+
 function SectionHead({ eyebrow, title, text, id, center = true }) {
     return (
         <div className={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
@@ -43,7 +46,7 @@ function RotatingWord() {
         return () => clearInterval(t);
     }, []);
     return (
-        <span key={i} className="inline-block font-semibold text-brand-ink" style={{ animation: "pg-rise .45s ease-out both" }}>
+        <span key={i} className="kv-grad-b inline-block font-bold" style={{ animation: "pg-rise .45s ease-out both" }}>
             {ROTATING_WORDS[i]}
         </span>
     );
@@ -55,67 +58,97 @@ function cta() {
     return { to: homePath(s), label: `Open ${roleInfo(s).label} dashboard` };
 }
 
+
+// Feature card ka har box: admin ho to seedha us module par, warna features section par
+function hubLink(item) {
+    const s = getSession();
+    return s && isAdmin(s) ? item.to : "/#features";
+}
+
+function HubCard() {
+    return (
+        <div className="kv-hub">
+            <div className="kv-hub-head">
+                <span className="flex min-w-0 items-center gap-3">
+                    <span className="kv-hub-mark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2.8l7.2 2.9v5.6c0 4.7-3 8.3-7.2 10-4.2-1.7-7.2-5.3-7.2-10V5.7L12 2.8z" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                            <path d="M8.6 12.1l2.3 2.3 4.6-4.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                    </span>
+                    <span className="min-w-0">
+                        <span className="kv-hub-name block">Kavach</span>
+                        <span className="kv-hub-tag block">Every privacy duty, connected to one core.</span>
+                    </span>
+                </span>
+                <span className="kv-hub-live">
+                    <i aria-hidden="true" /> Live
+                </span>
+            </div>
+            <ul className="kv-hub-grid">
+                {ECOSYSTEM.map((e, i) => (
+                    <li key={e.key} style={{ animation: `pg-rise .5s ease-out ${380 + i * 80}ms both` }}>
+                        <Link to={hubLink(e)} className="kv-hub-card" data-tone={e.tone} aria-label={`${e.title}: ${e.text} ${e.status}`}>
+                            <span className="kv-hub-ico">
+                                <Glyph name={e.icon} />
+                            </span>
+                            <span className="min-w-0">
+                                <span className="kv-hub-title">{e.title}</span>
+                                <span className="kv-hub-text">{e.text}</span>
+                                <span className="kv-hub-status" data-tone={e.statusTone}>
+                                    <i aria-hidden="true" />
+                                    {e.status}
+                                </span>
+                            </span>
+                            <span className="kv-hub-go" aria-hidden="true">
+                                <Glyph name="arrow" />
+                            </span>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
 function Hero() {
     const c = cta();
     return (
         <section data-bg="trust" aria-labelledby="home-title" className="relative overflow-hidden border-b border-line">
-            <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{ backgroundImage: "radial-gradient(var(--k-line) 1px, transparent 1.3px)", backgroundSize: "24px 24px", WebkitMaskImage: "linear-gradient(180deg, #000, transparent 85%)", maskImage: "linear-gradient(180deg, #000, transparent 85%)" }}
-            />
-            <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-32 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:pb-24 lg:pt-36">
-                <div>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-line bg-soft px-3 py-1 text-xs font-semibold text-ink-2" style={{ animation: "pg-rise .5s ease-out both" }}>
-                        <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase text-white">New</span>
-                        Built for the DPDP Act, 2023 and DPDP Rules, 2025
+            <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pt-32 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10 xl:grid-cols-[1fr_1fr] lg:pb-24 lg:pt-36">
+                <div className="kv-hero-copy min-w-0">
+                    <span className="kv-new-chip inline-flex max-w-full items-center gap-2 rounded-full px-1.5 py-1 pr-3 text-xs font-semibold text-ink-2" style={{ animation: "pg-rise .5s ease-out both" }}>
+                        <span className="tag shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white">New</span>
+                        <span className="min-w-0">Built for the DPDP Act, 2023 and DPDP Rules, 2025</span>
                     </span>
-                    <h1 id="home-title" className="mt-6 text-[40px] font-extrabold leading-[1.08] tracking-tight text-ink sm:text-[54px]" style={{ animation: "pg-rise .6s ease-out 80ms both" }}>
-                        Data privacy,
-                        <br />
-                        organised as <span className="text-brand-ink">one workspace</span>
+                    <h1 id="home-title" className="mt-6 text-[34px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[46px]" style={{ animation: "pg-rise .6s ease-out 80ms both" }}>
+                        Digital Personal Data <span className="kv-grad-a">Protection Compliance,</span> Organised As <span className="kv-grad-b">One Workspace</span>
                     </h1>
-                    <p className="mt-5 text-lg text-ink-3" style={{ animation: "pg-rise .6s ease-out 160ms both" }}>
+                    <p className="mt-5 text-lg font-semibold text-ink-2" style={{ animation: "pg-rise .6s ease-out 160ms both" }}>
                         Keep <RotatingWord /> in one place.
                     </p>
                     <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-3" style={{ animation: "pg-rise .6s ease-out 220ms both" }}>
                         Kavach helps teams manage consent, privacy notices, rights requests, grievances, breaches and DPIA reviews, with an audit trail behind every change.
                     </p>
                     <div className="mt-8 flex flex-wrap gap-3" style={{ animation: "pg-rise .6s ease-out 300ms both" }}>
-                        <Link to={c.to} className="inline-flex items-center gap-2 rounded-[10px] bg-brand px-5 py-3 text-sm font-semibold text-white shadow-[var(--k-shadow)] hover:bg-brand-strong">
+                        <Link to={c.to} className="kv-cta-main inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
                             {c.label}
                             <Glyph name="arrow" className="h-4 w-4" />
                         </Link>
-                        <a href="/#how" className="inline-flex items-center gap-2 rounded-[10px] border border-line bg-surface px-5 py-3 text-sm font-semibold text-ink-2 hover:bg-soft">
+                        <a href="/#how" className="kv-cta-soft inline-flex items-center gap-2.5 rounded-full py-2.5 pl-2.5 pr-5 text-sm font-semibold">
+                            <span className="play" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor">
+                                    <path d={ICONS.play} />
+                                </svg>
+                            </span>
                             See how it works
                         </a>
                     </div>
                 </div>
 
-                {/* Hub: beech me Kavach, chaaron taraf modules */}
-                <div id="ecosystem" className="relative scroll-mt-24" style={{ animation: "pg-rise .7s ease-out 200ms both" }}>
-                    <div className="rounded-[20px] border border-line bg-surface p-5 shadow-[var(--k-shadow-lg)]">
-                        <div className="flex items-center justify-between border-b border-line pb-4">
-                            <Logo sub="Every privacy duty, connected to one core" />
-                            <span className="kd-pill is-ok">
-                                <span className="kv-live-dot" /> Live
-                            </span>
-                        </div>
-                        <ul className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                            {ECOSYSTEM.map((e, i) => (
-                                <li key={e.key} className="flex items-start gap-3 rounded-xl border border-line bg-soft p-3" style={{ animation: `pg-rise .5s ease-out ${380 + i * 80}ms both` }}>
-                                    <span className="kd-ico bg-brand-soft text-brand-ink">
-                                        <Glyph name={e.icon} />
-                                    </span>
-                                    <span className="min-w-0">
-                                        <span className="block text-sm font-semibold text-ink">{e.title}</span>
-                                        <span className="mt-0.5 block text-xs leading-snug text-muted">{e.text}</span>
-                                        <span className="mt-1.5 inline-block text-[11px] font-semibold text-ok-ink">● {e.status}</span>
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                {/* Feature card: beech me Kavach, chhe module (har ek apne rang me, tairta hua) */}
+                <div id="ecosystem" className="relative min-w-0 scroll-mt-24" style={{ animation: "pg-rise .7s ease-out 200ms both" }}>
+                    <HubCard />
                 </div>
             </div>
         </section>
@@ -144,7 +177,7 @@ function Features() {
                 <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {FEATURES.map((f, i) => (
                         <Reveal key={f.key} delay={i * 70} className="kd-card p-6">
-                            <span className="kd-ico h-10 w-10 bg-brand-soft text-brand-ink">
+                            <span className="kv-ico3d" data-tone={TONES[i % TONES.length]}>
                                 <Glyph name={f.icon} />
                             </span>
                             <h3 className="mt-4 text-lg font-bold text-ink">{f.title}</h3>
@@ -185,6 +218,9 @@ function Stats() {
             <div className="mx-auto grid max-w-6xl gap-4 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
                 {STATS.map((s, i) => (
                     <Reveal key={s.label} delay={i * 80} className="kd-card p-6">
+                        <span className="kv-ico3d float-right" data-tone={TONES[(i + 2) % TONES.length]}>
+                            <Glyph name={s.icon} />
+                        </span>
                         <p className="kd-big text-[44px] text-brand-ink">
                             <CountUp value={s.value} suffix={s.suffix} />
                         </p>
@@ -291,20 +327,51 @@ function Faq() {
     );
 }
 
+function CtaRibbon() {
+    return (
+        <svg className="kv-cta2-ribbon" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <linearGradient id="kvc-rb" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#7DD3FC" stopOpacity="0.15" />
+                    <stop offset="30%" stopColor="#A5B4FC" stopOpacity="0.75" />
+                    <stop offset="60%" stopColor="#D8B4FE" stopOpacity="0.8" />
+                    <stop offset="85%" stopColor="#F9A8D4" stopOpacity="0.7" />
+                    <stop offset="100%" stopColor="#FDBA74" stopOpacity="0.6" />
+                </linearGradient>
+                <linearGradient id="kvc-rb2" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#99F6E4" stopOpacity="0.5" />
+                    <stop offset="50%" stopColor="#C4B5FD" stopOpacity="0.55" />
+                    <stop offset="100%" stopColor="#FBCFE8" stopOpacity="0.2" />
+                </linearGradient>
+            </defs>
+            <path fill="url(#kvc-rb)" d="M0,250 C160,170 300,300 480,230 C650,165 780,250 1000,150 L1000,215 C800,300 650,215 480,285 C300,355 160,235 0,310 Z" />
+            <path fill="url(#kvc-rb2)" d="M0,90 C200,40 330,150 520,110 C700,72 820,120 1000,70 L1000,100 C820,150 700,105 520,145 C330,185 200,80 0,125 Z" />
+        </svg>
+    );
+}
+
 function FinalCta() {
     const c = cta();
     return (
         <section data-bg="action" aria-labelledby="cta-title" className="py-20">
             <div className="mx-auto max-w-5xl px-4 sm:px-6">
-                <Reveal className="relative overflow-hidden rounded-[20px] bg-deep px-6 py-14 text-center sm:px-12">
-                    <span className="mx-auto mb-5 grid w-fit place-items-center text-white">
-                        <KavachMark className="h-12 w-12" />
+                <Reveal className="kv-cta2 px-6 py-14 text-center sm:px-12">
+                    {/* Background aapke silk jaisa (pastel ribbon + bubbles); dark mode me bhi yahi */}
+                    <CtaRibbon />
+                    <span className="kv-cta2-bubble is-a" aria-hidden="true" />
+                    <span className="kv-cta2-bubble is-b" aria-hidden="true" />
+                    <span className="kv-cta2-bubble is-c" aria-hidden="true" />
+                    <span className="kv-cta2-mark relative mx-auto mb-5" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <path d="M12 2.8l7.2 2.9v5.6c0 4.7-3 8.3-7.2 10-4.2-1.7-7.2-5.3-7.2-10V5.7L12 2.8z" fill="currentColor" fillOpacity="0.22" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                            <path d="M8.6 12.1l2.3 2.3 4.6-4.7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
                     </span>
-                    <h2 id="cta-title" className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                    <h2 id="cta-title" className="relative text-3xl font-bold tracking-tight sm:text-4xl">
                         Put your DPDP work in one place
                     </h2>
-                    <p className="mx-auto mt-4 max-w-xl text-white/70">Sign in to set up purposes, publish your first notice and start recording consent.</p>
-                    <Link to={c.to} className="mt-8 inline-flex items-center gap-2 rounded-[10px] bg-white px-5 py-3 text-sm font-semibold text-[#1F449E] hover:bg-white/90">
+                    <p className="relative mx-auto mt-4 max-w-xl">Sign in to set up purposes, publish your first notice and start recording consent.</p>
+                    <Link to={c.to} className="kv-cta-main relative mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
                         {c.label}
                         <Glyph name="arrow" className="h-4 w-4" />
                     </Link>

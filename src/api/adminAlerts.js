@@ -4,7 +4,7 @@ import { getAllGrievances } from "./grievance.js";
 import { getPrivacyRequestList } from "./privacyRequest.js";
 import { formatDate, isFinished, sameText } from "../utils/breach.js";
 
-const DONE_REQUEST = /fulfilled|rejected|withdrawn|expired|closed|completed|resolved/i;
+const DONE_REQUEST = /^(fulfilled|rejected|withdrawn|expired)$/i;
 const OPEN_GRIEVANCE = (s) => sameText(s, "open") || sameText(s, "in progress");
 const time = (d) => (d ? new Date(d).getTime() || 0 : 0);
 const day = (d) => (d ? formatDate(d) : "");

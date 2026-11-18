@@ -4,6 +4,8 @@ import { isFinished, sameText } from "./breach.js";
 import { STATUS as DPIA_STATUS, displayStatus } from "./dpia.js";
 
 const DAY = 86400000;
+// "3 incidents" / "1 incident" ("incident(s)" jaisa robotic text nahi)
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const arr = (v) => (Array.isArray(v) ? v : Array.isArray(v?.$values) ? v.$values : []);
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const pct = (a, b) => (b > 0 ? Math.round((a / b) * 1000) / 10 : 0);
@@ -24,7 +26,8 @@ const pick = (o, ...keys) => {
     return undefined;
 };
 
-export const DONE_REQUEST = /fulfilled|rejected|withdrawn|expired|closed|completed|resolved/i;
+// Backend PrivacyRequestStatus: Fulfilled, Rejected, Withdrawn, Expired = band. Baaki (Submitted, InProgress, PartiallyFulfilled...) khuli.
+export const DONE_REQUEST = /^(fulfilled|rejected|withdrawn|expired)$/i;
 
 /** DPDP Act 2023 ki dhaarayein aur Schedule me likhi adhiktam penalty (₹ crore). */
 export const DPDP_SECTIONS = [
@@ -186,38 +189,38 @@ export function buildExecutive(data, now = new Date()) {
     const sec = {};
     if (notices) {
         const published = notices.filter((n) => /publish|active|live/i.test(n.status)).length;
-        sec.notice = notices.length === 0 ? { score: 0, detail: "No notice yet", gap: "No privacy notice has been created." } : { score: published ? clampScore(70 + 30 * (published / notices.length)) : 25, detail: `${published}/${notices.length} published`, gap: published ? (published < notices.length ? `${notices.length - published} notice(s) still in draft.` : null) : "Notices exist but none is published." };
+        sec.notice = notices.length === 0 ? { score: 0, detail: "No notice yet", gap: "No privacy notice has been created." } : { score: published ? clampScore(70 + 30 * (published / notices.length)) : 25, detail: `${published}/${notices.length} published`, gap: published ? (published < notices.length ? `${plural(notices.length - published, "notice")} still in draft.` : null) : "Notices exist but none is published." };
     }
     if (consent) {
-        sec.consent = consent.total === 0 ? { score: null, detail: "No records yet" } : { score: clampScore(consent.rate), detail: `${consent.active}/${consent.total} active`, gap: consent.rate < 80 ? `${consent.total - consent.active} consent record(s) are withdrawn, expired or declined.` : null };
+        sec.consent = consent.total === 0 ? { score: null, detail: "No records yet" } : { score: clampScore(consent.rate), detail: `${consent.active}/${consent.total} active`, gap: consent.rate < 80 ? `${plural(consent.total - consent.active, "consent record")} ${consent.total - consent.active === 1 ? "is" : "are"} withdrawn, expired or declined.` : null };
     } else if (camp && camp.accepted + camp.rejected > 0) {
         const r = pct(camp.accepted, camp.accepted + camp.rejected);
         sec.consent = { score: clampScore(r), detail: `${r}% accepted`, gap: r < 80 ? "Many campaign responses were rejected." : null };
     }
     if (severity) {
         const penalty = severity.critical * 30 + severity.high * 18 + severity.medium * 10 + severity.low * 5 + severity.unset * 8;
-        sec.security = { score: clampScore(100 - penalty), detail: `${severity.open} open incident${severity.open === 1 ? "" : "s"}`, gap: severity.open ? `${severity.open} incident(s) are still open${severity.critical ? `, ${severity.critical} critical` : ""}.` : null };
+        sec.security = { score: clampScore(100 - penalty), detail: `${severity.open} open incident${severity.open === 1 ? "" : "s"}`, gap: severity.open ? `${plural(severity.open, "incident")} ${severity.open === 1 ? "is" : "are"} still open${severity.critical ? `, ${severity.critical} critical` : ""}.` : null };
         const triaged = incidents.filter((i) => i.severity && !sameText(i.status, "open")).length;
-        sec.breachNotice = incidents.length === 0 ? { score: 100, detail: "No incidents" } : { score: clampScore(pct(triaged, incidents.length)), detail: `${triaged}/${incidents.length} triaged`, gap: triaged < incidents.length ? `${incidents.length - triaged} incident(s) not yet triaged (severity + status).` : null };
+        sec.breachNotice = incidents.length === 0 ? { score: 100, detail: "No incidents" } : { score: clampScore(pct(triaged, incidents.length)), detail: `${triaged}/${incidents.length} triaged`, gap: triaged < incidents.length ? `${plural(incidents.length - triaged, "incident")} not yet triaged (no severity or status).` : null };
     }
     if (retention) {
-        sec.retention = { score: clampScore(100 - retention.overdue * 10), detail: retention.overdue ? `${retention.overdue} overdue` : `${retention.activePolicies} active policies`, gap: retention.overdue ? `${retention.overdue} record(s) are past their retention date.` : retention.activePolicies === 0 ? "No retention policy is active." : null };
+        sec.retention = { score: clampScore(100 - retention.overdue * 10), detail: retention.overdue ? `${retention.overdue} overdue` : `${retention.activePolicies} active policies`, gap: retention.overdue ? `${plural(retention.overdue, "record")} ${retention.overdue === 1 ? "is" : "are"} past the retention date.` : retention.activePolicies === 0 ? "No retention policy is active." : null };
         if (retention.activePolicies === 0 && !retention.overdue) sec.retention.score = 50;
     } else if (inv && inv.total) {
         const withRet = inventory.filter((i) => num(i.retentionDays) > 0).length;
-        sec.retention = { score: clampScore(pct(withRet, inv.total)), detail: `${withRet}/${inv.total} with retention`, gap: withRet < inv.total ? `${inv.total - withRet} data point(s) have no retention period.` : null };
+        sec.retention = { score: clampScore(pct(withRet, inv.total)), detail: `${withRet}/${inv.total} with retention`, gap: withRet < inv.total ? `${plural(inv.total - withRet, "data point")} ${inv.total - withRet === 1 ? "has" : "have"} no retention period.` : null };
     }
     if (reqStats) {
-        sec.rights = reqStats.open === 0 ? { score: 100, detail: "No open requests" } : { score: clampScore(pct(reqStats.onTrack, reqStats.open)), detail: `${reqStats.onTrack}/${reqStats.open} on time`, gap: reqStats.overdue ? `${reqStats.overdue} rights request(s) are past the 30-day deadline.` : null };
+        sec.rights = reqStats.open === 0 ? { score: 100, detail: "No open requests" } : { score: clampScore(pct(reqStats.onTrack, reqStats.open)), detail: `${reqStats.onTrack}/${reqStats.open} on time`, gap: reqStats.overdue ? `${plural(reqStats.overdue, "rights request")} ${reqStats.overdue === 1 ? "is" : "are"} past the 30-day deadline.` : null };
     }
     if (grievances) {
         const resolved = grievances.filter((g) => /resolved|closed/i.test(g.status)).length;
-        sec.grievance = grievances.length === 0 ? { score: 100, detail: "No grievances" } : { score: clampScore(pct(resolved, grievances.length)), detail: `${resolved}/${grievances.length} resolved`, gap: resolved < grievances.length ? `${grievances.length - resolved} grievance(s) still open.` : null };
+        sec.grievance = grievances.length === 0 ? { score: 100, detail: "No grievances" } : { score: clampScore(pct(resolved, grievances.length)), detail: `${resolved}/${grievances.length} resolved`, gap: resolved < grievances.length ? `${plural(grievances.length - resolved, "grievance")} still open.` : null };
     }
     if (dpias) {
         const approved = dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.APPROVED).length;
         const pending = dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.PENDING).length;
-        sec.dpia = dpias.length === 0 ? { score: null, detail: "No DPIA yet" } : { score: clampScore(pct(approved, dpias.length)), detail: `${approved}/${dpias.length} approved`, gap: pending ? `${pending} DPIA(s) waiting for DPO review.` : null };
+        sec.dpia = dpias.length === 0 ? { score: null, detail: "No DPIA yet" } : { score: clampScore(pct(approved, dpias.length)), detail: `${approved}/${dpias.length} approved`, gap: pending ? `${plural(pending, "DPIA")} waiting for DPO review.` : null };
     }
 
     const sections = DPDP_SECTIONS.map((d) => {
@@ -271,7 +274,7 @@ export function buildExecutive(data, now = new Date()) {
             .filter((d) => displayStatus(d.status) === DPIA_STATUS.PENDING)
             .forEach((d) => deadlines.push({ key: `d-${d.id}`, icon: "scale", title: `DPIA review: ${d.title}`, meta: "Waiting for DPO decision", tone: "info", at: (toTime(d.createdAt) ?? nowMs) + 14 * DAY, to: `/dashboard/dpia/${encodeURIComponent(d.id)}` }));
     }
-    if (retention?.overdue) deadlines.push({ key: "ret", icon: "clock", title: `${retention.overdue} record(s) past retention`, meta: "Erase or anonymise now", tone: "bad", at: nowMs - 1, to: "/dashboard/retention" });
+    if (retention?.overdue) deadlines.push({ key: "ret", icon: "clock", title: `${plural(retention.overdue, "record")} past retention`, meta: "Erase or anonymise now", tone: "bad", at: nowMs - 1, to: "/dashboard/retention" });
     PHASES.forEach((p) => {
         const t = toTime(p.date);
         if (t !== null && t >= nowMs - DAY) {
@@ -285,7 +288,7 @@ export function buildExecutive(data, now = new Date()) {
     let attention = null;
     if (severity?.critical) attention = { tone: "bad", text: `${severity.critical} critical breach${severity.critical === 1 ? " is" : "es are"} still open. Under DPDP Rules the Board must be informed within 72 hours.`, to: "/dashboard/breach", action: "Open breach desk" };
     else if (reqStats?.overdue) attention = { tone: "warn", text: `${reqStats.overdue} rights request${reqStats.overdue === 1 ? " is" : "s are"} past the 30-day deadline.`, to: "/dashboard/rights-requests", action: "Review requests" };
-    else if (retention?.overdue) attention = { tone: "warn", text: `${retention.overdue} record(s) are past their retention period and should be erased.`, to: "/dashboard/retention", action: "Open erasure queue" };
+    else if (retention?.overdue) attention = { tone: "warn", text: `${plural(retention.overdue, "record")} ${retention.overdue === 1 ? "is" : "are"} past the retention period and should be erased.`, to: "/dashboard/retention", action: "Open erasure queue" };
 
     /* ---------- extra charts */
     const months6 = monthBuckets(6, now);
@@ -318,7 +321,6 @@ export function buildExecutive(data, now = new Date()) {
               approved: dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.APPROVED).length,
               pending: dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.PENDING).length,
               changes: dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.CHANGES).length,
-              rejected: dpias.filter((d) => displayStatus(d.status) === DPIA_STATUS.REJECTED).length,
           }
         : null;
     let categories = null;
@@ -368,6 +370,7 @@ export function buildExecutive(data, now = new Date()) {
         health,
         kpi: {
             users: s?.users ?? null,
+            principals: data.principals?.ok ? data.principals.data : null,
             activeConsents: s?.active ?? consent?.active ?? null,
             consentBase: s?.users || null,
             pending: reqStats?.open ?? null,

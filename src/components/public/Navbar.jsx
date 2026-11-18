@@ -39,9 +39,9 @@ export default function Navbar() {
                     <Logo />
                 </Link>
 
-                <nav aria-label="Primary" className="ml-6 hidden items-center gap-1 md:flex">
+                <nav aria-label="Primary" className="ml-6 hidden items-center gap-1 lg:flex">
                     {SECTION_LINKS.map((l) => (
-                        <a key={l.href} href={l.href} className={`rounded-lg px-3 py-2 text-sm font-medium hover:bg-subtle hover:text-ink ${isOn(l.href) ? "text-brand-ink" : "text-ink-3"}`}>
+                        <a key={l.href} href={l.href} className={`whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium hover:bg-subtle hover:text-ink ${isOn(l.href) ? "text-brand-ink" : "text-ink-3"}`}>
                             {l.label}
                         </a>
                     ))}
@@ -51,21 +51,24 @@ export default function Navbar() {
                     <ThemeToggle />
                     {session ? (
                         <>
-                            <Link to={homePath(session)} className="hidden rounded-[10px] bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-strong sm:inline-flex">
+                            <Link to={homePath(session)} className="kv-nav-dash hidden items-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold sm:inline-flex">
+                                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden="true">
+                                    <path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" />
+                                </svg>
                                 Open {info.label} dashboard
                             </Link>
-                            <button type="button" onClick={onLogout} className="hidden rounded-[10px] border border-line bg-surface px-3.5 py-2 text-sm font-semibold text-ink-2 hover:bg-soft sm:inline-flex">
+                            <button type="button" onClick={onLogout} className="kv-nav-out hidden whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold sm:inline-flex">
                                 Logout
                             </button>
                         </>
                     ) : (
                         location.pathname !== "/login" && (
-                            <Link to="/login" className="hidden rounded-[10px] bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-strong sm:inline-flex">
+                            <Link to="/login" className="kv-nav-dash hidden rounded-full px-4 py-2 text-sm font-semibold sm:inline-flex">
                                 Sign in
                             </Link>
                         )
                     )}
-                    <button type="button" onClick={() => setOpen((v) => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} className="kv-icon-btn md:hidden">
+                    <button type="button" onClick={() => setOpen((v) => !v)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} className="kv-icon-btn lg:hidden">
                         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
                             <path d={open ? "M18 6L6 18M6 6l12 12" : "M4 7h16M4 12h16M4 17h16"} />
                         </svg>
@@ -74,7 +77,7 @@ export default function Navbar() {
             </div>
 
             {open && (
-                <div className="pg-alert border-t border-line bg-surface px-4 pb-4 pt-2 md:hidden">
+                <div className="pg-alert border-t border-line bg-surface px-4 pb-4 pt-2 lg:hidden">
                     <ul className="space-y-1">
                         {SECTION_LINKS.map((l) => (
                             <li key={l.href}>
@@ -87,15 +90,15 @@ export default function Navbar() {
                     <div className="mt-3 grid gap-2">
                         {session ? (
                             <>
-                                <NavLink to={homePath(session)} className="rounded-[10px] bg-brand py-2.5 text-center text-sm font-semibold text-white">
+                                <NavLink to={homePath(session)} className="kv-nav-dash rounded-full py-2.5 text-center text-sm font-semibold">
                                     Open {info.label} dashboard
                                 </NavLink>
-                                <button type="button" onClick={onLogout} className="rounded-[10px] border border-line py-2.5 text-sm font-semibold text-ink-2">
+                                <button type="button" onClick={onLogout} className="kv-nav-out rounded-full py-2.5 text-sm font-semibold">
                                     Logout
                                 </button>
                             </>
                         ) : (
-                            <Link to="/login" className="rounded-[10px] bg-brand py-2.5 text-center text-sm font-semibold text-white">
+                            <Link to="/login" className="kv-nav-dash rounded-full py-2.5 text-center text-sm font-semibold">
                                 Sign in
                             </Link>
                         )}

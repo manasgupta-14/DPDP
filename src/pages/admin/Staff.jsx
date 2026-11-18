@@ -43,6 +43,7 @@ function AddStaffForm({ roles, units, onSaved, onClose }) {
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">Add staff</h2>
+            <p className="mt-0.5 text-xs text-muted">Add a team member who works on privacy tasks.</p>
             <div className="mt-5 space-y-4">
                 <label className="block text-sm font-medium text-ink-2">
                     Name <span className="text-bad-ink">*</span>

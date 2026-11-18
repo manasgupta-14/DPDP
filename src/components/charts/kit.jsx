@@ -11,6 +11,10 @@ export const C = {
     red: "var(--k-c4)",
     violet: "var(--k-c5)",
     sky: "var(--k-c6)",
+    pink: "var(--k-c7)",
+    lime: "var(--k-c8)",
+    indigo: "var(--k-c9)",
+    orange: "var(--k-c10)",
     ok: "var(--k-ok)",
     warn: "var(--k-warn)",
     bad: "var(--k-bad)",
@@ -314,32 +318,72 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
 }
 
 /* ------------------------------------------------------------------ Column (bar) chart */
-export function ColumnChart({ labels, series, height = 230, stacked = false, ariaLabel }) {
+/** Premium 3D gradient bar palette: blue, violet, teal, amber, green (ek-series chart me har bar alag rang) */
+export const BAR3D = [C.brand, C.violet, C.teal, C.amber, C.pink, C.lime, C.orange, C.sky];
+
+// Premium 3D gradient vertical bars: gol upar ke kone, halki chamak + saaya, upar % label,
+// bahut halki grid, hover par tooltip, aur neeche se smooth animated growth.
+// barColors: ek-series chart me har bar ka apna rang. percent: "series" (us series ke total ka %) ya "group" (us column ke total ka %).
+export function ColumnChart({ labels, series, height = 230, stacked = false, ariaLabel, barColors, percent }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
     const [hover, setHover] = useState(null);
-    const m = { t: 14, r: 8, b: 30, l: 40 };
+    const uid = useRef(`b3${Math.random().toString(36).slice(2, 8)}`).current;
+    const m = { t: 26, r: 8, b: 30, l: 40 };
     const w = width - m.l - m.r;
     const h = height - m.t - m.b;
     const n = labels.length;
     const totals = labels.map((_, i) => series.reduce((s, x) => s + (Number(x.values[i]) || 0), 0));
+    const seriesTotals = series.map((x) => x.values.reduce((s, v) => s + (Number(v) || 0), 0));
     const max = stacked ? Math.max(0, ...totals) : Math.max(0, ...series.flatMap((s) => s.values));
     const { top, step } = niceScale(max);
     const band = w / Math.max(1, n);
-    const inner = Math.min(band * 0.7, stacked ? 44 : 22 * series.length + 8);
-    const bw = stacked ? inner : Math.max(4, (inner - (series.length - 1) * 3) / series.length);
+    const inner = Math.min(band * 0.72, stacked ? 46 : 26 * series.length + 8);
+    const bw = stacked ? inner : Math.max(5, (inner - (series.length - 1) * 4) / series.length);
     const Y = (v) => m.t + h - (v / top) * h;
     const ticks = [];
     for (let v = 0; v <= top + 1e-9; v += step) ticks.push(v);
     const clip = (s) => (s.length > 12 ? `${s.slice(0, 11)}…` : s);
+    const mode = percent || (series.length === 1 ? "series" : "group");
+    const pctOf = (v, i, si) => {
+        const base = mode === "group" ? totals[i] : seriesTotals[si];
+        return base ? Math.round((v / base) * 100) : 0;
+    };
+    const colorOf = (si, i) => (barColors && series.length === 1 ? barColors[i % barColors.length] : series[si].color || SERIES[si]);
+    const showPct = !stacked && bw >= 14;
+    const pctSize = bw >= 26 ? 12 : 10;
 
     return (
         <div ref={wrapRef} className="relative w-full">
             <div ref={ref} data-in={inView}>
-                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)}>
+                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)} className="kc-3d">
+                    <defs>
+                        {labels.map((_, i) =>
+                            series.map((s, si) => {
+                                const c = colorOf(si, i);
+                                return (
+                                    <linearGradient key={`${i}-${si}`} id={`${uid}-g${i}-${si}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={`color-mix(in srgb, ${c} 55%, white)`} style={{ stopColor: `color-mix(in srgb, ${c} 55%, white)` }} />
+                                        <stop offset="55%" stopColor={c} style={{ stopColor: c }} />
+                                        <stop offset="100%" stopColor={`color-mix(in srgb, ${c} 82%, black)`} style={{ stopColor: `color-mix(in srgb, ${c} 82%, black)` }} />
+                                    </linearGradient>
+                                );
+                            })
+                        )}
+                        <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#fff" stopOpacity=".45" />
+                            <stop offset="30%" stopColor="#fff" stopOpacity=".1" />
+                            <stop offset="58%" stopColor="#fff" stopOpacity="0" />
+                            <stop offset="100%" stopColor="#000" stopOpacity=".2" />
+                        </linearGradient>
+                        <linearGradient id={`${uid}-shine`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#fff" stopOpacity=".75" />
+                            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+                        </linearGradient>
+                    </defs>
                     {ticks.map((t) => (
                         <g key={t}>
-                            <line className="kc-grid" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 4"} />
+                            <line className="kc-grid kc-grid-soft" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 5"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {fmtNum(t)}
                             </text>
@@ -350,22 +394,31 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                         let acc = 0;
                         return (
                             <g key={`${l}-${i}`} onMouseEnter={() => setHover(i)}>
-                                <rect x={m.l + band * i} y={m.t} width={band} height={h} fill={hover === i ? "var(--k-subtle)" : "transparent"} />
+                                <rect x={m.l + band * i} y={m.t} width={band} height={h} rx="8" fill={hover === i ? "var(--k-subtle)" : "transparent"} opacity=".7" />
                                 {series.map((s, si) => {
                                     const v = Number(s.values[i]) || 0;
                                     const bh = (v / top) * h;
-                                    const x = stacked ? x0 : x0 + si * (bw + 3);
+                                    const x = stacked ? x0 : x0 + si * (bw + 4);
                                     const y = stacked ? m.t + h - ((acc + v) / top) * h : m.t + h - bh;
                                     acc += v;
                                     if (bh <= 0) return null;
-                                    const rad = Math.min(5, bw / 2, bh);
+                                    const rad = Math.min(stacked ? 6 : 12, bw / 2, bh);
+                                    const d = `M${x},${y + bh}V${y + rad}Q${x},${y} ${x + rad},${y}H${x + bw - rad}Q${x + bw},${y} ${x + bw},${y + rad}V${y + bh}Z`;
+                                    const c = colorOf(si, i);
+                                    const delay = `${i * 80 + si * 60}ms`;
                                     return (
-                                        <path
-                                            key={s.name}
-                                            className="kc-bar"
-                                            d={`M${x},${y + bh}V${y + rad}Q${x},${y} ${x + rad},${y}H${x + bw - rad}Q${x + bw},${y} ${x + bw},${y + rad}V${y + bh}Z`}
-                                            style={{ fill: s.color || SERIES[si], "--d": `${i * 70 + si * 50}ms`, transformBox: "fill-box" }}
-                                        />
+                                        <g key={s.name + si}>
+                                            <g className="kc-bar" style={{ "--d": delay, transformBox: "fill-box", filter: hover === i ? "brightness(1.06) saturate(1.08)" : "none" }}>
+                                                <path d={d} fill={`url(#${uid}-g${i}-${si})`} />
+                                                <path d={d} fill={`url(#${uid}-side)`} />
+                                                {bh > 14 && bw > 10 && <rect x={x + bw * 0.16} y={y + 3} width={bw * 0.68} height={Math.min(10, bh / 3)} rx={Math.min(5, bw / 4)} fill={`url(#${uid}-shine)`} />}
+                                            </g>
+                                            {showPct && v > 0 && (
+                                                <text className="kc-pct" x={x + bw / 2} y={y - 7} textAnchor="middle" style={{ fill: `color-mix(in srgb, ${c} 75%, var(--k-ink))`, fontSize: pctSize, "--d": `${500 + i * 80 + si * 60}ms` }}>
+                                                    {pctOf(v, i, si)}%
+                                                </text>
+                                            )}
+                                        </g>
                                     );
                                 })}
                                 <text className="kc-axis" x={m.l + band * i + band / 2} y={height - 10} textAnchor="middle">
@@ -383,7 +436,10 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                     width={width}
                     title={labels[hover]}
                     rows={(() => {
-                        const all = series.map((s, si) => ({ name: s.name, value: Number(s.values[hover]) || 0, color: s.color || SERIES[si] }));
+                        const all = series.map((s, si) => {
+                            const v = Number(s.values[hover]) || 0;
+                            return { name: stacked ? s.name : `${s.name} · ${pctOf(v, hover, si)}%`, value: v, color: colorOf(si, hover) };
+                        });
                         const nz = stacked ? all.filter((r) => r.value > 0) : all;
                         return nz.length ? nz : all.slice(0, 1);
                     })()}
@@ -408,7 +464,7 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
                                 {r.label}
                             </span>
                             {showValue && (
-                                <span className="shrink-0 font-bold tabular-nums text-ink">
+                                <span className="shrink-0 font-bold tabular-nums text-ink" style={{ color: `color-mix(in srgb, ${r.color || SERIES[i % SERIES.length]} 80%, var(--k-ink))` }}>
                                     {r.display ?? `${fmtNum(r.value)}${suffix}`}
                                 </span>
                             )}
