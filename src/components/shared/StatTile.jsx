@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CountUp, useInView } from "../charts/kit.jsx";
+import { CountUp, fmtNum, useFloatTip, useInView } from "../charts/kit.jsx";
 import Icon from "./Icon.jsx";
 
 // Ek number wala card (har page ke summary me): bada number, chhota icon, halka rang aur
@@ -20,6 +20,7 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
     const [ref, inView] = useInView();
     const isNum = typeof value === "number" && Number.isFinite(value);
     const share = isNum && total > 0 ? Math.min(100, (value / total) * 100) : null;
+    const [bind, renderTip] = useFloatTip();
 
     const body = (
         <>
@@ -33,8 +34,11 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
             </div>
             <p className={`kd-big mt-2 text-[32px] ${colorValue ? t.ink : ""}`}>{isNum ? <CountUp value={value} /> : value ?? "—"}</p>
             {share !== null && (
-                <div ref={ref} data-in={inView} className="mt-3 h-1.5 overflow-hidden rounded-full" style={{ background: "var(--k-track)" }} aria-hidden>
-                    <div className="kc-hbar h-full rounded-full" style={{ width: `${Math.max(share, value > 0 ? 3 : 0)}%`, background: t.bar }} />
+                <div ref={ref} data-in={inView} className="kc-hov mt-1.5 -mb-1.5 py-1.5" aria-hidden {...bind}>
+                    <div className="h-1.5 overflow-hidden rounded-full" style={{ background: "var(--k-track)" }}>
+                        <div className="kc-hbar h-full rounded-full" style={{ width: `${Math.max(share, value > 0 ? 3 : 0)}%`, background: t.bar }} />
+                    </div>
+                    {renderTip({ title: label, rows: [{ name: `${fmtNum(value)} of ${fmtNum(total)}`, value: share, display: `${Math.round(share)}%`, color: t.bar }] })}
                 </div>
             )}
             {hint && <p className="mt-2 text-xs text-muted">{hint}</p>}

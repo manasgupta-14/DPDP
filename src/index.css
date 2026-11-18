@@ -1166,3 +1166,42 @@ html[data-theme="dark"] .kv-mark.is-no { color: #FCA5A5; background: rgba(239, 6
 /* Chhota text thoda bada (padhne layak) */
 .kv-public .text-xs { font-size: 0.8125rem; line-height: 1.15rem; }
 .kv-hub-text { font-size: 13px; }
+
+/* ---- v103: chart hover popups (sab charts me ek jaisa) ---- */
+.kc-tip { animation: kc-tip-in .16s ease-out; }
+.kc-tip-float { z-index: 9999; min-width: 150px; max-width: 240px; white-space: normal; }
+.kc-tip p { line-height: 1.35; }
+@keyframes kc-tip-in { from { opacity: 0; } to { opacity: 1; } }
+.kc-hov { cursor: default; }
+.kc-seg { cursor: pointer; }
+.kc-hrow { border-radius: 10px; margin-inline: -6px; padding: 4px 6px; transition: background-color .18s ease; }
+.kc-hrow[data-active] { background: var(--k-subtle); }
+
+/* ---- v103: home hub — tairta card, mouse par tilt, naam animation ---- */
+.kv-hub-float { perspective: 1200px; animation: kv-hub-float 6.5s ease-in-out infinite; will-change: transform; }
+@keyframes kv-hub-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.kv-hub-tilt { --rx: 0deg; --ry: 0deg; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform .6s cubic-bezier(.22,1,.36,1), box-shadow .4s ease; }
+.kv-hub-tilt[data-tilt] { transition: transform .12s ease-out, box-shadow .4s ease; box-shadow: 0 1px 2px rgba(15,23,42,.05), 0 14px 30px -10px rgba(15,23,42,.14), 0 44px 80px -30px rgba(76,61,200,.45); }
+.kv-hub-glare { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s ease;
+  background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.55), transparent 55%); mix-blend-mode: soft-light; z-index: 1; }
+.kv-hub-tilt[data-tilt] .kv-hub-glare { opacity: 1; }
+html[data-theme="dark"] .kv-hub-glare { background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 0%), rgba(140,160,255,.16), transparent 55%); mix-blend-mode: normal; }
+html[data-theme="dark"] .kv-hub-tilt[data-tilt] { box-shadow: 0 40px 80px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.08); }
+
+.kv-hub-name-anim { min-height: 1.35em; white-space: nowrap; }
+.kv-name-word { display: inline-flex; }
+.kv-name-word[lang="hi"] { font-size: 1.12em; line-height: 1.1; font-family: "Noto Sans Devanagari", "Mangal", "Nirmala UI", var(--font-display), sans-serif; letter-spacing: 0; }
+.kv-name-ch { display: inline-block; opacity: 0; transform: translateY(.45em); filter: blur(4px);
+  background: linear-gradient(100deg, #3B6BF5, #7C5CFC 55%, #EC4899); -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: kv-name-in .55s cubic-bezier(.22,1,.36,1) calc(var(--k) * 70ms) forwards; }
+@keyframes kv-name-in { to { opacity: 1; transform: none; filter: blur(0); } }
+html[data-theme="dark"] .kv-name-ch { background-image: linear-gradient(100deg, #7DD3FC, #A78BFA 55%, #F9A8D4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-hub-float { animation: none; }
+  .kv-name-ch { opacity: 1; transform: none; filter: none; animation: none; }
+}
+
+/* ---- v104: inventory processor tags — andar wala input saada rahe (bahar ka box hi field hai) ---- */
+.kv-tag-input, html[data-theme="dark"] .kv-tag-input { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; min-height: 1.6rem; outline: none !important; border-radius: 0 !important; }
+.kv-tag-box:focus-within { border-color: var(--k-brand) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-brand) 18%, transparent) !important; }

@@ -112,13 +112,6 @@ export default function DpoDashboard() {
                 greeting="Welcome"
                 name={first}
                 sub="Review risky data use before it starts."
-                status={
-                    state.loading || state.error
-                        ? null
-                        : m.pending.length
-                            ? { tone: "warn", label: `${m.pending.length} review${m.pending.length === 1 ? "" : "s"} waiting` }
-                            : { tone: "ok", label: "No reviews waiting" }
-                }
                 actions={
                     <>
                         <button
@@ -176,6 +169,7 @@ export default function DpoDashboard() {
                             <p className="kd-sub">All DPIAs by current status</p>
                             <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row lg:flex-col xl:flex-row">
                                 <Donut
+                                    name="DPIA reviews"
                                     parts={[
                                         { label: "Approved", value: m.approved, color: C.ok },
                                         { label: "Waiting", value: m.pending.length, color: C.amber },
