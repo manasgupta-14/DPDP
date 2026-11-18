@@ -60,7 +60,7 @@ export default function BatchList({ batches, kinds: knownKinds, statuses: knownS
             ) : shown.length === 0 ? (
                 <div className="py-14 text-center">
                     <p className="text-sm font-semibold text-ink">{batches.length === 0 ? "No batches yet" : "No records found"}</p>
-                    <p className="mt-1 text-xs text-muted">{batches.length === 0 ? "Stage a CSV above and it will appear here." : "Try widening your filters."}</p>
+                    <p className="mt-1 text-xs text-muted">{batches.length === 0 ? "Upload a CSV above and it will appear here." : "Try widening your filters."}</p>
                 </div>
             ) : (
                 <div className="mt-4 overflow-x-auto">

@@ -30,6 +30,11 @@ export const PURPOSE_STATE = { allowed: "Allowed", denied: "Not allowed", withdr
 export const MISSING = "Not recorded";
 
 export const NOT_IN_API = "-";
+
+// Backend abhi har consent par ek hi fixed naam ("general_service_notice_v1") bhejta hai, asli notice nahi.
+// Use asli notice ki tarah nahi dikhate; jab backend asli notice code bhejega, wo apne aap dikhega.
+const PLACEHOLDER_NOTICES = new Set(["general_service_notice_v1"]);
+const realNotice = (v) => (v && !PLACEHOLDER_NOTICES.has(String(v).trim().toLowerCase()) ? v : "");
 export const NOT_IN_API_HINT = "";
 export const NOT_SET = "Not set";
 
@@ -157,7 +162,7 @@ export function normalizeConsentArtifact(record, index = 0, purposes = [], princ
         reference: String(pick(record, ["referenceNumber", "reference", "receiptId", "receipt"]) ?? id),
         receiptId: pick(record, ["receiptId", "receipt"]),
         principalId: String(pick(record, ["dataPrincipalId", "dataPrincipal"]) ?? principalId ?? ""),
-        notice: pick(record, ["notice"]),
+        notice: realNotice(pick(record, ["notice"])),
         status: recordStatus,
         purposes: mapped,
         channel: channelLabel(pick(record, ["channel"])),
@@ -224,7 +229,7 @@ export function normalizeConsentRecord(record, index = 0) {
         reference: String(pick(record, ["referenceNumber", "reference", "receiptId", "receipt"]) ?? id),
         receiptId: pick(record, ["receiptId", "receipt"]),
         principalId: String(pick(record, ["dataPrincipalId", "dataPrincipal"]) ?? ""),
-        notice: pick(record, ["notice"]),
+        notice: realNotice(pick(record, ["notice"])),
         status,
         purposes,
         channel: channelLabel(rawKey(record, "channel")),

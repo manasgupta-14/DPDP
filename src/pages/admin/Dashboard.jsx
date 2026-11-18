@@ -59,7 +59,7 @@ function Card({ title, sub, action, children, className = "", i = 0, ...rest }) 
 
 const HEALTH_COLORS = [C.brand, C.teal, C.violet, C.orange, C.pink, C.lime];
 
-function NoAccess({ text = "You do not have access to this data, or the server did not return it." }) {
+function NoAccess({ text = "You do not have access to this data." }) {
     return (
         <p className="flex items-center gap-2 rounded-lg bg-soft px-3 py-3 text-sm text-muted">
             <Icon name="lock" className="h-4 w-4" />
@@ -250,20 +250,18 @@ export default function Dashboard() {
             {/* Page header: welcome hero (status asli data se) */}
             <WelcomeHero
                 style={rise(0)}
-                eyebrow="Executive summary"
                 greeting={greeting()}
                 name={firstName}
-                sub="Stay compliant, secure and in control with Kavach."
+                sub="Your privacy work at a glance."
                 status={
-                    state.loading
-                        ? { tone: "muted", label: "Checking your records" }
-                        : m?.attention?.tone === "bad"
-                          ? { tone: "bad", label: "Needs action now" }
-                          : m?.attention
+                    // Sirf tab dikhao jab data aa chuka ho (loading / error par koi anumaan wala label nahi)
+                    !m || m.error
+                        ? null
+                        : m.attention?.tone === "bad"
+                          ? { tone: "bad", label: "Action needed" }
+                          : m.attention
                             ? { tone: "warn", label: "Needs attention" }
-                            : m && !m.error
-                              ? { tone: "ok", label: "No urgent issues" }
-                              : { tone: "warn", label: "Some data did not load" }
+                            : { tone: "ok", label: "All on track" }
                 }
                 meta={
                     <>
@@ -314,7 +312,7 @@ export default function Dashboard() {
 
 
                     {/* Health at a glance: chhote ring charts */}
-                    <Card i={12} title="Health at a glance" sub="Six quick checks from your live records">
+                    <Card i={12} title="Health at a glance" sub="Six quick checks">
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
                             {m.health.map((h, hi) => (
                                 <Link key={h.key} to={h.to} className="kd-tile-tint group flex flex-col items-center rounded-xl border border-line px-2 py-4 text-center" style={{ "--kv-tint": HEALTH_COLORS[hi % HEALTH_COLORS.length] }}>
@@ -327,6 +325,68 @@ export default function Dashboard() {
                             ))}
                         </div>
                     </Card>
+
+                    {/* Compliance checklist (backend: GET /api/ComplianceChecklist) */}
+                    {m.checklist && (
+                        <Card
+                            i={13}
+                            title="Compliance checklist"
+                            sub="Each DPDP duty, checked against your records"
+                            action={
+                                <Link to="/dashboard/checklist" className="kd-link">
+                                    View checklist <Icon name="arrowRight" className="h-3.5 w-3.5" />
+                                </Link>
+                            }
+                        >
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+                                <div>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                                        <span className="text-ink-3">
+                                            <b className="text-ink">{m.checklist.complete}</b> of <b className="text-ink">{m.checklist.tracked}</b> tracked items complete
+                                        </span>
+                                        <span className={`kd-big kd-num kd-num-${m.checklist.progress >= 80 ? "ok" : m.checklist.progress >= 50 ? "warn" : "bad"} text-[22px]`}>
+                                            <CountUp value={m.checklist.progress} suffix="%" />
+                                        </span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} />
+                                    </div>
+                                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.ok }}>
+                                            <p className="text-lg font-bold text-ok-ink">{m.checklist.complete}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Complete</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                            <p className="text-lg font-bold text-warn-ink">{m.checklist.attention}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Needs attention</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.muted }}>
+                                            <p className="text-lg font-bold text-ink-2">{m.checklist.untracked}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Tracked outside</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul className="space-y-2">
+                                    {m.checklist.items.filter((it) => it.status.key === "attention").slice(0, 4).map((it) => (
+                                        <li key={it.id}>
+                                            <Link to={it.to || "/dashboard/checklist"} className="kd-tile-tint flex items-start gap-3 rounded-lg border px-3 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                                <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0 text-warn-ink" />
+                                                <span className="min-w-0">
+                                                    <span className="block text-sm font-semibold text-ink">{it.requirement}</span>
+                                                    <span className="block text-xs text-ink-3">{it.evidence}</span>
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    {m.checklist.attention === 0 && (
+                                        <li className="flex items-center gap-2 rounded-lg border border-ok/25 bg-ok-soft px-3 py-3 text-sm text-ok-ink">
+                                            <Icon name="check" className="h-4 w-4" /> Every tracked item is complete.
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Three donuts: grievances · DPIA · data categories */}
                     <div className="grid gap-4 lg:grid-cols-3">
@@ -471,7 +531,7 @@ export default function Dashboard() {
                             </div>
                         </Card>
 
-                        <Card i={6} title="Penalty exposure" sub="Highest fine possible if these gaps stay open">
+                        <Card i={6} title="Penalty exposure" sub="Highest fine if gaps stay open">
                             <div className="flex items-center gap-3">
                                 <span className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 ${m.exposure ? "border-bad/30 bg-bad-soft text-bad-ink" : "border-ok/30 bg-ok-soft text-ok-ink"}`}>
                                     <Icon name="shield" className="h-4 w-4" />
@@ -559,7 +619,7 @@ export default function Dashboard() {
                             )}
                         </Card>
 
-                        <Card i={9} className="lg:col-span-3" title="Consent over time" sub="New consents each month and how many are still active" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
+                        <Card i={9} className="lg:col-span-3" title="Consent over time" sub="New and still-active consents per month" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
                             {m.consent ? (
                                 m.consent.total ? (
                                     <AreaChart
@@ -601,7 +661,7 @@ export default function Dashboard() {
                     </section>
 
                     {/* RoPA / inventory coverage */}
-                    <Card i={10} title="Data inventory coverage" sub="How much of your data has a purpose, storage place and retention period" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
+                    <Card i={10} title="Data inventory coverage" sub="Data with purpose, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
                         {m.inventory ? (
                             <div>
                                 <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
@@ -623,7 +683,7 @@ export default function Dashboard() {
                     </Card>
 
                     {/* Module health */}
-                    <Card i={11} title="Module health" sub="Score for each DPDP area, with its highest possible fine">
+                    <Card i={11} title="Module health" sub="Score and highest fine for each area">
                         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                             {m.modules.map((mod, idx) => (
                                 <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="kd-tile-tint group rounded-xl border border-line p-4 text-left hover:shadow-[var(--k-shadow)]" style={{ "--kv-tint": mod.band.color || CARD_TINTS[idx % CARD_TINTS.length] }}>
@@ -661,7 +721,7 @@ export default function Dashboard() {
                                 <NoAccess />
                             )}
                         </Card>
-                        <Card i={14} title="Breaches over time" sub="Reported each month, and how many are now closed" action={<Legend items={[{ label: "Closed", color: C.teal }, { label: "Still open", color: C.pink }]} />}>
+                        <Card i={14} title="Breaches over time" sub="Reported and closed each month" action={<Legend items={[{ label: "Closed", color: C.teal }, { label: "Still open", color: C.pink }]} />}>
                             {m.incidentTrend ? (
                                 <ColumnChart labels={m.incidentTrend.labels} series={[{ name: "Closed", values: m.incidentTrend.closed, color: C.teal }, { name: "Still open", values: m.incidentTrend.reported.map((v, k) => Math.max(0, v - (m.incidentTrend.closed[k] || 0))), color: C.pink }]} stacked height={230} ariaLabel="Breaches per month: closed and still open" />
                             ) : (
@@ -672,7 +732,7 @@ export default function Dashboard() {
 
                     {/* Section-by-section · deadlines */}
                     <div className="grid gap-4 xl:grid-cols-5">
-                        <Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each legal duty with its highest possible fine">
+                        <Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each legal duty and its highest fine">
                             <ul className="-mx-1 divide-y divide-line">
                                 {m.sections.map((x) => (
                                     <li key={x.key} className="flex items-center gap-3 px-1 py-2.5">

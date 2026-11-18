@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getPrivacyRequestDetail, resolvePrivacyRequest } from "../../api/privacyRequest.js";
 import Alert from "../../components/shared/Alert.jsx";
-import NotInApi from "../../components/shared/NotInApi.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { REPLY_TEMPLATES, STATUSES, dateText, dateTimeText, dueInfo, isClosed, shortId, statusLabel, typeLabel } from "../../utils/privacyRequest.js";
@@ -137,7 +136,7 @@ export default function PrivacyRequestDetail() {
 
             {due?.overdue && (
                 <div role="alert" className="rounded-2xl border border-bad/30 bg-bad/10 px-5 py-4 text-sm text-ink">
-                    <p className="font-semibold text-bad-ink">This request is past its statutory deadline</p>
+                    <p className="font-semibold text-bad-ink">This request is past its legal deadline</p>
                     <p className="mt-0.5 text-ink-3">It was due {dateText(request.target)} — {due.text.toLowerCase()}. Complete it now and record the reason for the delay in the response notes.</p>
                 </div>
             )}
@@ -154,7 +153,6 @@ export default function PrivacyRequestDetail() {
                             </Row>
                             <Row label="Email">{request.principalEmail || "-"}</Row>
                             <Row label="Mobile">{request.principalMobile || "-"}</Row>
-                            <Row label="Raised via"><NotInApi /></Row>
                             <Row label="Raised">{dateTimeText(request.created)}</Row>
                             <Row label="Deadline">
                                 <span className="flex flex-wrap items-center gap-2">
@@ -162,13 +160,12 @@ export default function PrivacyRequestDetail() {
                                     <span className="text-xs font-normal text-muted">{dateTimeText(request.target)}</span>
                                 </span>
                             </Row>
-                            <Row label="Assigned to"><NotInApi /></Row>
                             <Row label="Details"><span className="whitespace-pre-wrap font-normal">{request.details || "-"}</span></Row>
                             {closed && <Row label="Closed">{dateTimeText(request.resolved)}</Row>}
                         </dl>
                     </Card>
 
-                    <Card title="Move this request on">
+                    <Card title="Update this request">
                         <div className="space-y-4">
                             <Alert>{formError}</Alert>
                             <div className="grid gap-4">
@@ -205,11 +202,15 @@ export default function PrivacyRequestDetail() {
 
                 <div className="space-y-6">
                     <Card title="Progress">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-line p-4">
-                                <p className="text-xs text-muted">Tasks complete</p>
-                                <p className="mt-2">{request.totalTasks == null ? <NotInApi /> : <span className="text-2xl font-bold text-ink">{request.completedTasks ?? 0} of {request.totalTasks}</span>}</p>
-                            </div>
+                        <div className={`grid gap-3 ${request.totalTasks == null ? "grid-cols-1" : "grid-cols-2"}`}>
+                            {request.totalTasks != null && (
+                                <div className="rounded-xl border border-line p-4">
+                                    <p className="text-xs text-muted">Tasks complete</p>
+                                    <p className="mt-2 text-2xl font-bold text-ink">
+                                        {request.completedTasks ?? 0} of {request.totalTasks}
+                                    </p>
+                                </div>
+                            )}
                             <div className="rounded-xl border border-line p-4">
                                 <p className="text-xs text-muted">Days remaining</p>
                                 <p className={`mt-1 text-2xl font-bold ${closed ? "text-ok-ink" : daysLeft !== null && daysLeft < 0 ? "text-bad-ink" : "text-ink"}`}>{closed ? "Closed" : daysLeft ?? "-"}</p>

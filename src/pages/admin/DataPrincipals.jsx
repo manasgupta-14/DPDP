@@ -132,7 +132,7 @@ function View360({ principal, onClose }) {
                                 </ul>
                             )}
                         </Section>
-                        <p className="text-xs text-muted">Personal details are masked by the server for privacy.</p>
+                        <p className="text-xs text-muted">Personal details are partly hidden for privacy.</p>
                     </>
                 )}
             </div>
@@ -244,7 +244,7 @@ function AddForm({ onClose, onAdded, editing = null }) {
                 <p className="-mt-1 text-xs text-muted">
                     {isEdit
                         ? "Only the fields you fill in are changed. Mobile, email and consumer number are masked, so type the full new value to change them."
-                        : "Password is optional. Set it (with an email) so this person can log in to the User panel."}
+                        : "Password is optional. Set it (with an email) so this person can sign in to the customer portal."}
                 </p>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5 pt-1">

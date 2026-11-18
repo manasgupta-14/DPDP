@@ -131,7 +131,7 @@ export default function AdminProfile() {
                 <summary className="flex list-none items-center justify-between gap-3">
                     <span>
                         <span className="block text-base font-bold text-ink">All account details from your session</span>
-                        <span className="mt-1 block text-xs text-muted">Everything the server sent about your account at login. The token itself is never shown.</span>
+                        <span className="mt-1 block text-xs text-muted">Details saved with your sign-in. Your password and sign-in token are never shown.</span>
                     </span>
                     <Icon name="chevron" className="h-4 w-4 shrink-0 text-muted transition-transform group-open:rotate-180" />
                 </summary>

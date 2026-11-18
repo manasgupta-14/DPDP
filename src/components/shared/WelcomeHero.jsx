@@ -104,7 +104,7 @@ export default function WelcomeHero({ eyebrow, greeting, name, sub, meta, status
             <Ribbon />
             <ShieldArt />
             <div className="flex flex-wrap items-start justify-between gap-3">
-                <p className="kv-welcome-eyebrow uppercase">{eyebrow}</p>
+                {eyebrow ? <p className="kv-welcome-eyebrow uppercase">{eyebrow}</p> : <span />}
                 {status && (
                     <span className="kv-welcome-status" data-tone={status.tone} role="status">
                         <span className="dot" aria-hidden="true" />
@@ -120,9 +120,6 @@ export default function WelcomeHero({ eyebrow, greeting, name, sub, meta, status
                             , <span className="kv-welcome-name">{name}</span>
                         </>
                     ) : null}
-                    <span className="kv-welcome-wave" aria-hidden="true">
-                        👋
-                    </span>
                 </h1>
                 {sub && <p className="kv-welcome-sub">{sub}</p>}
                 {meta && <div className="kv-welcome-meta">{meta}</div>}

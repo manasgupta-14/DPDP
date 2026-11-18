@@ -200,7 +200,7 @@ export default function AuditTrail() {
                     <div className="px-5 py-12 text-center">
                         <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="audit" className="h-6 w-6" /></span>
                         <p className="mt-3 font-semibold text-ink">{logs.length === 0 ? "No audit events yet" : "No events match these filters"}</p>
-                        <p className="mt-1 text-sm text-ink-3">{logs.length === 0 ? "Changes to your organisation's data will be recorded here." : "Try a different action, entity or date range."}</p>
+                        <p className="mt-1 text-sm text-ink-3">{logs.length === 0 ? "Changes to your organisation's data will be recorded here." : "Try a different action, record type or date range."}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">

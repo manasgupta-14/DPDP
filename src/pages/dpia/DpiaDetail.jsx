@@ -201,7 +201,7 @@ export default function DpiaDetail() {
                                     <Alert>{actionError}</Alert>
                                     <div className="grid gap-2.5">
                                         <button type="button" onClick={() => choose("Approve")} className="rounded-xl bg-ok px-4 py-3 text-sm font-semibold text-white transition hover:bg-ok-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">✅ Approve</button>
-                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-warn px-4 py-3 text-sm font-semibold text-white transition hover:bg-warn-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">📝 Request Changes</button>
+                                        <button type="button" onClick={() => choose("SendBack")} className="rounded-xl bg-warn px-4 py-3 text-sm font-semibold text-white transition hover:bg-warn-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">Request changes</button>
                                         {REJECT_SUPPORTED && (
                                             <button type="button" onClick={() => choose("Reject")} className="rounded-xl bg-bad px-4 py-3 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">❌ Reject</button>
                                         )}

@@ -30,6 +30,7 @@ const ALL_ADMIN_SECTIONS = [
             { to: "/dashboard/breach", label: "Breach management", icon: "shieldAlert", tone: "red" },
             { to: "/dashboard/dpia", label: "DPIA", icon: "fileSearch", tone: "violet" },
             { to: "/dashboard/retention", label: "Retention & erasure", icon: "archive", tone: "orange" },
+            { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist", tone: "green" },
             { to: "/dashboard/audit", label: "Audit trail", icon: "history", tone: "teal" },
         ],
     },

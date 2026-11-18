@@ -29,7 +29,7 @@ const TONES = ["blue", "pink", "mint", "orange", "purple", "emerald"];
 
 function SectionHead({ eyebrow, title, text, id, center = true }) {
     return (
-        <div className={center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}>
+        <div className={`kv-focus ${center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"}`}>
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-brand-ink">{eyebrow}</p>
             <h2 id={id} className="mt-3 text-3xl font-bold tracking-tight text-ink sm:text-[36px]">
                 {title}
@@ -78,12 +78,10 @@ function HubCard() {
                     </span>
                     <span className="min-w-0">
                         <span className="kv-hub-name block">Kavach</span>
-                        <span className="kv-hub-tag block">Every privacy duty, connected to one core.</span>
+                        <span className="kv-hub-tag block">All your privacy work in one place.</span>
                     </span>
                 </span>
-                <span className="kv-hub-live">
-                    <i aria-hidden="true" /> Live
-                </span>
+                <span className="kv-hub-live">{ECOSYSTEM.length} modules</span>
             </div>
             <ul className="kv-hub-grid">
                 {ECOSYSTEM.map((e, i) => (
@@ -116,9 +114,9 @@ function Hero() {
     return (
         <section data-bg="trust" aria-labelledby="home-title" className="relative overflow-hidden border-b border-line">
             <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pt-32 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10 xl:grid-cols-[1fr_1fr] lg:pb-24 lg:pt-36">
-                <div className="kv-hero-copy min-w-0">
+                <div className="kv-hero-copy kv-focus min-w-0">
                     <span className="kv-new-chip inline-flex max-w-full items-center gap-2 rounded-full px-1.5 py-1 pr-3 text-xs font-semibold text-ink-2" style={{ animation: "pg-rise .5s ease-out both" }}>
-                        <span className="tag shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white">New</span>
+                        <span className="tag shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white">DPDP</span>
                         <span className="min-w-0">Built for the DPDP Act, 2023 and DPDP Rules, 2025</span>
                     </span>
                     <h1 id="home-title" className="mt-6 text-[34px] font-extrabold leading-[1.1] tracking-tight text-ink sm:text-[46px]" style={{ animation: "pg-rise .6s ease-out 80ms both" }}>
@@ -173,7 +171,7 @@ function Features() {
     return (
         <section data-bg="innovate" id="features" aria-labelledby="feat-title" className="scroll-mt-20 py-20 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <SectionHead id="feat-title" eyebrow="Features" title="Built for the work, not the brochure" text="Each module does one job well, and they all write to the same audit trail." />
+                <SectionHead id="feat-title" eyebrow="Capabilities" title="Core modules" text="Each module covers one DPDP duty, and every change is recorded in a single audit trail." />
                 <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {FEATURES.map((f, i) => (
                         <Reveal key={f.key} delay={i * 70} className="kd-card p-6">
@@ -194,7 +192,7 @@ function HowItWorks() {
     return (
         <section data-bg="proof" id="how" aria-labelledby="how-title" className="scroll-mt-20 border-y border-line bg-surface/35 py-20 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <SectionHead id="how-title" eyebrow="How it works" title="Four steps from setup to proof" />
+                <SectionHead id="how-title" eyebrow="Implementation" title="How teams roll out Kavach" />
                 <ol className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {STEPS.map((s, i) => (
                         <Reveal as="li" key={s.title} delay={i * 90} className="relative rounded-[14px] border border-line bg-soft p-6">
@@ -235,25 +233,25 @@ function Stats() {
 
 function Compare() {
     const Mark = ({ ok }) => (
-        <span className={`inline-grid h-6 w-6 place-items-center rounded-full ${ok ? "bg-ok-soft text-ok-ink" : "bg-bad-soft text-bad-ink"}`}>
-            <Glyph name={ok ? "check" : "x"} className="h-3.5 w-3.5" />
+        <span className={`kv-mark ${ok ? "is-yes" : "is-no"}`} role="img" aria-label={ok ? "Yes" : "No"}>
+            <Glyph name={ok ? "check" : "x"} />
         </span>
     );
     return (
         <section data-bg="care" aria-labelledby="cmp-title" className="border-y border-line bg-surface/35 py-20 sm:py-24">
             <div className="mx-auto max-w-4xl px-4 sm:px-6">
-                <SectionHead id="cmp-title" eyebrow="Why Kavach" title="Spreadsheets forget. Records remember." text="Email threads and sheets lose the who, when and why that an auditor asks for." />
-                <Reveal className="mt-10 overflow-hidden rounded-[14px] border border-line">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-soft text-xs uppercase tracking-wide text-muted">
+                <SectionHead id="cmp-title" eyebrow="Comparison" title="Kavach compared with spreadsheets" text="What an auditor asks for, and whether each approach can show it." />
+                <Reveal className="kv-compare mt-10 overflow-x-auto rounded-[16px] border">
+                    <table className="w-full min-w-[520px] text-left">
+                        <thead className="uppercase">
                             <tr>
-                                <th scope="col" className="px-5 py-3 font-semibold">
+                                <th scope="col" className="px-5 py-3.5 font-bold">
                                     What you need
                                 </th>
-                                <th scope="col" className="px-5 py-3 text-center font-semibold">
+                                <th scope="col" className="px-5 py-3.5 text-center font-bold">
                                     Spreadsheets
                                 </th>
-                                <th scope="col" className="px-5 py-3 text-center font-semibold text-brand-ink">
+                                <th scope="col" className="px-5 py-3.5 text-center font-bold text-brand-ink">
                                     Kavach
                                 </th>
                             </tr>
@@ -261,7 +259,7 @@ function Compare() {
                         <tbody>
                             {COMPARE_ROWS.map(([label, a, b]) => (
                                 <tr key={label} className="border-t border-line">
-                                    <td className="px-5 py-3.5 font-medium text-ink-2">{label}</td>
+                                    <td className="px-5 py-4 font-medium">{label}</td>
                                     <td className="px-5 py-3.5 text-center">
                                         <Mark ok={a} />
                                     </td>
@@ -283,7 +281,7 @@ function Milestones() {
     return (
         <section aria-labelledby="ms-title" className="py-20 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <SectionHead id="ms-title" eyebrow="DPDP timeline" title="The dates that matter" text="The DPDP Rules, 2025 apply in three phases. Check official MeitY sources before you plan." />
+                <SectionHead id="ms-title" eyebrow="DPDP timeline" title="Commencement dates" text="The DPDP Rules, 2025 apply in three phases. Confirm dates against official MeitY notifications." />
                 <ol className="mt-12 grid gap-4 md:grid-cols-3">
                     {MILESTONES.map((m, i) => {
                         const done = new Date(m.date) <= today;
@@ -308,7 +306,7 @@ function Faq() {
     return (
         <section id="faq" aria-labelledby="faq-title" className="scroll-mt-20 border-t border-line bg-surface/35 py-20 sm:py-24">
             <div className="mx-auto max-w-3xl px-4 sm:px-6">
-                <SectionHead id="faq-title" eyebrow="FAQ" title="Questions people ask" />
+                <SectionHead id="faq-title" eyebrow="FAQ" title="Frequently asked questions" />
                 <div className="mt-10 space-y-3">
                     {FAQ.map((f) => (
                         <details key={f.q} className="group rounded-[14px] border border-line bg-soft p-5 open:bg-surface open:shadow-[var(--k-shadow)]">
@@ -344,8 +342,8 @@ function CtaRibbon() {
                     <stop offset="100%" stopColor="#FBCFE8" stopOpacity="0.2" />
                 </linearGradient>
             </defs>
-            <path fill="url(#kvc-rb)" d="M0,250 C160,170 300,300 480,230 C650,165 780,250 1000,150 L1000,215 C800,300 650,215 480,285 C300,355 160,235 0,310 Z" />
-            <path fill="url(#kvc-rb2)" d="M0,90 C200,40 330,150 520,110 C700,72 820,120 1000,70 L1000,100 C820,150 700,105 520,145 C330,185 200,80 0,125 Z" />
+            <path fill="url(#kvc-rb)" d="M560,360 C690,300 800,330 900,262 C950,228 980,214 1000,206 L1000,268 C960,286 920,316 860,338 C800,360 720,352 640,360 Z" />
+            <path fill="url(#kvc-rb2)" d="M0,118 C60,96 110,70 170,52 C240,30 300,24 380,0 L300,0 C240,14 180,22 120,34 C70,44 30,60 0,70 Z" />
         </svg>
     );
 }
@@ -358,6 +356,7 @@ function FinalCta() {
                 <Reveal className="kv-cta2 px-6 py-14 text-center sm:px-12">
                     {/* Background aapke silk jaisa (pastel ribbon + bubbles); dark mode me bhi yahi */}
                     <CtaRibbon />
+                    <span className="kv-cta2-focus" aria-hidden="true" />
                     <span className="kv-cta2-bubble is-a" aria-hidden="true" />
                     <span className="kv-cta2-bubble is-b" aria-hidden="true" />
                     <span className="kv-cta2-bubble is-c" aria-hidden="true" />
@@ -368,7 +367,7 @@ function FinalCta() {
                         </svg>
                     </span>
                     <h2 id="cta-title" className="relative text-3xl font-bold tracking-tight sm:text-4xl">
-                        Put your DPDP work in one place
+                        Manage your DPDP obligations in one workspace
                     </h2>
                     <p className="relative mx-auto mt-4 max-w-xl">Sign in to set up purposes, publish your first notice and start recording consent.</p>
                     <Link to={c.to} className="kv-cta-main relative mt-8 inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">

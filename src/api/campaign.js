@@ -81,8 +81,8 @@ function normalizeGroup(g) {
 const groupPermission = (res) => {
     if (res.ok) return res;
     if (res.status === 403) return { ...res, error: "Your role needs the Campaigns.View / Campaigns.Create permission to manage audience groups. Ask an admin to add it, then sign in again." };
-    if (res.status === 404 && !res.data) return { ...res, error: "Audience group API not found. Restart the backend with the latest PrivacyGuard code (CampaignAudienceGroupController)." };
-    if (res.status >= 500) return { ...res, error: "Server error while loading audience groups. Most likely the database is missing the new tables: run \"Update-Database\" (migration AddCampaignAudienceGroups) in the backend, then restart it." };
+    if (res.status === 404 && !res.data) return { ...res, error: "Audience groups are not available on the server yet. Please contact your administrator." };
+    if (res.status >= 500) return { ...res, error: "Audience groups could not be loaded because of a server problem. Please try again later or contact your administrator." };
     return res;
 };
 

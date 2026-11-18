@@ -160,7 +160,7 @@ export default function QuickImportCard({ onImported }) {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                     <h2 id="quick-import-title" className="text-lg font-semibold text-ink">Quick import data principals</h2>
-                    <p className="mt-1 max-w-2xl text-sm text-ink-3">Adds people straight to Data principals in one step, without staging or review. Use the batch upload below when you want to check rows before saving.</p>
+                    <p className="mt-1 max-w-2xl text-sm text-ink-3">Adds people to Data principals in one step, without a review. Use the batch upload below if you want to check the rows first.</p>
                 </div>
                 <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand-ink">
                     {open ? "Hide" : "Open quick import"}

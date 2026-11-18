@@ -155,7 +155,7 @@ export function validateStep(step, f) {
     }
     if (step === 1) {
         if (f.dataTypes.trim().length < 3) e.dataTypes = "List the personal data collected (for example: name, phone number, medical history).";
-        if (!f.dataSubjects.trim()) e.dataSubjects = "Say whose data this is (customers, employees, ...).";
+        if (!f.dataSubjects.trim()) e.dataSubjects = "Say whose data this is (for example customers or employees).";
         if (!f.purposes.length) e.purposes = f.purposeInput.trim() ? "Press Add to include the purpose you typed." : "Add at least one purpose.";
         if (!f.retention.trim()) e.retention = "Say how long the data is kept.";
         if (f.sharesWithThirdParties === "yes" && !f.thirdParties.trim()) e.thirdParties = "Name who the data is shared with.";
@@ -164,7 +164,7 @@ export function validateStep(step, f) {
     if (step === 2) {
         if (!f.inherentRisk) e.inherentRisk = "Select the risk level before safeguards.";
         if (!f.residualRisk) e.residualRisk = "Select the risk level after safeguards.";
-        else if (f.inherentRisk && riskRank(f.residualRisk) > riskRank(f.inherentRisk)) e.residualRisk = "Residual risk cannot be higher than the risk before safeguards.";
+        else if (f.inherentRisk && riskRank(f.residualRisk) > riskRank(f.inherentRisk)) e.residualRisk = "Risk after safeguards cannot be higher than the risk before them.";
         if (f.riskDescription.trim().length < 20) e.riskDescription = "Describe what could go wrong if this data leaks (at least 20 characters).";
         if (f.safeguardNotes.trim().length < 10) e.safeguardNotes = "Describe the security measures that reduce this risk (at least 10 characters).";
     }
