@@ -110,7 +110,7 @@ function TemplateForm({ template, purposes, onClose, onSaved }) {
                     <label className="block text-xs font-medium text-ink-2">Brand colour<input type="color" value={form.primaryColor} onChange={set("primaryColor")} disabled={busy} className={`${dkInput} p-1`} /></label>
                     <label className="block text-xs font-medium text-ink-2">Logo URL<input value={form.logoUrl} onChange={set("logoUrl")} disabled={busy} placeholder="https://..." className={dkInput} /></label>
                 </div>
-                {editing && <p className="text-[11px] text-muted">The server does not send back the saved logo and colour, so set them again before saving.</p>}
+                {editing && <p className="text-[11px] text-muted">Set the logo and colour again before saving.</p>}
                 <div>
                     <p className="mb-1.5 text-xs font-medium text-ink-2">Preview</p>
                     <Preview form={form} purposeName={nameOf} />

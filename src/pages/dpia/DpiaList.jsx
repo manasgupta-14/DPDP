@@ -219,14 +219,14 @@ export default function DpiaList() {
 
             <p className="text-xs text-muted">
                 Submitted DPIAs cannot be edited or deleted: they are kept as an audit record. A DPIA that needs changes is revised as a new, linked version.
-                Drafts are saved in this browser only.
+                Drafts are saved on this device until you submit them.
             </p>
 
             {toDelete && (
                 <Modal title="Delete draft" onClose={() => setToDelete(null)}>
                     <div className={`${panel} p-5 sm:p-6`}>
                         <h2 className="pr-8 text-lg font-semibold">Delete this draft?</h2>
-                        <p className="mt-2 text-sm text-ink-3">"{toDelete.title}" will be removed from this browser. This cannot be undone.</p>
+                        <p className="mt-2 text-sm text-ink-3">"{toDelete.title}" will be removed from this device. This cannot be undone.</p>
                         <div className="mt-5 flex justify-end gap-3">
                             <button type="button" className={ghostBtn} onClick={() => setToDelete(null)}>Cancel</button>
                             <button type="button" onClick={confirmDelete} className="inline-flex items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">Delete draft</button>

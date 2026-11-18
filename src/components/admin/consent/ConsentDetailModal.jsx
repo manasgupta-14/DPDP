@@ -49,7 +49,7 @@ export default function ConsentDetailModal({ record, loading = false, error = ""
                     <Row label="Language">{record.language || <NotInApi />}</Row>
                     <Row label="Given">{formatStamp(record.submittedAt) || missing}</Row>
                     <Row label="Expires">{record.lapses ? expiryText(record.expiresAt) : "Does not lapse"}</Row>
-                    <Row label="Integrity / hash" mono>{record.hash || missing}</Row>
+                    <Row label="Tamper check (hash)" mono>{record.hash || missing}</Row>
                     <Row label="Signature" mono>{record.signature || <NotInApi />}{record.keyId ? ` (key ${record.keyId})` : ""}</Row>
                 </dl>
 

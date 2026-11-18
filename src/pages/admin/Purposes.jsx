@@ -85,7 +85,7 @@ export default function Purposes() {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Purposes &amp; processing</h1>
-                    <p className="mt-1 text-xs text-ink-3">Every purpose, the data it touches and who it is shared with. This registry is what a notice is assembled from.</p>
+                    <p className="mt-1 text-xs text-ink-3">Each reason you use personal data, the data it needs and who it is shared with. Notices are built from this list.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button type="button" onClick={reload} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
@@ -134,7 +134,7 @@ export default function Purposes() {
             {tab === "categories" && (
                 <RegistryTab
                     title="Data categories"
-                    intro="The kinds of personal data this organisation holds, graded by sensitivity."
+                    intro="Types of personal data you hold, sorted by how sensitive they are."
                     addLabel="Add category"
                     onAdd={() => setModal({ type: "category" })}
                     onEdit={(item) => setModal({ type: "category", item })}
@@ -152,7 +152,7 @@ export default function Purposes() {
             {tab === "processors" && (
                 <RegistryTab
                     title="Data processors"
-                    intro="Third parties that process personal data on this organisation's instructions."
+                    intro="Outside companies that handle personal data for you."
                     addLabel="Add processor"
                     onAdd={() => setModal({ type: "processor" })}
                     onEdit={(item) => setModal({ type: "processor", item })}

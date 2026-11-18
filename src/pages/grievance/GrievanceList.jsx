@@ -58,7 +58,7 @@ export default function GrievanceList() {
         <div className="space-y-5" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
                 <h1 className="text-[24px] font-bold tracking-tight text-ink">Grievances</h1>
-                <p className="mt-1 text-sm text-ink-3">Complaints raised by Data Principals under Sec 13. Redressal must be readily available and time-bound.</p>
+                <p className="mt-1 text-sm text-ink-3">Complaints raised by customers (Sec 13). Each one needs a clear, timely reply.</p>
             </div>
 
             <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold text-brand-ink hover:underline">Retry</button>}>{error}</Alert>

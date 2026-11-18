@@ -138,7 +138,7 @@ export default function MyConsents() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">My consents</h1>
-                    <p className="mt-1 text-sm text-ink-3">See which of your details your organisation may use and which you did not allow. You can change any choice whenever you want. Every change is recorded as a new version.</p>
+                    <p className="mt-1 text-sm text-ink-3">See which of your details your organisation may use and which you did not allow. You can change any choice whenever you want. Every change is saved with its date.</p>
                 </div>
                 <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
                     <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -147,7 +147,7 @@ export default function MyConsents() {
             </div>
 
             {!isDataPrincipal(getProfile()) && (
-                <Alert tone="info">This page is meant for customer (data principal) logins. You are signed in with a staff account, so your choices may not be saved. Sign in as a customer to test it.</Alert>
+                <Alert tone="info">This page is for customer accounts. You are signed in with a staff account, so your choices may not be saved.</Alert>
             )}
             {notice && <Alert tone="success">{notice}</Alert>}
             {error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{error}</Alert>}

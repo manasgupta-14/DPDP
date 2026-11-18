@@ -923,7 +923,7 @@ html[data-theme="dark"] .kv-public .kv-hero-copy p { color: #D4D7E6; }
 .kv-hub-mark svg { width: 1.45rem; height: 1.45rem; }
 .kv-hub-name { font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.02em; color: #0F172A; line-height: 1.1; }
 .kv-hub-tag { margin-top: 2px; font-size: 12px; color: #4B5568; }
-.kv-hub-live { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #15803D; background: #E9FBEF; border: 1px solid #C9F0D6; }
+.kv-hub-live { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; color: #3730A3; background: #EEF0FF; border: 1px solid #DDE1FF; }
 .kv-hub-live i { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); animation: pg-pulse-dot 1.8s ease-out infinite; color: #22C55E; }
 .kv-hub-grid { margin-top: 1rem; display: grid; gap: 0.85rem; }
 @media (min-width: 520px) { .kv-hub-grid { grid-template-columns: 1fr 1fr; } }
@@ -1021,16 +1021,23 @@ html[data-theme="dark"] .kv-ico3d { color: color-mix(in srgb, var(--t) 55%, #FFF
 /* ------------------------------ Popups (Modal, drawer, menu) ------------------------------ */
 .pg-modal-backdrop { background: rgba(15, 18, 34, 0.42) !important; -webkit-backdrop-filter: blur(6px) saturate(120%); backdrop-filter: blur(6px) saturate(120%); }
 html[data-theme="dark"] .pg-modal-backdrop { background: rgba(4, 4, 10, 0.62) !important; }
-.pg-modal-dialog > :last-child {
-  position: relative; overflow: hidden;
+/* Popup panel: upar rangeen patti background se (overflow hidden NAHI, warna andar scroll band ho jata tha) */
+.pg-modal-dialog > :nth-child(2):last-child {
+  position: relative;
   border-radius: 22px !important; border-color: #E6EAF2 !important;
-  background: linear-gradient(180deg, #FFFFFF 0%, #FBFCFF 100%) !important;
+  background:
+    linear-gradient(90deg, #3B6BF5, #8B5CF6, #EC4899, #F97316) top / 100% 4px no-repeat,
+    linear-gradient(180deg, #FFFFFF 0%, #FBFCFF 100%) !important;
   box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 24px 48px -16px rgba(15, 23, 42, 0.28), 0 40px 80px -40px rgba(91, 76, 230, 0.35) !important;
 }
-.pg-modal-dialog > :last-child::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, #3B6BF5, #8B5CF6, #EC4899, #F97316); pointer-events: none; }
-html[data-theme="dark"] .pg-modal-dialog > :last-child {
+/* Lamba popup: panel khud scroll kare (screen se bada na ho) */
+.pg-modal-dialog > :nth-child(2):last-child { max-height: calc(100dvh - 2rem); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+@media (min-width: 640px) { .pg-modal-dialog > :nth-child(2):last-child { max-height: calc(100dvh - 3rem); } }
+html[data-theme="dark"] .pg-modal-dialog > :nth-child(2):last-child {
   border-color: rgba(255, 255, 255, 0.09) !important;
-  background: linear-gradient(180deg, #181824 0%, #13131D 100%) !important;
+  background:
+    linear-gradient(90deg, #3B6BF5, #8B5CF6, #EC4899, #F97316) top / 100% 4px no-repeat,
+    linear-gradient(180deg, #181824 0%, #13131D 100%) !important;
   box-shadow: 0 30px 70px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
 }
 .pg-modal-dialog > button[aria-label="Close"] { background: #F2F4F9; color: #475266; border-radius: 999px; }
@@ -1038,7 +1045,7 @@ html[data-theme="dark"] .pg-modal-dialog > :last-child {
 html[data-theme="dark"] .pg-modal-dialog > button[aria-label="Close"] { background: rgba(255, 255, 255, 0.08); color: #D4D7E6; }
 html[data-theme="dark"] .pg-modal-dialog > button[aria-label="Close"]:hover { background: rgba(255, 255, 255, 0.14); color: #fff; }
 @media (max-width: 639px) {
-  .pg-modal-dialog > :last-child { border-radius: 20px !important; }
+  .pg-modal-dialog > :nth-child(2):last-child { border-radius: 20px !important; }
 }
 .kv-drawer { border-radius: 22px 0 0 22px; border-left: 1px solid #E6EAF2; box-shadow: -30px 0 70px -30px rgba(15, 23, 42, 0.45) !important; }
 .kv-drawer::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 4px; border-radius: 22px 0 0 0; background: linear-gradient(90deg, #E5484D, #F97316, #8B5CF6); pointer-events: none; }
@@ -1053,3 +1060,109 @@ html[data-theme="dark"] .pg-select-pop { background: #171722; border-color: rgba
   .kv-hub-card, .kd-tile-tint { transition: none; }
 }
 @media (hover: none) { .kd-card::before, .kd-tile-tint::before { display: none; } }
+
+/* =====================================================================
+   v102 — changes_kavach.pdf
+   - Dark mode har jagah: hub card, CTA box, login panel bhi kaale (pehle safed rehte the)
+   - Text par focus: ribbon ke upar text ke peeche halka parda (scrim)
+   - Dark me gradient shabd background (purple) se alag rang ke
+   - Comparison table bada aur saaf, tick/cross saaf dikhte
+   ===================================================================== */
+
+/* Text ke peeche naram parda: ribbon text ke neeche se guzre to bhi akshar saaf */
+.kv-focus { position: relative; isolation: isolate; }
+.kv-focus::before {
+  content: ""; position: absolute; inset: -2.5rem -3rem; z-index: -1; pointer-events: none; border-radius: 48px;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.45) 55%, transparent 100%);
+  filter: blur(6px);
+}
+html[data-theme="dark"] .kv-focus::before { background: radial-gradient(closest-side, rgba(8, 8, 14, 0.78), rgba(8, 8, 14, 0.5) 55%, transparent 100%); }
+@media (max-width: 640px) { .kv-focus::before { inset: -1.5rem -1rem; } }
+
+/* Dark: gradient shabd purple background se mil jaate the; ab thande cyan aur garm amber */
+html[data-theme="dark"] .kv-grad-a { background-image: linear-gradient(100deg, #67E8F9 0%, #A5F3FC 50%, #99F6E4 100%); }
+html[data-theme="dark"] .kv-grad-b { background-image: linear-gradient(100deg, #FDE68A 0%, #FDBA74 100%); }
+html[data-theme="dark"] .kv-public .kv-hero-copy h1 { text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35); }
+
+/* ---------- Hub card: dark mode me kaala ---------- */
+html[data-theme="dark"] .kv-hub { background: linear-gradient(180deg, #15151F, #111119); border-color: rgba(255, 255, 255, 0.08); color: #F4F5FA; }
+html[data-theme="dark"] .kv-hub-head { border-bottom-color: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .kv-hub-name { color: #FFFFFF; }
+html[data-theme="dark"] .kv-hub-tag { color: #B4B8CC; }
+html[data-theme="dark"] .kv-hub-live { color: #C7CDFF; background: rgba(108, 123, 255, 0.14); border-color: rgba(108, 123, 255, 0.3); }
+html[data-theme="dark"] .kv-hub-card {
+  color: #F4F5FA;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--t) 16%, #1A1A25) 0%, #16161F 75%);
+  border-color: color-mix(in srgb, var(--t) 28%, transparent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 24px -14px color-mix(in srgb, var(--t) 60%, transparent);
+}
+html[data-theme="dark"] .kv-hub-card:hover { box-shadow: 0 18px 34px -14px color-mix(in srgb, var(--t) 70%, transparent), 0 0 0 4px color-mix(in srgb, var(--t) 14%, transparent); }
+html[data-theme="dark"] .kv-hub-title { color: #FFFFFF; }
+html[data-theme="dark"] .kv-hub-text { color: #C9CCDB; }
+html[data-theme="dark"] .kv-hub-ico { color: color-mix(in srgb, var(--t) 55%, #FFFFFF); background: linear-gradient(150deg, color-mix(in srgb, var(--t) 34%, #1D1D29), color-mix(in srgb, var(--t) 14%, #15151F)); border-color: color-mix(in srgb, var(--t) 40%, transparent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 16px -8px color-mix(in srgb, var(--t) 70%, transparent); }
+html[data-theme="dark"] .kv-hub-status[data-tone="ok"] { color: #4ADE80; }
+html[data-theme="dark"] .kv-hub-status[data-tone="warn"] { color: #FDBA74; }
+html[data-theme="dark"] .kv-hub-status[data-tone="info"] { color: #93C5FD; }
+html[data-theme="dark"] .kv-hub-status[data-tone="violet"] { color: #C4B5FD; }
+html[data-theme="dark"] .kv-hub-go { color: #D4D7E6; background: rgba(255, 255, 255, 0.08); }
+
+/* ---------- CTA box: ribbon kinaron par, beech me text ke liye saaf jagah; dark me kaala ---------- */
+.kv-cta2-focus { position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(52% 62% at 50% 52%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.35) 60%, transparent 100%); }
+html[data-theme="dark"] .kv-cta2 {
+  color: #F4F5FA;
+  background:
+    radial-gradient(420px 260px at 0% 0%, rgba(59, 91, 255, 0.35), transparent 70%),
+    radial-gradient(420px 260px at 100% 0%, rgba(168, 85, 247, 0.28), transparent 70%),
+    radial-gradient(420px 260px at 0% 100%, rgba(45, 212, 191, 0.18), transparent 70%),
+    radial-gradient(420px 260px at 100% 100%, rgba(249, 115, 22, 0.28), transparent 70%),
+    linear-gradient(120deg, #111119, #14111F 50%, #1A1018);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9);
+}
+html[data-theme="dark"] .kv-cta2 h2 { color: #FFFFFF !important; }
+html[data-theme="dark"] .kv-cta2 p { color: #D4D7E6 !important; }
+html[data-theme="dark"] .kv-cta2-focus { background: radial-gradient(52% 62% at 50% 52%, rgba(10, 10, 16, 0.85), rgba(10, 10, 16, 0.4) 60%, transparent 100%); }
+html[data-theme="dark"] .kv-cta2 .kv-cta2-bubble { background: radial-gradient(circle at 32% 28%, rgba(206, 196, 255, 0.5), rgba(124, 92, 252, 0.14) 45%, rgba(244, 114, 182, 0.08) 75%); box-shadow: inset 0 0 0 1px rgba(206, 196, 255, 0.25); }
+html[data-theme="dark"] .kv-cta2-ribbon { opacity: 0.95; }
+
+/* ---------- Login ka baayan panel: dark mode me kaala, text safed ---------- */
+html[data-theme="dark"] .kv-auth-panel {
+  background:
+    radial-gradient(420px 320px at 0% 0%, rgba(59, 91, 255, 0.28), transparent 70%),
+    radial-gradient(420px 320px at 100% 0%, rgba(168, 85, 247, 0.22), transparent 70%),
+    radial-gradient(420px 320px at 0% 100%, rgba(45, 212, 191, 0.14), transparent 70%),
+    radial-gradient(420px 320px at 100% 100%, rgba(249, 115, 22, 0.18), transparent 70%),
+    #111119;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .kv-auth-panel .kv-logo { color: #FFFFFF; }
+html[data-theme="dark"] .kv-auth-panel .kv-logo-sub { color: #B4B8CC; }
+html[data-theme="dark"] .kv-auth-panel .text-\[\#14213D\] { color: #FFFFFF; }
+html[data-theme="dark"] .kv-auth-panel .text-\[\#33415C\] { color: #D4D7E6; }
+html[data-theme="dark"] .kv-auth-panel .text-\[\#556070\] { color: #A9ADC2; }
+html[data-theme="dark"] .kv-auth-panel .text-\[\#3A4CC8\] { color: #AEB8FF; }
+html[data-theme="dark"] .kv-auth-panel .bg-white { background-color: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .kv-auth-panel .bg-white\/80 { background-color: rgba(255, 255, 255, 0.05); }
+html[data-theme="dark"] .kv-auth-panel .border-\[\#D6E4FF\] { border-color: rgba(255, 255, 255, 0.10); }
+html[data-theme="dark"] .kv-auth-panel .ring-\[\#C9D8FF\] { --tw-ring-color: rgba(174, 184, 255, 0.35); }
+
+/* ---------- Comparison table: bada text, saaf tick/cross ---------- */
+.kv-compare { background: #FFFFFF; border-color: #E3E7F0 !important; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 18px 40px -26px rgba(76, 61, 200, 0.4); }
+.kv-compare thead { background: #F5F7FC; }
+.kv-compare th { font-size: 13px !important; color: #334155; letter-spacing: 0.04em; }
+.kv-compare td { font-size: 15px; color: #1E293B; }
+.kv-compare tbody tr:nth-child(even) { background: #FAFBFE; }
+.kv-mark { display: inline-grid; place-items: center; width: 1.85rem; height: 1.85rem; border-radius: 999px; }
+.kv-mark svg { width: 1rem; height: 1rem; }
+.kv-mark.is-yes { color: #FFFFFF; background: linear-gradient(140deg, #22C55E, #15803D); box-shadow: 0 6px 12px -6px rgba(21, 128, 61, 0.7); }
+.kv-mark.is-no { color: #DC2626; background: #FEE2E2; box-shadow: inset 0 0 0 1px #FCA5A5; }
+html[data-theme="dark"] .kv-compare { background: #15151F; border-color: rgba(255, 255, 255, 0.08) !important; box-shadow: 0 24px 50px -28px rgba(0, 0, 0, 0.9); }
+html[data-theme="dark"] .kv-compare thead { background: #1B1B27; }
+html[data-theme="dark"] .kv-compare th { color: #C9CCDB; }
+html[data-theme="dark"] .kv-compare td { color: #F4F5FA; }
+html[data-theme="dark"] .kv-compare tbody tr:nth-child(even) { background: #181822; }
+html[data-theme="dark"] .kv-mark.is-no { color: #FCA5A5; background: rgba(239, 68, 68, 0.16); box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.4); }
+
+/* Chhota text thoda bada (padhne layak) */
+.kv-public .text-xs { font-size: 0.8125rem; line-height: 1.15rem; }
+.kv-hub-text { font-size: 13px; }

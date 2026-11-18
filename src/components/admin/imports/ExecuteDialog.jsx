@@ -15,16 +15,16 @@ export default function ExecuteDialog({ batch, busy, error, onConfirm, onClose }
                     </>
                 ) : (
                     <>
-                        <h2 className="pr-8 text-lg font-semibold">Execute this batch?</h2>
+                        <h2 className="pr-8 text-lg font-semibold">Import this batch?</h2>
                         <p className="text-sm text-ink-3">
                             <span className="font-semibold text-ok-ink">{batch.processed.toLocaleString()} valid rows</span> will be created as consumers.
                             {batch.failed > 0 && <> The other <span className="font-semibold text-warn-ink">{batch.failed.toLocaleString()} invalid rows</span> will be skipped.</>}
                         </p>
-                        <p className="rounded-lg bg-soft px-3 py-2 text-xs text-muted">A batch can be executed only once. This cannot be undone from here.</p>
+                        <p className="rounded-lg bg-soft px-3 py-2 text-xs text-muted">A batch can be imported only once. This cannot be undone.</p>
                         {error && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{error}</p>}
                         <div className="flex gap-2.5">
                             <button type="button" onClick={onClose} className={`${ghostBtn} flex-1`}>Cancel</button>
-                            <button type="button" onClick={onConfirm} className={`${primaryBtn} flex-[2]`}>Confirm and execute</button>
+                            <button type="button" onClick={onConfirm} className={`${primaryBtn} flex-[2]`}>Confirm and import</button>
                         </div>
                     </>
                 )}

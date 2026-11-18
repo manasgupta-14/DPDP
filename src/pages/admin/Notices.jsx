@@ -64,7 +64,7 @@ function CreateModal({ onClose, onCreated }) {
                     </label>
                 </div>
                 <label className="block text-sm font-medium text-ink-2">Title<input value={form.title} onChange={set("title")} disabled={busy} maxLength={500} placeholder="e.g. How we use your personal data" className={field} /><span className="mt-1 block text-xs text-bad-ink">{errors.title}</span></label>
-                <label className="block text-sm font-medium text-ink-2">Summary<textarea value={form.summary} onChange={set("summary")} disabled={busy} rows={4} placeholder="Short explanation shown to the data principal." className={field} /></label>
+                <label className="block text-sm font-medium text-ink-2">Summary<textarea value={form.summary} onChange={set("summary")} disabled={busy} rows={4} placeholder="Short explanation shown to the customer." className={field} /></label>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
@@ -267,7 +267,7 @@ export default function Notices() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Privacy notices</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Versioned notices shown to data principals. Draft, add translations, then publish. Published versions are locked and hashed; make changes with a new version.</p>
+                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Privacy notices shown to customers. Write a draft, add translations, then publish. Published notices are locked; to change one, create a new version.</p>
                 </div>
                 <div className="flex gap-2">
                     <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>

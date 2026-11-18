@@ -4,7 +4,7 @@ import { asArray } from "./breach.js";
 export const IMPORT_KINDS = [{ value: "Consumers", label: "Consumers", description: "Consumer base: mobile, email or consumer_no, name, class and preferred locale." }];
 
 export const IMPORT_STATUSES = [
-    { value: "Staged", label: "Staged - ready to execute" },
+    { value: "Staged", label: "Checked, ready to import" },
     { value: "Executing", label: "Importing" },
     { value: "Completed", label: "Completed" },
     { value: "CompletedWithErrors", label: "Completed with errors" },
