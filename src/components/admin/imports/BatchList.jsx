@@ -26,7 +26,10 @@ export default function BatchList({ batches, kinds: knownKinds, statuses: knownS
     return (
         <section className={`${panel} p-6`}>
             <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Batches</h2>
+                <div>
+                    <h2 className="text-lg font-semibold">Batches</h2>
+                    <p className="mt-0.5 text-xs text-muted">Every file you uploaded, with its row counts and status.</p>
+                </div>
                 <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">{batches.length} total</span>
             </div>
 

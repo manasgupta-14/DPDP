@@ -157,6 +157,7 @@ export default function MyConsents() {
 
             <section aria-label="Purposes" className="space-y-3">
                 <h2 className="text-lg font-semibold">Your choices</h2>
+                <p className="mt-0.5 text-xs text-muted">Turn each purpose on or off. Changes are saved straight away.</p>
                 {loading ? (
                     <div className="space-y-3" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-20 pg-shimmer rounded-2xl" />)}</div>
                 ) : purposes.length === 0 && error ? (
@@ -217,6 +218,7 @@ export default function MyConsents() {
             {!loading && history.length > 0 && (
                 <section aria-label="Consent history" className="space-y-3">
                     <h2 className="text-lg font-semibold">My consent history</h2>
+                    <p className="mt-0.5 text-xs text-muted">Every consent you gave or withdrew, with dates.</p>
                     <div className={`${panel} overflow-x-auto`}>
                         <table className="w-full min-w-[720px] text-sm">
                             <thead className="border-b border-line bg-soft">

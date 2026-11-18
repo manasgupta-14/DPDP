@@ -152,6 +152,7 @@ export default function DpiaDetail() {
                 <aside className="space-y-5 lg:sticky lg:top-24">
                     <section className={`${panel} px-5 py-4`}>
                         <h2 className="text-base font-semibold">Record</h2>
+                        <p className="mt-0.5 text-xs text-muted">Reference, owner and review dates for this DPIA.</p>
                         <dl className="mt-1 divide-y divide-line">
                             <Meta label="Created">{formatDate(record.createdAt)}</Meta>
                             <Meta label="Reviewed">{record.reviewedAt ? formatDate(record.reviewedAt) : "Not yet"}</Meta>

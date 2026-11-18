@@ -12,7 +12,7 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
             <div className="flex items-center justify-between gap-3 px-5 py-4">
                 <div>
                     <h2 className="text-sm font-semibold text-ink">Notice templates</h2>
-                    <p className="mt-0.5 text-xs text-ink-3">{loading ? "Loading..." : `${templates.length} template(s)`}</p>
+                    <p className="mt-0.5 text-xs text-ink-3">{loading ? "Loading..." : `${templates.length} template${templates.length === 1 ? "" : "s"}`}</p>
                 </div>
                 <button type="button" onClick={onRefresh} disabled={loading} aria-label="Refresh" className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-surface text-ink-2 transition hover:border-brand hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60">
                     <Icon name="refresh" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />

@@ -115,7 +115,7 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
                                 </div>
                             )}
                             <span className={err}>{errors.purposes}</span>
-                            {orphaned.length > 0 && <span className="mt-2 block text-[11px] text-warn-ink">{orphaned.length} saved purpose code(s) are no longer in the purposes list. Untick them to remove.</span>}
+                            {orphaned.length > 0 && <span className="mt-2 block text-[11px] text-warn-ink">{orphaned.length} saved purpose code{orphaned.length === 1 ? " is" : "s are"} no longer in the purposes list. Untick to remove.</span>}
                         </fieldset>
 
                         <div className="grid gap-4 sm:grid-cols-2">

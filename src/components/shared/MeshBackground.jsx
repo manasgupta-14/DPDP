@@ -131,6 +131,20 @@ vec3 shadeSheet(vec4 r, float xg){
   return col;
 }
 
+// Dark ke liye ribbon rang: neela -> violet -> magenta -> narangi (saturated, chamakdaar)
+vec3 nightRamp(float g){
+  g = clamp(g, 0.0, 1.0) * 3.0;
+  vec3 c = mix(vec3(0.16, 0.42, 1.00), vec3(0.52, 0.30, 1.00), smoothstep(0.0, 1.0, g));
+  c = mix(c, vec3(0.92, 0.26, 0.78), smoothstep(1.0, 2.0, g));
+  return mix(c, vec3(1.00, 0.52, 0.18), smoothstep(2.0, 3.0, g));
+}
+vec3 nightSheet(vec4 r, float xg){
+  vec3 lite = nightRamp(xg);
+  vec3 deep = nightRamp(xg) * 0.32;
+  vec3 col = mix(deep, lite, smoothstep(0.10, 0.92, r.z));
+  col += vec3(1.0) * 0.32 * exp(-r.w * 90.0);   // silk ka chamakta kinara
+  return col;
+}
 
 void main(){
   vec2 uv = gl_FragCoord.xy / uRes;
@@ -158,15 +172,19 @@ void main(){
 
   // Halki safed dhundh (text padhne layak) + film grain
   col = mix(col, vec3(1.0), 0.46 + shadow);
-  // Dark mode: gehra navy raat, ribbon ke rang dheemi chamak ke saath
-  // Deep blue + violet base, purple/pink ambient roshni, halka cyan (prompt ka gradient mesh)
-  vec3 night = col * vec3(0.30, 0.26, 0.46) + vec3(0.030, 0.030, 0.090);
-  vec2 q1 = uv - vec2(0.86, 0.92);
-  vec2 q2 = uv - vec2(0.08, 0.12);
-  vec2 q3 = uv - vec2(0.45, 0.55);
-  night += vec3(0.32, 0.08, 0.36) * 0.38 * exp(-dot(q1, q1) * 4.5);
-  night += vec3(0.02, 0.26, 0.38) * 0.30 * exp(-dot(q2, q2) * 5.0);
-  night += vec3(0.16, 0.10, 0.40) * 0.22 * exp(-dot(q3, q3) * 3.0);
+  // ---------- Dark mode: wahi silk (aapka light wala background), bas safed ki jagah halka kaala.
+  // Base #0B0B12 (pure kaala nahi, aankh ko aaram), ribbon ke rang saaf: neela -> violet -> magenta -> narangi.
+  vec3 night = vec3(0.043, 0.043, 0.070);
+  vec2 c1 = uv - vec2(0.05, 0.95);
+  vec2 c2 = uv - vec2(0.98, 0.10);
+  night += vec3(0.10, 0.12, 0.40) * 0.35 * exp(-dot(c1, c1) * 3.0);   // upar-left neeli roshni
+  night += vec3(0.45, 0.18, 0.05) * 0.30 * exp(-dot(c2, c2) * 3.5);   // neeche-right garm roshni
+  // Ribbon ke upar halki chamak (glow), taaki silk tairta lage
+  float halo = exp(-max(-r1.w, 0.0) * 9.0) * (1.0 - r1.x);
+  night += nightRamp(xg) * 0.22 * halo;
+  night = mix(night, nightSheet(r3, xg) * 0.80, r3.x * 0.32);
+  night = mix(night, nightSheet(r1, xg), r1.x * 0.82);
+  night = mix(night, nightSheet(r2, xg), r2.x * 0.45);
   col = mix(col, night, uDark);
   // Koi grain/noise nahi: bilkul smooth (pehle har frame naya grain banta tha, wahi jhilmil tha)
   gl_FragColor = vec4(col, 1.0);

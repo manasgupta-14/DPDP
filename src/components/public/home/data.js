@@ -10,6 +10,9 @@ export const ICONS = {
     grievance: "M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z",
     breach: "M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z",
     dpia: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",
+    dpiaCheck: "M12 21a9 9 0 100-18 9 9 0 000 18zM8 12l3 3 5-6",
+    play: "M8 5.5v13l11-6.5z",
+    grid: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
     audit: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 13h6M9 17h4",
     retention: "M12 8v4l3 3M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     report: "M4 19V5M4 19h16M8 15v-4M12 15V8M16 15v-6",
@@ -34,12 +37,12 @@ export const CAPABILITIES = [
 
 // Hub-and-spoke: beech me Kavach, chaaron taraf modules
 export const ECOSYSTEM = [
-    { key: "consent", icon: "consent", title: "Consent", text: "Allow / deny per purpose, withdraw any time", status: "Recorded" },
-    { key: "notice", icon: "notice", title: "Privacy notices", text: "Versioned, in English, Hindi and Marathi", status: "Published" },
-    { key: "rights", icon: "rights", title: "Rights requests", text: "Access, correction, erasure, portability", status: "30-day timer" },
-    { key: "grievance", icon: "grievance", title: "Grievances", text: "Assign, reply, resolve or escalate", status: "Tracked" },
-    { key: "breach", icon: "breach", title: "Breach response", text: "Severity, owner, status and mitigation", status: "Monitored" },
-    { key: "dpia", icon: "dpia", title: "DPIA reviews", text: "DPO approves, asks for changes or rejects", status: "In review" },
+    { key: "consent", icon: "consent", title: "Consent", text: "Allow / deny per purpose, withdraw any time.", status: "Recorded", tone: "blue", statusTone: "ok", to: "/dashboard/consent" },
+    { key: "notice", icon: "notice", title: "Privacy notices", text: "Versioned, in English, Hindi and Marathi.", status: "Published", tone: "pink", statusTone: "ok", to: "/dashboard/notices" },
+    { key: "rights", icon: "rights", title: "Rights requests", text: "Access, correction, erasure, portability.", status: "30-day timer", tone: "mint", statusTone: "warn", to: "/dashboard/rights-requests" },
+    { key: "grievance", icon: "grievance", title: "Grievances", text: "Assign, reply, resolve or escalate.", status: "Tracked", tone: "orange", statusTone: "ok", to: "/dashboard/grievances" },
+    { key: "breach", icon: "breach", title: "Breach response", text: "Severity, owner, status and mitigation.", status: "Monitored", tone: "purple", statusTone: "info", to: "/dashboard/breach" },
+    { key: "dpia", icon: "dpiaCheck", title: "DPIA reviews", text: "DPO approves, asks for changes or rejects.", status: "In review", tone: "emerald", statusTone: "violet", to: "/dashboard/dpia" },
 ];
 
 export const FEATURES = [
@@ -64,10 +67,10 @@ export const STEPS = [
 
 // Sirf product ke asli tathya
 export const STATS = [
-    { value: 3, suffix: "", label: "panels", sub: "Admin, User and DPO" },
-    { value: 3, suffix: "", label: "notice languages", sub: "English, Hindi and Marathi" },
-    { value: 13, suffix: "", label: "report types", sub: "PDF or CSV, with a SHA-256 fingerprint" },
-    { value: 30, suffix: " days", label: "request deadline", sub: "tracked on every rights request" },
+    { value: 3, suffix: "", label: "panels", sub: "Admin, User and DPO", icon: "grid" },
+    { value: 3, suffix: "", label: "notice languages", sub: "English, Hindi and Marathi", icon: "globe" },
+    { value: 13, suffix: "", label: "report types", sub: "PDF or CSV, with a SHA-256 fingerprint", icon: "report" },
+    { value: 30, suffix: " days", label: "request deadline", sub: "tracked on every rights request", icon: "retention" },
 ];
 
 export const COMPARE_ROWS = [

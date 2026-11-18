@@ -1,5 +1,5 @@
 import StatTile from "../../components/shared/StatTile.jsx";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
@@ -7,6 +7,7 @@ import { getRoleOptions } from "../../api/roles.js";
 import AudienceGroups from "../../components/admin/campaign/AudienceGroups.jsx";
 import AudienceModal from "../../components/admin/campaign/AudienceModal.jsx";
 import Alert from "../../components/shared/Alert.jsx";
+import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { timeOf } from "../../utils/breach.js";
@@ -213,7 +214,7 @@ function Bar({ label, value, total, color }) {
     );
 }
 
-function StatsPanel({ campaign, onClose }) {
+function StatsPanel({ campaign, onClose, inline = false }) {
     const [state, setState] = useState({ loading: true, error: "", stats: null });
 
     useEffect(() => {
@@ -228,22 +229,23 @@ function StatsPanel({ campaign, onClose }) {
     const s = state.stats;
     const consent = isConsent(campaign.type);
     return (
-        <div className={`${panel} p-5 sm:p-6`}>
+        <div className={inline ? "pg-alert rounded-xl border border-line bg-surface p-4 sm:p-5" : `${panel} p-5 sm:p-6`}>
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">Campaign analytics</p>
-                    <h3 className="mt-1 truncate text-lg font-semibold">{campaign.title}</h3>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted">Campaign Analytics</p>
+                    <h3 className="mt-1 truncate text-base font-semibold">{campaign.title}</h3>
+                    <p className="text-xs text-muted">Responses collected so far for this campaign.</p>
                 </div>
                 <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
             </div>
             {state.loading && <p className="mt-4 text-sm text-ink-3">Loading statistics...</p>}
-            <div className="mt-4"><Alert>{state.error}</Alert></div>
+            {state.error && <div className="mt-4"><Alert>{state.error}</Alert></div>}
             {s && (
                 <div className="mt-4 space-y-4">
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                         {(consent
                             ? [["Responses", s.total], ["Accepted", s.accepted], ["Rejected", s.rejected], ["Acceptance", `${s.total ? Math.round((s.accepted / s.total) * 100) : 0}%`]]
-                            : [["Responses", s.total], ["Marked read", s.completed]]
+                            : [["Responses", s.total], ["Marked Read", s.completed]]
                         ).map(([k, v]) => (
                             <div key={k} className="rounded-xl bg-soft p-3 ring-1 ring-line">
                                 <p className="text-xs text-muted">{k}</p>
@@ -265,49 +267,125 @@ function StatsPanel({ campaign, onClose }) {
     );
 }
 
-function CampaignTable({ campaigns, loading, error, onRefresh, onSelect, onAssign, selectedId }) {
+const PAGE_SIZE = 10;
+const STATUS_FILTERS = ["All", "Active", "Scheduled", "Ended"];
+const TYPE_FILTERS = ["All", "Consent", "Awareness"];
+
+function CampaignTable({ campaigns, loading, error, onRefresh, onAssign }) {
+    const [status, setStatus] = useState("All");
+    const [type, setType] = useState("All");
+    const [page, setPage] = useState(1);
+    const [openId, setOpenId] = useState(null);
+
+    const filtered = campaigns.filter((c) => {
+        const st = campaignState(c).label;
+        const okStatus = status === "All" || (status === "Ended" ? st !== "Active" && st !== "Scheduled" : st === status);
+        return okStatus && (type === "All" || typeLabel(c.type) === type);
+    });
+    const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const current = Math.min(page, pages);
+    const rows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+    // Page numbers: 10 tak seedhe, phir Previous / Next se aage
+    const first = Math.max(1, Math.min(current - 4, pages - 9));
+    const nums = Array.from({ length: Math.min(10, pages) }, (_, i) => first + i);
+    const go = (n) => {
+        setPage(Math.max(1, Math.min(pages, n)));
+        setOpenId(null);
+    };
+    const pick = (setter) => (e) => {
+        setter(e.target.value);
+        setPage(1);
+        setOpenId(null);
+    };
+    const selectCls = "h-9 rounded-[10px] border border-line bg-surface px-3 text-sm text-ink focus:border-brand focus:outline-none";
+
     return (
         <div className={`${panel} overflow-hidden`}>
-            <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
                 <div>
-                    <h2 className="text-lg font-semibold">All campaigns</h2>
-                    <p className="text-sm text-ink-3">{campaigns.length} created by your organisation</p>
+                    <h2 className="text-lg font-semibold">All Campaigns</h2>
+                    <p className="text-sm text-ink-3">
+                        {filtered.length === campaigns.length ? `${campaigns.length} created by your organisation` : `${filtered.length} of ${campaigns.length} campaigns match the filter`}
+                    </p>
                 </div>
-                <button type="button" onClick={onRefresh} className={ghostBtn}>Refresh</button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-muted">
+                        Status
+                        <select value={status} onChange={pick(setStatus)} className={selectCls} aria-label="Filter by status">
+                            {STATUS_FILTERS.map((f) => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-muted">
+                        Type
+                        <select value={type} onChange={pick(setType)} className={selectCls} aria-label="Filter by type">
+                            {TYPE_FILTERS.map((f) => <option key={f} value={f}>{f}</option>)}
+                        </select>
+                    </label>
+                    <button type="button" onClick={onRefresh} className={ghostBtn}>Refresh</button>
+                </div>
             </div>
             {error && <div className="p-4"><Alert>{error}</Alert></div>}
             {loading ? (
                 <p className="px-5 py-6 text-sm text-ink-3">Loading campaigns...</p>
             ) : campaigns.length === 0 && !error ? (
                 <p className="px-5 py-6 text-sm text-ink-3">No campaigns yet. Use "Create new campaign" to add the first one.</p>
+            ) : filtered.length === 0 ? (
+                <p className="px-5 py-6 text-sm text-ink-3">No campaign matches this filter.</p>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-[680px] text-left text-sm">
-                        <thead className="bg-soft text-xs uppercase tracking-wider text-muted">
-                            <tr><th className="px-5 py-3">Title</th><th className="px-3 py-3">Audience</th><th className="px-3 py-3">Runs</th><th className="px-3 py-3">Status</th><th className="px-5 py-3" /></tr>
-                        </thead>
-                        <tbody className="divide-y divide-line">
-                            {campaigns.map((c) => {
-                                const st = campaignState(c);
-                                return (
-                                    <tr key={c.id ?? c.title} className={selectedId === c.id ? "bg-brand-soft/40" : ""}>
-                                        <td className="px-5 py-3">
-                                            <p className="font-medium">{c.title}</p>
-                                            <p className="text-xs text-muted">{typeLabel(c.type)}{c.inventory?.name ? ` · ${c.inventory.name}` : ""}</p>
-                                        </td>
-                                        <td className="px-3 py-3 text-ink-2">{targetAudienceLabel(c.targetAudience, c.audience)}</td>
-                                        <td className="whitespace-nowrap px-3 py-3 text-ink-2">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
-                                        <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${st.tone}`}>{st.label}</span></td>
-                                        <td className="whitespace-nowrap px-5 py-3 text-right">
-                                            <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-info-ink hover:underline disabled:opacity-50">Assign audience</button>
-                                            <button type="button" disabled={!c.id} onClick={() => onSelect(c)} className="text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">View stats</button>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[680px] text-left text-sm">
+                            <thead className="bg-soft text-xs uppercase tracking-wider text-muted">
+                                <tr><th className="px-5 py-3">Title</th><th className="px-3 py-3">Audience</th><th className="px-3 py-3">Runs</th><th className="px-3 py-3">Status</th><th className="px-5 py-3"><span className="sr-only">Actions</span></th></tr>
+                            </thead>
+                            <tbody className="divide-y divide-line">
+                                {rows.map((c) => {
+                                    const st = campaignState(c);
+                                    const open = openId === c.id;
+                                    return (
+                                        <Fragment key={c.id ?? c.title}>
+                                            <tr className={open ? "bg-brand-soft/40" : ""}>
+                                                <td className="px-5 py-3">
+                                                    <p className="font-medium">{c.title}</p>
+                                                    <p className="text-xs text-muted">{typeLabel(c.type)}{c.inventory?.name ? ` · ${c.inventory.name}` : ""}</p>
+                                                </td>
+                                                <td className="px-3 py-3 text-ink-2">{targetAudienceLabel(c.targetAudience, c.audience)}</td>
+                                                <td className="whitespace-nowrap px-3 py-3 text-ink-2">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
+                                                <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${st.tone}`}>{st.label}</span></td>
+                                                <td className="whitespace-nowrap px-5 py-3 text-right">
+                                                    <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-info-ink hover:underline disabled:opacity-50">Assign Audience</button>
+                                                    <button type="button" disabled={!c.id} onClick={() => setOpenId(open ? null : c.id)} aria-expanded={open} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
+                                                        View Stats
+                                                        <Icon name="chevron" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            {open && (
+                                                <tr>
+                                                    <td colSpan={5} className="bg-soft px-5 py-4">
+                                                        <StatsPanel inline campaign={c} onClose={() => setOpenId(null)} />
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                    <nav aria-label="Campaign pages" className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3 text-sm">
+                        <span className="text-muted">
+                            Showing {(current - 1) * PAGE_SIZE + 1}–{Math.min(current * PAGE_SIZE, filtered.length)} of {filtered.length}
+                        </span>
+                        <div className="flex flex-wrap items-center gap-1">
+                            <button type="button" onClick={() => go(current - 1)} disabled={current === 1} className="h-9 rounded-[10px] border border-line bg-surface px-3 font-semibold text-ink-2 hover:bg-soft disabled:opacity-45">Previous</button>
+                            {nums.map((n) => (
+                                <button key={n} type="button" onClick={() => go(n)} aria-current={n === current ? "page" : undefined} className={`h-9 min-w-9 rounded-[10px] px-2 font-semibold ${n === current ? "bg-brand text-white" : "border border-line bg-surface text-ink-2 hover:bg-soft"}`}>{n}</button>
+                            ))}
+                            <button type="button" onClick={() => go(current + 1)} disabled={current === pages} className="h-9 rounded-[10px] border border-line bg-surface px-3 font-semibold text-ink-2 hover:bg-soft disabled:opacity-45">Next</button>
+                        </div>
+                    </nav>
+                </>
             )}
         </div>
     );
@@ -319,7 +397,6 @@ export default function Campaigns() {
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [selected, setSelected] = useState(null);
     const [creating, setCreating] = useState(false);
     const [assigning, setAssigning] = useState(null);
     const [flash, setFlash] = useState("");
@@ -362,8 +439,7 @@ export default function Campaigns() {
                     <StatTile label="Consent campaigns" value={campaigns.filter((c) => isConsent(c.type)).length} total={campaigns.length} icon="consent" tone="warn" colorValue hint="Ask to allow or deny" />
                 </section>
             )}
-            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onSelect={setSelected} onAssign={(c) => { setFlash(""); setAssigning(c); }} selectedId={selected?.id} />
-            {selected && <StatsPanel key={selected.id} campaign={selected} onClose={() => setSelected(null)} />}
+            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onAssign={(c) => { setFlash(""); setAssigning(c); }} />
             <AudienceGroups refreshKey={groupsKey} />
             {creating && (
                 <Modal title="Create new campaign" onClose={() => setCreating(false)}>
