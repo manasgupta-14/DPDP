@@ -175,7 +175,7 @@ export function buildExecutive(data, now = new Date()) {
     /* ---------- inventory (RoPA style) */
     let inv = null;
     if (inventory) {
-        const documented = inventory.filter((i) => i.purpose && num(i.retentionDays) > 0 && i.storage);
+        const documented = inventory.filter((i) => i.purpose && num(i.retentionDays) > 0 && i.storage && i.lawfulBasis && i.principalCategory);
         const missing = inventory.filter((i) => !documented.includes(i));
         inv = { total: inventory.length, documented: documented.length, coverage: inventory.length ? pct(documented.length, inventory.length) : 0, missing };
     }

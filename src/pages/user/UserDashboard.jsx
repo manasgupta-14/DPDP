@@ -70,13 +70,6 @@ export default function UserDashboard() {
                 greeting="Welcome"
                 name={firstName}
                 sub={customer ? "See and control how your data is used." : "Answer requests and report anything unusual."}
-                status={
-                    tasks.loading || tasks.error
-                        ? null
-                        : tasks.items.length
-                          ? { tone: "warn", label: `${tasks.items.length} task${tasks.items.length === 1 ? "" : "s"} waiting` }
-                          : { tone: "ok", label: "All done" }
-                }
                 actions={
                     <>
                     {customer ? (
@@ -116,7 +109,7 @@ export default function UserDashboard() {
                     <h2 className="kd-title">Privacy health</h2>
                     <p className="kd-sub">Goes down while tasks are waiting</p>
                     <div className="mt-4 flex items-center gap-5">
-                        <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`}>
+                        <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`} tip={{ title: "Privacy health", rows: [{ name: b.label || "Score", value: score, display: score === null ? "No data" : `${score}%`, color: b.color }] }}>
                             <div>
                                 <p className="kd-big text-[28px]">{score === null ? "—" : <CountUp value={score} suffix="%" />}</p>
                                 <p className="text-[11px] text-muted">health</p>
