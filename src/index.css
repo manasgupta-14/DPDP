@@ -1205,3 +1205,47 @@ html[data-theme="dark"] .kv-name-ch { background-image: linear-gradient(100deg, 
 /* ---- v104: inventory processor tags — andar wala input saada rahe (bahar ka box hi field hai) ---- */
 .kv-tag-input, html[data-theme="dark"] .kv-tag-input { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; min-height: 1.6rem; outline: none !important; border-radius: 0 !important; }
 .kv-tag-box:focus-within { border-color: var(--k-brand) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-brand) 18%, transparent) !important; }
+
+/* ---- v105: Rules & Acts library ---- */
+.kv-rule-cat { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .6rem; font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  --c: #4F5BD5; color: color-mix(in srgb, var(--c) 82%, var(--k-ink)); background: color-mix(in srgb, var(--c) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
+[data-tone="indigo"] { --c: #4F5BD5; } [data-tone="violet"] { --c: #8B5CF6; } [data-tone="teal"] { --c: #0D9488; }
+[data-tone="amber"] { --c: #D97706; } [data-tone="slate"] { --c: #64748B; }
+.kv-rule-card { --c: #4F5BD5; position: relative; display: flex; height: 100%; min-height: 176px; width: 100%; flex-direction: column; text-align: left; border-radius: 18px; padding: 1.1rem 1.15rem 1rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 7%, var(--k-surface)) 0%, var(--k-surface) 55%);
+  border: 1px solid color-mix(in srgb, var(--c) 18%, var(--k-line)); box-shadow: var(--k-shadow-sm);
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, border-color .25s ease; overflow: hidden; }
+.kv-rule-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 30%, transparent)); }
+.kv-rule-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--c) 40%, var(--k-line)); box-shadow: 0 18px 36px -18px color-mix(in srgb, var(--c) 45%, transparent); }
+.kv-rule-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--k-brand) 40%, transparent); outline-offset: 2px; }
+.kv-rule-linkdot { display: grid; place-items: center; height: 26px; width: 26px; border-radius: 9px; color: var(--k-ok-ink); background: var(--k-ok-soft); }
+.kv-rule-chip { --c: var(--k-brand); display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .35rem .8rem; font-size: 13px; font-weight: 600; color: var(--k-ink-2);
+  border: 1px solid var(--k-line); background: var(--k-surface); transition: all .18s ease; }
+.kv-rule-chip span { font-size: 11px; font-weight: 700; color: var(--k-muted); }
+.kv-rule-chip:hover { border-color: color-mix(in srgb, var(--c) 40%, var(--k-line)); }
+.kv-rule-chip[aria-pressed="true"] { color: color-mix(in srgb, var(--c) 85%, var(--k-ink)); background: color-mix(in srgb, var(--c) 12%, var(--k-surface)); border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+.kv-rule-chip[aria-pressed="true"] span { color: inherit; }
+.kv-rule-doc { display: flex; align-items: center; gap: .85rem; border-radius: 14px; padding: .8rem 1rem; border: 1px solid var(--k-line); background: var(--k-soft); transition: border-color .2s ease, transform .2s ease; }
+.kv-rule-doc:hover { border-color: var(--k-brand); transform: translateY(-1px); }
+html[data-theme="dark"] .kv-rule-card { background: linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, #12121C) 0%, #12121C 60%); border-color: color-mix(in srgb, var(--c) 28%, rgba(255,255,255,.08)); }
+html[data-theme="dark"] .kv-rule-cat { color: color-mix(in srgb, var(--c) 55%, #fff); background: color-mix(in srgb, var(--c) 22%, transparent); }
+
+/* ---- v105: sidebar ka apna gradient (dashboard cards se alag: upar halka indigo, beech lavender, neeche mint) ---- */
+html:not([data-theme="dark"]) .kv-side {
+  background:
+    radial-gradient(120% 40% at 0% 0%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(90% 35% at 100% 55%, rgba(236, 72, 153, 0.08), transparent 65%),
+    radial-gradient(110% 40% at 20% 100%, rgba(16, 185, 129, 0.13), transparent 60%),
+    linear-gradient(180deg, rgba(240, 242, 255, 0.94) 0%, rgba(248, 245, 255, 0.92) 50%, rgba(240, 253, 248, 0.92) 100%);
+  border-color: rgba(255, 255, 255, 0.95);
+}
+html:not([data-theme="dark"]) .kv-side .kv-side-link.is-active { background: rgba(255, 255, 255, 0.92); }
+html[data-theme="dark"] .kv-side {
+  background:
+    radial-gradient(120% 40% at 0% 0%, rgba(99, 102, 241, 0.26), transparent 60%),
+    radial-gradient(110% 40% at 20% 100%, rgba(20, 184, 166, 0.16), transparent 60%),
+    linear-gradient(180deg, rgba(22, 22, 40, 0.92) 0%, rgba(14, 14, 24, 0.92) 55%, rgba(12, 20, 22, 0.92) 100%);
+}
+/* Rules library card button ke andar user ka text hai: Title Case nahi (sirf category pill aur "View" waise hi) */
+.pg-dash main button.kv-rule-card, .pg-dash main button.kv-rule-card * { text-transform: none !important; }
+[role="dialog"] h2.kv-keep, .kv-rule-doc * { text-transform: none !important; }

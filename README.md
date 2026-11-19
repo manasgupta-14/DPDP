@@ -146,6 +146,20 @@ Each data point also records:
 
 Records created before these fields existed show "Not set". They must be filled in when the record is next edited. The dashboard counts a data point as documented only when these two fields are set as well.
 
+## Rules & Acts
+
+Library of laws, rules and internal policies, at `/dashboard/rules` (admin) and `/dpo/rules` (DPO).
+Backend: `RulesAndActsController`, route `api/v1/RulesAndActs` (note the `v1`).
+
+| Method | Path | Used for |
+|---|---|---|
+| GET | `/api/v1/RulesAndActs/organization/{orgId}` | List (org ID comes from the signed-in token) |
+| GET | `/api/v1/RulesAndActs/{id}` | Detail popup |
+| POST | `/api/v1/RulesAndActs` | Add (`organizationId, title, category, description, documentUrl`) |
+| DELETE | `/api/v1/RulesAndActs/{id}` | Remove (backend does a soft delete) |
+
+Categories sent: `DPDP_Act`, `DPDP_Rules`, `Internal_Policy`, `Sector_Regulation`, `Other`. There is no edit API yet, so entries can only be added or removed.
+
 ## Permissions
 
 The backend checks every request. `src/api/permissionMap.js` mirrors the backend's `[HasPermission]` rules, so when a request is refused (403), the message names the permission that is needed. Update this file whenever the backend permissions change.
