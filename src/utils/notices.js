@@ -1,4 +1,5 @@
 import { DEFAULT_COLOR } from "./noticeTemplate.js";
+import { toDate } from "./audit.js";
 
 
 export const NOTICE_STATUS = { draft: "Draft", published: "Published", archived: "Archived" };
@@ -102,14 +103,14 @@ export function basisLabel(value) {
 }
 
 export function formatDateTime(value) {
-    const d = value ? new Date(value) : null;
-    if (!d || Number.isNaN(d.getTime())) return "Not published";
+    const d = toDate(value);
+    if (!d) return "Not published";
     return d.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 export function formatDay(value) {
-    const d = value ? new Date(value) : null;
-    return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Not published";
+    const d = toDate(value);
+    return d ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Not published";
 }
 
 export const nextVersion = (list, code) => list.filter((n) => n.code === code).reduce((max, n) => Math.max(max, n.version || 1), 0) + 1;

@@ -45,7 +45,7 @@ export default function AssessmentView({ title, details, legacyText }) {
                 <Row label="Personal data collected">{types}</Row>
                 <Row label="Data principals">{d.dataSubjects}</Row>
                 <Row label="Purposes">
-                    {d.purposes?.length ? <ol className="list-decimal space-y-1 pl-5">{d.purposes.map((p) => <li key={p}>{p}</li>)}</ol> : null}
+                    {d.purposes?.length ? <ol className="list-decimal space-y-1 pl-5">{d.purposes.map((p, ki) => <li key={`${p}-${ki}`}>{p}</li>)}</ol> : null}
                 </Row>
                 {d.legalBasis && <Row label="Lawful basis">{d.legalBasis}</Row>}
                 <Row label="Retention">{d.retention}</Row>

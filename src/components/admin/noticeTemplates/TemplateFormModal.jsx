@@ -106,8 +106,8 @@ export default function TemplateFormModal({ template, templates, purposeOptions,
                                 <p className="text-xs text-ink-3">No purposes yet. Add them on the Purposes page first.</p>
                             ) : (
                                 <div className="grid gap-x-4 gap-y-2 sm:grid-cols-2">
-                                    {options.map((p) => (
-                                        <label key={p.code} className="flex items-start gap-2 text-xs text-ink">
+                                    {options.map((p, ki) => (
+                                        <label key={`${p.code}-${ki}`} className="flex items-start gap-2 text-xs text-ink">
                                             <input type="checkbox" checked={form.purposes.includes(p.code)} onChange={() => toggle(p.code)} disabled={busy} className="mt-0.5 accent-brand" />
                                             <span>{p.name}<span className="block font-mono text-[10px] text-muted">{p.code}</span></span>
                                         </label>

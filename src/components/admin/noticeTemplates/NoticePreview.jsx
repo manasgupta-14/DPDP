@@ -14,8 +14,8 @@ export default function NoticePreview({ name, description, logoUrl, color, purpo
                     <p className="rounded-lg border border-dashed border-line-strong px-3 py-3 text-center text-[11px] text-muted">No purposes selected yet.</p>
                 ) : (
                     <ul className="space-y-1.5">
-                        {purposes.map((p) => (
-                            <li key={p.code} className="flex items-center gap-2 text-xs text-ink">
+                        {purposes.map((p, ki) => (
+                            <li key={`${p.code}-${ki}`} className="flex items-center gap-2 text-xs text-ink">
                                 <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ background: accent }} />
                                 {p.name}
                             </li>

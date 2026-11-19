@@ -244,17 +244,17 @@ export default function NoticeEditor() {
             <Section letter="B" title="Consent purposes" hint="Purposes that come with the template are merged with your own selection.">
                 {published ? (
                     merged.length === 0 ? <p className="text-sm text-muted">No purposes linked.</p> : (
-                        <ul className="flex flex-wrap gap-2">{merged.map((c) => <li key={c} className="rounded-full bg-subtle px-3 py-1 text-xs font-semibold text-ink-2 ring-1 ring-line-strong">{nameOf(c)}</li>)}</ul>
+                        <ul className="flex flex-wrap gap-2">{merged.map((c, ki) => <li key={`${c}-${ki}`} className="rounded-full bg-subtle px-3 py-1 text-xs font-semibold text-ink-2 ring-1 ring-line-strong">{nameOf(c)}</li>)}</ul>
                     )
                 ) : allPurposes.length === 0 ? (
                     <p className="text-sm text-muted">No purposes available. Add purposes first.</p>
                 ) : (
                     <ul className="grid gap-2 sm:grid-cols-2">
-                        {allPurposes.map((p) => {
+                        {allPurposes.map((p, ki) => {
                             const fromTemplate = template?.purposes.includes(p.code);
                             const checked = merged.includes(p.code);
                             return (
-                                <li key={p.code}>
+                                <li key={`${p.code}-${ki}`}>
                                     <label className={`flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm ${checked ? "border-brand bg-brand-soft" : "border-line bg-surface"}`}>
                                         <input type="checkbox" checked={checked} disabled={fromTemplate} onChange={() => togglePurpose(p.code)} className="h-4 w-4 accent-brand" />
                                         <span className="min-w-0 flex-1 truncate font-medium text-ink">{p.name}</span>
@@ -270,8 +270,8 @@ export default function NoticeEditor() {
 
             <Section letter="C" title="Title, summary & translations" hint="One tab per language. The primary language is the notice title. All tabs are saved together.">
                 <div className="flex flex-wrap items-center gap-2 border-b border-line pb-3">
-                    {form.translations.map((t) => (
-                        <button key={t.language} type="button" onClick={() => setLang(t.language)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${lang === t.language ? "bg-brand text-white" : "border border-line text-ink-2 hover:border-brand"}`}>
+                    {form.translations.map((t, ki) => (
+                        <button key={`${t.language}-${ki}`} type="button" onClick={() => setLang(t.language)} className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${lang === t.language ? "bg-brand text-white" : "border border-line text-ink-2 hover:border-brand"}`}>
                             {langLabel(t.language)} ({t.language}){t.language === form.defaultLanguage && " · Primary"}
                         </button>
                     ))}

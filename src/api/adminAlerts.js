@@ -3,10 +3,11 @@ import { getAllDpia } from "./dpia.js";
 import { getAllGrievances } from "./grievance.js";
 import { getPrivacyRequestList } from "./privacyRequest.js";
 import { formatDate, isFinished, sameText } from "../utils/breach.js";
+import { toTime } from "../utils/audit.js";
 
 const DONE_REQUEST = /^(fulfilled|rejected|withdrawn|expired)$/i;
 const OPEN_GRIEVANCE = (s) => sameText(s, "open") || sameText(s, "in progress");
-const time = (d) => (d ? new Date(d).getTime() || 0 : 0);
+const time = (d) => toTime(d);
 const day = (d) => (d ? formatDate(d) : "");
 
 /**

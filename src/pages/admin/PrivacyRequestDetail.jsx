@@ -221,8 +221,8 @@ export default function PrivacyRequestDetail() {
 
                     <Card title="Timeline" subtitle="Actions recorded on this request.">
                         <ol className="space-y-4">
-                            {timeline.map((e) => (
-                                <li key={e.title} className="flex gap-3">
+                            {timeline.map((e, ki) => (
+                                <li key={`${e.title}-${ki}`} className="flex gap-3">
                                     <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${e.tone}`} />
                                     <div className="min-w-0">
                                         <p className="text-sm font-semibold text-ink">{e.title}</p>

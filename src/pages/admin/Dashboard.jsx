@@ -316,68 +316,6 @@ export default function Dashboard() {
                         </div>
                     </Card>
 
-                    {/* Compliance checklist (backend: GET /api/ComplianceChecklist) */}
-                    {m.checklist && (
-                        <Card
-                            i={13}
-                            title="Compliance checklist"
-                            sub="Each DPDP duty, checked against your records"
-                            action={
-                                <Link to="/dashboard/checklist" className="kd-link">
-                                    View checklist <Icon name="arrowRight" className="h-3.5 w-3.5" />
-                                </Link>
-                            }
-                        >
-                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-                                <div>
-                                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
-                                        <span className="text-ink-3">
-                                            <b className="text-ink">{m.checklist.complete}</b> of <b className="text-ink">{m.checklist.tracked}</b> tracked items complete
-                                        </span>
-                                        <span className={`kd-big kd-num kd-num-${m.checklist.progress >= 80 ? "ok" : m.checklist.progress >= 50 ? "warn" : "bad"} text-[22px]`}>
-                                            <CountUp value={m.checklist.progress} suffix="%" />
-                                        </span>
-                                    </div>
-                                    <div className="mt-3">
-                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} name={`${m.checklist.complete} of ${m.checklist.tracked} items complete`} valueName="Complete" />
-                                    </div>
-                                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.ok }}>
-                                            <p className="text-lg font-bold text-ok-ink">{m.checklist.complete}</p>
-                                            <p className="text-[11px] font-medium text-ink-3">Complete</p>
-                                        </div>
-                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.amber }}>
-                                            <p className="text-lg font-bold text-warn-ink">{m.checklist.attention}</p>
-                                            <p className="text-[11px] font-medium text-ink-3">Needs attention</p>
-                                        </div>
-                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.muted }}>
-                                            <p className="text-lg font-bold text-ink-2">{m.checklist.untracked}</p>
-                                            <p className="text-[11px] font-medium text-ink-3">Tracked outside</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <ul className="space-y-2">
-                                    {m.checklist.items.filter((it) => it.status.key === "attention").slice(0, 4).map((it) => (
-                                        <li key={it.id}>
-                                            <Link to={it.to || "/dashboard/checklist"} className="kd-tile-tint flex items-start gap-3 rounded-lg border px-3 py-2.5" style={{ "--kv-tint": C.amber }}>
-                                                <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0 text-warn-ink" />
-                                                <span className="min-w-0">
-                                                    <span className="block text-sm font-semibold text-ink">{it.requirement}</span>
-                                                    <span className="block text-xs text-ink-3">{it.evidence}</span>
-                                                </span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                    {m.checklist.attention === 0 && (
-                                        <li className="flex items-center gap-2 rounded-lg border border-ok/25 bg-ok-soft px-3 py-3 text-sm text-ok-ink">
-                                            <Icon name="check" className="h-4 w-4" /> Every tracked item is complete.
-                                        </li>
-                                    )}
-                                </ul>
-                            </div>
-                        </Card>
-                    )}
-
                     {/* Three donuts: grievances · DPIA · data categories */}
                     <div className="grid gap-4 lg:grid-cols-3">
                         {[
@@ -434,8 +372,8 @@ export default function Dashboard() {
                                                 </div>
                                             </Donut>
                                             <ul className="min-w-0 flex-1 space-y-1.5">
-                                                {d.parts.map((p) => (
-                                                    <li key={p.label} className="flex items-center justify-between gap-2 text-[13px]">
+                                                {d.parts.map((p, ki) => (
+                                                    <li key={`${p.label}-${ki}`} className="flex items-center justify-between gap-2 text-[13px]">
                                                         <span className="inline-flex min-w-0 items-center gap-2 text-ink-2">
                                                             <i className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: p.color }} />
                                                             <span className="truncate">{p.label}</span>
@@ -697,6 +635,68 @@ export default function Dashboard() {
                             <NoAccess />
                         )}
                     </Card>
+
+                    {/* Compliance checklist (backend: GET /api/ComplianceChecklist) */}
+                    {m.checklist && (
+                        <Card
+                            i={13}
+                            title="Compliance checklist"
+                            sub="Each DPDP duty, checked against your records"
+                            action={
+                                <Link to="/dashboard/checklist" className="kd-link">
+                                    View checklist <Icon name="arrowRight" className="h-3.5 w-3.5" />
+                                </Link>
+                            }
+                        >
+                            <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+                                <div>
+                                    <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+                                        <span className="text-ink-3">
+                                            <b className="text-ink">{m.checklist.complete}</b> of <b className="text-ink">{m.checklist.tracked}</b> tracked items complete
+                                        </span>
+                                        <span className={`kd-big kd-num kd-num-${m.checklist.progress >= 80 ? "ok" : m.checklist.progress >= 50 ? "warn" : "bad"} text-[22px]`}>
+                                            <CountUp value={m.checklist.progress} suffix="%" />
+                                        </span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <Progress value={m.checklist.progress} color={m.checklist.progress >= 80 ? C.ok : m.checklist.progress >= 50 ? C.amber : C.red} name={`${m.checklist.complete} of ${m.checklist.tracked} items complete`} valueName="Complete" />
+                                    </div>
+                                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.ok }}>
+                                            <p className="text-lg font-bold text-ok-ink">{m.checklist.complete}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Complete</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                            <p className="text-lg font-bold text-warn-ink">{m.checklist.attention}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Needs attention</p>
+                                        </div>
+                                        <div className="kd-tile-tint rounded-lg border px-2 py-2.5" style={{ "--kv-tint": C.muted }}>
+                                            <p className="text-lg font-bold text-ink-2">{m.checklist.untracked}</p>
+                                            <p className="text-[11px] font-medium text-ink-3">Tracked outside</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul className="space-y-2">
+                                    {m.checklist.items.filter((it) => it.status.key === "attention").slice(0, 4).map((it) => (
+                                        <li key={it.id}>
+                                            <Link to={it.to || "/dashboard/checklist"} className="kd-tile-tint flex items-start gap-3 rounded-lg border px-3 py-2.5" style={{ "--kv-tint": C.amber }}>
+                                                <Icon name="alert" className="mt-0.5 h-4 w-4 shrink-0 text-warn-ink" />
+                                                <span className="min-w-0">
+                                                    <span className="block text-sm font-semibold text-ink">{it.requirement}</span>
+                                                    <span className="block text-xs text-ink-3">{it.evidence}</span>
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    {m.checklist.attention === 0 && (
+                                        <li className="flex items-center gap-2 rounded-lg border border-ok/25 bg-ok-soft px-3 py-3 text-sm text-ok-ink">
+                                            <Icon name="check" className="h-4 w-4" /> Every tracked item is complete.
+                                        </li>
+                                    )}
+                                </ul>
+                            </div>
+                        </Card>
+                    )}
 
                     {/* Request types (bar) · breach trend (column) */}
                     <div className="grid gap-4 lg:grid-cols-2">
