@@ -10,6 +10,7 @@ const NoticeBuilder = lazy(() => import("./NoticeBuilder.jsx"));
 const RightsRequests = lazy(() => import("./RightsRequests.jsx"));
 const PrivacyRequests = lazy(() => import("./PrivacyRequests.jsx"));
 const ComplianceChecklist = lazy(() => import("./ComplianceChecklist.jsx"));
+const RulesActs = lazy(() => import("./RulesActs.jsx"));
 
 export default function ModulePage() {
     const slug = useLocation().pathname.split("/").pop();
@@ -20,6 +21,7 @@ export default function ModulePage() {
     if (slug === "notice") return <Suspense fallback={<PageLoader />}><NoticeBuilder /></Suspense>;
     if (slug === "rights-requests") return <Suspense fallback={<PageLoader />}><PrivacyRequests /></Suspense>;
     if (slug === "dsar") return <Suspense fallback={<PageLoader />}><RightsRequests /></Suspense>;
+    if (slug === "rules") return <Suspense fallback={<PageLoader />}><RulesActs /></Suspense>;
     if (slug === "checklist") return <Suspense fallback={<PageLoader />}><ComplianceChecklist /></Suspense>;
     // Jin slugs ka asli page nahi (jaise "timeline"), unhe adhoora panel dikhane ke bajay dashboard par bhejo
     return <Navigate to="/dashboard" replace />;

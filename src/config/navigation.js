@@ -31,6 +31,7 @@ const ALL_ADMIN_SECTIONS = [
             { to: "/dashboard/dpia", label: "DPIA", icon: "fileSearch", tone: "violet" },
             { to: "/dashboard/retention", label: "Retention & erasure", icon: "archive", tone: "orange" },
             { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist", tone: "green" },
+            { to: "/dashboard/rules", label: "Rules & Acts", icon: "book", tone: "indigo" },
             { to: "/dashboard/audit", label: "Audit trail", icon: "history", tone: "teal" },
         ],
     },
@@ -84,7 +85,10 @@ export const DPO_SECTIONS = [
     },
     {
         label: "Reviews",
-        items: [{ to: "/dpo/dpia", label: "DPIA reviews", icon: "fileSearch", tone: "violet" }],
+        items: [
+            { to: "/dpo/dpia", label: "DPIA reviews", icon: "fileSearch", tone: "violet" },
+            { to: "/dpo/rules", label: "Rules & Acts", icon: "book", tone: "indigo" },
+        ],
     },
     {
         label: "Account",
