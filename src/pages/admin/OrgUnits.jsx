@@ -100,8 +100,8 @@ export default function OrgUnits() {
             <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
                 <div className="flex flex-wrap items-end justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Organisation hierarchy</h1>
-                        <p className="mt-1 text-sm text-[#475569]">Zones, circles and divisions — the reporting and assignment tree for Data Principals and staff.</p>
+                        <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Organisation hierarchy</h1>
+                        <p className="mt-1 text-sm text-ink-3">Zones, circles and divisions that staff and customers belong to.</p>
                     </div>
                     <button type="button" onClick={() => setDialog({ type: "form", parent: null })} className={primaryBtn}>New top-level unit</button>
                 </div>
@@ -110,11 +110,11 @@ export default function OrgUnits() {
                 <Alert tone="success">{notice}</Alert>
 
                 <div className={`${panel} overflow-hidden`}>
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] px-5 py-4">
-                        <p className="text-sm text-[#475569]">
-                            <span className="font-semibold text-[#0F172A]">{stats.units}</span> units ·{" "}
-                            <span className="font-semibold text-[#0F172A]">{stats.active}</span> active ·{" "}
-                            <span className="font-semibold text-[#0F172A]">{stats.principals}</span> principals
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
+                        <p className="text-sm text-ink-3">
+                            <span className="font-semibold text-ink">{stats.units}</span> units ·{" "}
+                            <span className="font-semibold text-ink">{stats.active}</span> active ·{" "}
+                            <span className="font-semibold text-ink">{stats.principals}</span> staff assigned
                         </p>
                         <div className="flex flex-wrap gap-2">
                             <button type="button" onClick={() => setCollapsed(new Set())} disabled={!collapsed.size} className={ghostBtn}>Expand all</button>
@@ -134,11 +134,11 @@ export default function OrgUnits() {
                             ))}
                         </div>
                     ) : rows.length === 0 ? (
-                        <div className="px-5 py-6 text-sm text-[#475569]">
+                        <div className="px-5 py-6 text-sm text-ink-3">
                             <p>{query ? "No unit matches your search." : error ? "The hierarchy could not be loaded." : "No units yet. Use \"New top-level unit\" to add the first zone."}</p>
                             {!query && !error && myOrgId && (
-                                <p className="mt-2 text-xs text-[#64748B]">
-                                    Showing units for your organisation <span className="font-mono text-[#0F172A]">{myOrgId}</span>. Units saved under a different OrganizationId will not appear here.
+                                <p className="mt-2 text-xs text-muted">
+                                    Showing units for your organisation <span className="font-mono text-ink">{myOrgId}</span>. Units saved under a different OrganizationId will not appear here.
                                 </p>
                             )}
                         </div>

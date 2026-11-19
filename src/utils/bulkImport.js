@@ -4,7 +4,7 @@ import { asArray } from "./breach.js";
 export const IMPORT_KINDS = [{ value: "Consumers", label: "Consumers", description: "Consumer base: mobile, email or consumer_no, name, class and preferred locale." }];
 
 export const IMPORT_STATUSES = [
-    { value: "Staged", label: "Staged - ready to execute" },
+    { value: "Staged", label: "Checked, ready to import" },
     { value: "Executing", label: "Importing" },
     { value: "Completed", label: "Completed" },
     { value: "CompletedWithErrors", label: "Completed with errors" },
@@ -33,18 +33,18 @@ export const batchStatusLabel = (status) => statusLabels[status] ?? status;
 export const ROW_STATUS_LABEL = { [ROW_STATUS.EXECUTION_FAILED]: "Execution failed" };
 
 export const BATCH_TONE = {
-    [BATCH_STATUS.STAGED]: "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/25",
-    [BATCH_STATUS.EXECUTING]: "bg-[#22D3EE]/15 text-[#0E7490] ring-[#22D3EE]/40",
-    [BATCH_STATUS.COMPLETED]: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25",
-    [BATCH_STATUS.COMPLETED_WITH_ERRORS]: "bg-[#D97706]/10 text-[#92400E] ring-[#D97706]/30",
-    [BATCH_STATUS.FAILED]: "bg-[#DC2626]/10 text-[#991B1B] ring-[#DC2626]/25",
+    [BATCH_STATUS.STAGED]: "bg-brand-soft text-brand-ink ring-brand/25",
+    [BATCH_STATUS.EXECUTING]: "bg-brand/15 text-info-ink ring-focus/40",
+    [BATCH_STATUS.COMPLETED]: "bg-ok/10 text-ok-ink ring-ok/25",
+    [BATCH_STATUS.COMPLETED_WITH_ERRORS]: "bg-warn/10 text-warn-ink ring-warn/30",
+    [BATCH_STATUS.FAILED]: "bg-bad/10 text-bad-ink ring-bad/25",
 };
 
 export const ROW_TONE = {
-    [ROW_STATUS.VALID]: "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/25",
-    [ROW_STATUS.EXECUTED]: "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25",
-    [ROW_STATUS.INVALID]: "bg-[#DC2626]/10 text-[#991B1B] ring-[#DC2626]/25",
-    [ROW_STATUS.EXECUTION_FAILED]: "bg-[#DC2626]/10 text-[#991B1B] ring-[#DC2626]/25",
+    [ROW_STATUS.VALID]: "bg-brand-soft text-brand-ink ring-brand/25",
+    [ROW_STATUS.EXECUTED]: "bg-ok/10 text-ok-ink ring-ok/25",
+    [ROW_STATUS.INVALID]: "bg-bad/10 text-bad-ink ring-bad/25",
+    [ROW_STATUS.EXECUTION_FAILED]: "bg-bad/10 text-bad-ink ring-bad/25",
 };
 
 const GUARDIAN_CLASSES = ["child", "person_with_disability"];

@@ -5,7 +5,7 @@ import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, validatePrincip
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
-const label = "block text-sm font-medium text-[#334155]";
+const label = "block text-sm font-medium text-ink-2";
 const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "", roleId: "", password: "", confirm: "" };
 
 // Login (optional): password diya to email zaroori, kam se kam 8 akshar, aur dono password same
@@ -23,7 +23,7 @@ function Row({ title, error, hint, children }) {
         <label className={label}>
             <span className="flex items-center gap-2">{title}</span>
             {children}
-            {error ? <span role="alert" className="mt-1 block text-xs text-[#B91C1C]">{error}</span> : hint && <span className="mt-1 block text-xs font-normal text-[#64748B]">{hint}</span>}
+            {error ? <span role="alert" className="mt-1 block text-xs text-bad-ink">{error}</span> : hint && <span className="mt-1 block text-xs font-normal text-muted">{hint}</span>}
         </label>
     );
 }
@@ -41,7 +41,9 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
         getRoleOptions().then((res) => {
             if (!active) return;
             const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
+            const def = items.find((r) => /^data\s*principal$/i.test(r.name));
             setRoles({ loading: false, items });
+            if (def) setForm((f) => (f.roleId ? f : { ...f, roleId: def.id }));
         });
         return () => { active = false; };
     }, []);
@@ -72,13 +74,13 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
 
     return (
         <Modal title="Add new user" onClose={() => !busy && onClose()}>
-            <form onSubmit={submit} noValidate className="max-h-[90vh] space-y-4 overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white p-5 text-[#0F172A] shadow-xl sm:p-6">
+            <form onSubmit={submit} noValidate className="max-h-[90vh] space-y-4 overflow-y-auto rounded-2xl border border-line bg-surface p-5 text-ink shadow-xl sm:p-6">
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold">Add new user</h2>
-                    <p className="mt-1 text-sm text-[#475569]">Adds one data principal, with the same checks as a bulk import row. The user is saved through <span className="font-mono text-xs">POST /api/dataprincipal/add</span> and appears under Data principals.</p>
+                    <p className="mt-1 text-sm text-ink-3">Adds one customer, with the same checks as a bulk import. They will appear under Data principals.</p>
                 </div>
 
-                {errors.identifier && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{errors.identifier}</p>}
+                {errors.identifier && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{errors.identifier}</p>}
 
                 <div className="grid gap-3 sm:grid-cols-2">
                     <Row title="Mobile" error={errors.mobile} hint="10 digits"><input value={form.mobile} onChange={set("mobile")} inputMode="numeric" maxLength={10} placeholder="9876543210" disabled={busy} className={field} /></Row>
@@ -94,9 +96,9 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     </Row>
                 </div>
 
-                <fieldset className="rounded-xl border border-[#E2E8F0] p-4">
-                    <legend className="px-1.5 text-sm font-semibold text-[#0F172A]">Customer login <span className="font-normal text-[#64748B]">(optional)</span></legend>
-                    <p className="text-xs text-[#64748B]">Set a password so this customer can sign in at the login page with their email and use the customer portal (consents, notices, privacy requests).</p>
+                <fieldset className="rounded-xl border border-line p-4">
+                    <legend className="px-1.5 text-sm font-semibold text-ink">Customer login <span className="font-normal text-muted">(optional)</span></legend>
+                    <p className="text-xs text-muted">Set a password so this customer can sign in at the login page with their email and use the customer portal (consents, notices, privacy requests).</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <Row title="Role" hint={roles.loading ? "Loading roles..." : "Pick a customer role, e.g. DataPrincipal. Without a role the customer has no permissions."}>
                             <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading} className={field}>
@@ -110,7 +112,7 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     </div>
                 </fieldset>
 
-                {apiError && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{apiError}</p>}
+                {apiError && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{apiError}</p>}
 
                 <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>

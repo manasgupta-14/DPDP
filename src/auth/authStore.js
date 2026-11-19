@@ -96,7 +96,32 @@ export function isAdmin(session = getSession()) {
 export function isDpo(session = getSession()) {
     if (isDataPrincipal(session)) return false;
     const roles = [].concat(session?.role ?? []);
-    return roles.some((r) => /^dpo$|data\s*protection\s*officer/i.test(String(r).trim()));
+    return roles.some((r) => /^dpo$|^data[\s_-]*protection([\s_-]*officer)?$/i.test(String(r).trim()));
+}
+
+const pretty = (r) =>
+    String(r ?? "")
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/[_-]+/g, " ")
+        .trim()
+        .replace(/\b\w/g, (c) => c.toUpperCase());
+
+/**
+ * Login karne wale ka asli role (header, menu, profile, breadcrumb sab jagah yahi dikhta hai).
+ * DPO login kare to "DPO", admin kare to "Admin", customer ya employee kare to wahi.
+ */
+export function roleInfo(session = getSession()) {
+    const roles = [].concat(session?.role ?? []).map((r) => String(r).trim()).filter(Boolean);
+    if (isDataPrincipal(session)) return { key: "customer", label: "Customer", long: "Customer", profileLabel: "My profile" };
+    const dpo = roles.find((r) => /^dpo$|^data[\s_-]*protection([\s_-]*officer)?$/i.test(r));
+    if (dpo) {
+        const name = /^dpo$/i.test(dpo) ? "DPO" : "Data Protection";
+        return { key: "dpo", label: name, long: name, profileLabel: `${name} profile` };
+    }
+    if (roles.some((r) => /admin/i.test(r))) return { key: "admin", label: "Admin", long: "Administrator", profileLabel: "Admin profile" };
+    const name = pretty(roles.find((r) => !/^user$|^internal\s*user$/i.test(r)) || "");
+    if (isAdmin(session)) return { key: "manager", label: name || "Manager", long: name || "Manager", profileLabel: "My profile" };
+    return { key: "user", label: name || "Employee", long: name || "Employee", profileLabel: "My profile" };
 }
 
 export function homePath(session = getSession()) {

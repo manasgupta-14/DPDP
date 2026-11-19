@@ -5,24 +5,19 @@ import AuditDetailModal from "../../components/admin/audit/AuditDetailModal.jsx"
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
-import { ACTION_TONE, OUTCOME_TONE, actionKind, auditToCsv, countByKind, isSuccess, shortHash } from "../../utils/audit.js";
+import { ACTION_TONE, OUTCOME_TONE, actionKind, auditToCsv, countByKind, humanizeAction, humanizeEntity, isSuccess, shortHash } from "../../utils/audit.js";
+import StatTile from "../../components/shared/StatTile.jsx";
 
 const PAGE_SIZE = 20;
 
 const when = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "medium" }) : "-");
 
-function Stat({ label, value, tone }) {
-    return (
-        <div className={`${panel} pg-card p-4`}>
-            <p className="text-xs font-medium text-[#64748B]">{label}</p>
-            <p className={`mt-1 text-2xl font-bold tracking-tight ${tone}`}>{value.toLocaleString()}</p>
-        </div>
-    );
-}
+const byLabel = (a, b) => a.label.localeCompare(b.label);
+
 
 function ActionBadge({ action }) {
     const kind = actionKind(action);
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{action || "Unknown"}</span>;
+    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{humanizeAction(action) || "Unknown"}</span>;
 }
 
 function OutcomeBadge({ outcome }) {
@@ -73,8 +68,8 @@ export default function AuditTrail() {
         return () => { active = false; };
     }, []);
 
-    const tables = useMemo(() => [...new Set(logs.map((l) => l.table).filter(Boolean))].sort(), [logs]);
-    const actions = useMemo(() => [...new Set(logs.map((l) => l.action).filter(Boolean))].sort(), [logs]);
+    const tables = useMemo(() => [...new Set(logs.map((l) => l.table).filter(Boolean))].map((v) => ({ value: v, label: humanizeEntity(v) })).sort(byLabel), [logs]);
+    const actions = useMemo(() => [...new Set(logs.map((l) => l.action).filter(Boolean))].map((v) => ({ value: v, label: humanizeAction(v) })).sort(byLabel), [logs]);
     const outcomes = useMemo(() => [...new Set(logs.map((l) => l.outcome).filter(Boolean))].sort(), [logs]);
     const counts = useMemo(() => countByKind(logs), [logs]);
 
@@ -136,61 +131,61 @@ export default function AuditTrail() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Audit trail</h1>
-                    <p className="mt-1 text-sm text-[#475569]">Every change made to your organisation&rsquo;s data, newest first. Times are shown in your local time zone.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Audit trail</h1>
+                    <p className="mt-1 text-sm text-ink-3">Every change made to your organisation&rsquo;s data, newest first. Times are shown in your local time zone.</p>
                 </div>
                 <div className="flex flex-wrap gap-2.5">
                     <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                         {refreshing ? "Refreshing..." : "Refresh"}
                     </button>
-                    <button type="button" onClick={exportCsv} disabled={filtered.length === 0} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0F172A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1E293B] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-50">
+                    <button type="button" onClick={exportCsv} disabled={filtered.length === 0} className="inline-flex items-center justify-center gap-2 rounded-xl bg-inverse px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-inverse focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50">
                         Export CSV
                     </button>
                 </div>
             </div>
 
             <section aria-label="Summary" className={`grid gap-4 sm:grid-cols-2 ${statCount >= 5 ? "xl:grid-cols-5" : statCount === 4 ? "xl:grid-cols-4" : "xl:grid-cols-3"}`}>
-                <Stat label="Total events" value={counts.total} tone="text-[#0F172A]" />
-                <Stat label="Created" value={counts.create} tone="text-[#16A34A]" />
-                <Stat label="Updated" value={counts.update} tone="text-[#D97706]" />
-                {counts.delete > 0 && <Stat label="Deleted" value={counts.delete} tone="text-[#DC2626]" />}
-                {counts.failed > 0 && <Stat label="Failed" value={counts.failed} tone="text-[#DC2626]" />}
+                <StatTile label="Total events" value={counts.total} total={counts.total} icon="audit" tone="info" hint="Every recorded change" />
+                <StatTile label="Created" value={counts.create} total={counts.total} icon="plus" tone="ok" colorValue hint="New records added" />
+                <StatTile label="Updated" value={counts.update} total={counts.total} icon="refresh" tone="warn" colorValue hint="Records changed" />
+                {counts.delete > 0 && <StatTile label="Deleted" value={counts.delete} total={counts.total} icon="trash" tone="bad" colorValue hint="Records removed" />}
+                {counts.failed > 0 && <StatTile label="Failed" value={counts.failed} total={counts.total} icon="alert" tone="bad" colorValue hint="Actions that did not complete" />}
             </section>
 
             <div className={`${panel} overflow-hidden`}>
-                <div className="flex flex-wrap items-end gap-3 border-b border-[#E2E8F0] px-5 py-4">
-                    <label className="text-xs font-medium text-[#475569]">
+                <div className="flex flex-wrap items-end gap-3 border-b border-line px-5 py-4">
+                    <label className="text-xs font-medium text-ink-3">
                         Action
                         <select value={action} onChange={reset(setAction)} className={`${field} mt-1 min-w-[140px] py-2`}>
                             <option value="">All actions</option>
-                            {actions.map((a) => <option key={a} value={a}>{a}</option>)}
+                            {actions.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
                     </label>
-                    <label className="text-xs font-medium text-[#475569]">
+                    <label className="text-xs font-medium text-ink-3">
                         Entity
                         <select value={table} onChange={reset(setTable)} className={`${field} mt-1 min-w-[160px] py-2`}>
                             <option value="">All entities</option>
-                            {tables.map((t) => <option key={t} value={t}>{t}</option>)}
+                            {tables.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </label>
-                    <label className="text-xs font-medium text-[#475569]">
+                    <label className="text-xs font-medium text-ink-3">
                         Outcome
                         <select value={outcome} onChange={reset(setOutcome)} className={`${field} mt-1 min-w-[140px] py-2`}>
                             <option value="">All outcomes</option>
                             {outcomes.map((o) => <option key={o} value={o}>{o}</option>)}
                         </select>
                     </label>
-                    <label className="text-xs font-medium text-[#475569]">
+                    <label className="text-xs font-medium text-ink-3">
                         From
                         <input type="date" value={from} max={to || undefined} onChange={reset(setFrom)} className={`${field} mt-1 py-2`} />
                     </label>
-                    <label className="text-xs font-medium text-[#475569]">
+                    <label className="text-xs font-medium text-ink-3">
                         To
                         <input type="date" value={to} min={from || undefined} onChange={reset(setTo)} className={`${field} mt-1 py-2`} />
                     </label>
-                    {filtering && <button type="button" onClick={clear} className="pb-2.5 text-sm font-semibold text-[#0F766E] hover:underline">Clear filters</button>}
-                    <p className="ml-auto pb-2.5 text-xs text-[#64748B]">Showing {filtered.length.toLocaleString()} of {logs.length.toLocaleString()}</p>
+                    {filtering && <button type="button" onClick={clear} className="pb-2.5 text-sm font-semibold text-brand-ink hover:underline">Clear filters</button>}
+                    <p className="ml-auto pb-2.5 text-xs text-muted">Showing {filtered.length.toLocaleString()} of {logs.length.toLocaleString()}</p>
                 </div>
 
                 {error && (
@@ -203,14 +198,14 @@ export default function AuditTrail() {
                     <Skeleton />
                 ) : filtered.length === 0 && !error ? (
                     <div className="px-5 py-12 text-center">
-                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="audit" className="h-6 w-6" /></span>
-                        <p className="mt-3 font-semibold text-[#0F172A]">{logs.length === 0 ? "No audit events yet" : "No events match these filters"}</p>
-                        <p className="mt-1 text-sm text-[#475569]">{logs.length === 0 ? "Changes to your organisation's data will be recorded here." : "Try a different action, entity or date range."}</p>
+                        <span className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="audit" className="h-6 w-6" /></span>
+                        <p className="mt-3 font-semibold text-ink">{logs.length === 0 ? "No audit events yet" : "No events match these filters"}</p>
+                        <p className="mt-1 text-sm text-ink-3">{logs.length === 0 ? "Changes to your organisation's data will be recorded here." : "Try a different action, record type or date range."}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[920px] text-left text-sm">
-                            <thead className="bg-[#F8FAFC] text-xs uppercase tracking-wider text-[#64748B]">
+                            <thead className="bg-soft text-xs uppercase tracking-wider text-muted">
                                 <tr>
                                     <th className="px-5 py-3">Seq</th>
                                     <th className="px-3 py-3">When</th>
@@ -221,26 +216,26 @@ export default function AuditTrail() {
                                     <th className="px-3 py-3">Entry hash</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
+                            <tbody className="divide-y divide-line">
                                 {slice.map((l) => (
-                                    <tr key={l.id} onClick={() => setOpen(l.id)} className="cursor-pointer hover:bg-[#F8FAFC]">
+                                    <tr key={l.id} onClick={() => setOpen(l.id)} className="cursor-pointer hover:bg-soft">
                                         <td className="whitespace-nowrap px-5 py-3">
-                                            <button type="button" onClick={(e) => { e.stopPropagation(); setOpen(l.id); }} aria-haspopup="dialog" aria-label={`View details for event ${l.seq}`} className="rounded-md text-left font-mono text-xs text-[#0F172A] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); setOpen(l.id); }} aria-haspopup="dialog" aria-label={`View details for event ${l.seq}`} className="rounded-md text-left font-mono text-xs text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                                                 {l.seq ?? "-"}
                                             </button>
                                         </td>
-                                        <td className="whitespace-nowrap px-3 py-3 text-[#334155]">{when(l.time)}</td>
+                                        <td className="whitespace-nowrap px-3 py-3 text-ink-2">{when(l.time)}</td>
                                         <td className="px-3 py-3"><ActionBadge action={l.action} /></td>
                                         <td className="px-3 py-3">
-                                            <p className="font-medium text-[#0F172A]">{l.entityType || "-"}</p>
-                                            {l.entityId && <p className="max-w-[220px] truncate font-mono text-[11px] text-[#64748B]" title={l.entityId}>{l.entityId}</p>}
+                                            <p className="font-medium text-ink">{l.entityType || "-"}</p>
+                                            {l.entityId && <p className="max-w-[220px] truncate font-mono text-[11px] text-muted" title={l.entityId}>{l.entityId}</p>}
                                         </td>
                                         <td className="px-3 py-3">
-                                            <p className="text-[#0F172A]">{l.actorEmail || "System"}</p>
-                                            {l.actorRole && <p className="text-xs text-[#64748B]">{l.actorRole}</p>}
+                                            <p className="text-ink">{l.actorEmail || "System"}</p>
+                                            {l.actorRole && <p className="text-xs text-muted">{l.actorRole}</p>}
                                         </td>
                                         <td className="px-3 py-3"><OutcomeBadge outcome={l.outcome} /></td>
-                                        <td className="px-3 py-3 font-mono text-xs text-[#334155]" title={l.hash}>{shortHash(l.hash)}</td>
+                                        <td className="px-3 py-3 font-mono text-xs text-ink-2" title={l.hash}>{shortHash(l.hash)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -249,8 +244,8 @@ export default function AuditTrail() {
                 )}
 
                 {!loading && filtered.length > PAGE_SIZE && (
-                    <div className="flex items-center justify-between gap-3 border-t border-[#E2E8F0] px-5 py-3">
-                        <p className="text-xs text-[#64748B]">Page {current} of {pages}</p>
+                    <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3">
+                        <p className="text-xs text-muted">Page {current} of {pages}</p>
                         <div className="flex gap-2">
                             <button type="button" onClick={() => { setPage(current - 1); setOpen(null); }} disabled={current === 1} className={`${ghostBtn} px-3 py-1.5`}>Previous</button>
                             <button type="button" onClick={() => { setPage(current + 1); setOpen(null); }} disabled={current === pages} className={`${ghostBtn} px-3 py-1.5`}>Next</button>

@@ -10,6 +10,9 @@ import { allPermissionIds } from "../../utils/roles.js";
 
 const VISIBLE_MODULES = 3;
 
+// "Data Protection" role: is role se login karne wala DPO panel (DPIA review) me jaata hai
+const DPO_RE = /^dpo$|^data\s*protection(\s*officer)?$/i;
+
 export default function RolesPermissions() {
     const { query = "" } = useOutletContext() || {};
     const location = useLocation();
@@ -31,7 +34,12 @@ export default function RolesPermissions() {
         Promise.all([getRoleList(), getAllPermissions()]).then(([list, permissions]) => {
             if (!active) return;
             if (list.ok) {
-                setRoles(list.data);
+                // "DataPrincipal" customer ka system role hai (staff ka nahi), isliye yahan list me nahi dikhate
+                const rank = (n) => (/admin/i.test(n) ? 0 : /^staff$/i.test(n) ? 1 : DPO_RE.test(n) ? 2 : /^data\s*principals?$/i.test(n.replace(/[_-]/g, " ")) ? 3 : 4);
+                setRoles(
+                    list.data
+                        .sort((a, b) => rank(String(a.name)) - rank(String(b.name))),
+                );
                 setError("");
             } else {
                 setError(list.error);
@@ -70,7 +78,7 @@ export default function RolesPermissions() {
     if (!canView) {
         return (
             <div className="space-y-6">
-                <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
+                <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Roles &amp; permissions</h1>
                 <Alert>You do not have permission to view roles and permissions. Ask an administrator to grant you access.</Alert>
             </div>
         );
@@ -80,27 +88,27 @@ export default function RolesPermissions() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
-                    <p className="mt-1.5 text-[15px] text-[#475569]">See what each role in your organisation can do{canManage ? ", edit them, and add new roles." : "."}</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Roles &amp; permissions</h1>
+                    <p className="mt-1.5 text-[15px] text-ink-3">See what each role in your organisation can do{canManage ? ", edit them, and add new roles." : "."}</p>
                 </div>
                 {canManage ? (
                     <Link to="/dashboard/roles/new" className={primaryBtn}>
                         <Icon name="key" className="h-4 w-4" /> Add role
                     </Link>
                 ) : (
-                    <span className="rounded-full bg-[#E2E8F0] px-3 py-1 text-xs font-semibold text-[#334155]">View only</span>
+                    <span className="rounded-full bg-line px-3 py-1 text-xs font-semibold text-ink-2">View only</span>
                 )}
             </header>
 
             <Alert tone="success">{notice}</Alert>
 
-            <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
+            <section className="rounded-2xl border border-line bg-surface p-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-semibold">Roles in your organisation</h2>
-                        <p className="text-xs text-[#64748B]">Live from the server. Open a role to see the permissions it includes.</p>
+                        <p className="text-xs text-muted">Open a role to see what it is allowed to do.</p>
                     </div>
-                    <span className="rounded-full bg-[#CCFBF1] px-2.5 py-1 text-xs font-semibold text-[#0F766E]">{roles.length} total</span>
+                    <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">{roles.length} total</span>
                 </div>
 
                 {error && (
@@ -110,16 +118,16 @@ export default function RolesPermissions() {
                 )}
 
                 {loading ? (
-                    <p className="py-12 text-center text-sm text-[#64748B]">Loading roles...</p>
+                    <p className="py-12 text-center text-sm text-muted">Loading roles...</p>
                 ) : shown.length === 0 ? (
-                    <p className="py-12 text-center text-sm text-[#64748B]">
+                    <p className="py-12 text-center text-sm text-muted">
                         {roles.length ? "No roles match your search." : canManage ? "No roles yet. Use Add role to create the first one." : "No roles yet."}
                     </p>
                 ) : (
                     <div className="mt-4 overflow-x-auto">
                         <table className="w-full min-w-[640px] text-left text-sm">
                             <thead>
-                                <tr className="border-b border-[#E2E8F0] text-xs uppercase tracking-wide text-[#64748B]">
+                                <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
                                     <th className="py-2 pr-3 font-semibold">Role</th>
                                     <th className="py-2 pr-3 font-semibold">Permissions</th>
                                     <th className="py-2 pr-3 font-semibold">Users</th>
@@ -128,41 +136,60 @@ export default function RolesPermissions() {
                             </thead>
                             <tbody>
                                 {shown.map((r) => (
-                                    <tr key={r.id} className="border-b border-[#E2E8F0] align-top last:border-0">
+                                    <tr key={r.id} className="border-b border-line align-top last:border-0">
                                         <td className="py-3 pr-3">
                                             <p className="font-medium">{r.name}</p>
                                         </td>
                                         <td className="py-3 pr-3">
                                             {!r.permissionsKnown ? (
-                                                <span className="text-xs text-[#64748B]">Shown once a user has this role</span>
+                                                <span className="text-xs text-muted">Shown once a user has this role</span>
                                             ) : r.permissionCount === 0 ? (
-                                                <span className="text-[#64748B]">No permissions</span>
+                                                <span className="text-muted">No permissions</span>
                                             ) : (
                                                 <>
                                                     <p className="font-medium tabular-nums">
                                                         {r.permissionCount}
-                                                        {totalPermissions > 0 && <span className="font-normal text-[#64748B]"> of {totalPermissions}</span>}
+                                                        {totalPermissions > 0 && <span className="font-normal text-muted"> of {totalPermissions}</span>}
                                                     </p>
                                                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                                                         {r.modules.slice(0, VISIBLE_MODULES).map((m) => (
-                                                            <span key={m.name} className="rounded-full bg-[#CCFBF1] px-2 py-0.5 text-[11px] font-semibold text-[#0F766E]">{m.name} · {m.count}</span>
+                                                            <span key={m.name} className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">{m.name} · {m.count}</span>
                                                         ))}
                                                         {r.modules.length > VISIBLE_MODULES && (
-                                                            <span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 text-[11px] font-semibold text-[#475569]">+{r.modules.length - VISIBLE_MODULES} more</span>
+                                                            <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-semibold text-ink-3">+{r.modules.length - VISIBLE_MODULES} more</span>
                                                         )}
                                                     </div>
                                                 </>
                                             )}
                                         </td>
-                                        <td className="py-3 pr-3 tabular-nums text-[#475569]">{r.userCount ?? "-"}</td>
+                                        <td className="py-3 pr-3 tabular-nums text-ink-3">{r.userCount ?? "-"}</td>
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-4">
-                                                <Link to={`/dashboard/roles/${r.id}`} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline">View</Link>
-                                                {canManage && <Link to={`/dashboard/roles/${r.id}/edit`} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline">Edit</Link>}
+                                                <Link to={`/dashboard/roles/${r.id}`} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">View</Link>
+                                                {canManage && <Link to={`/dashboard/roles/${r.id}/edit`} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">Edit</Link>}
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
+                                {!query && !roles.some((r) => DPO_RE.test(String(r.name))) && (
+                                    <tr className="border-b border-line align-top last:border-0">
+                                        <td className="py-3 pr-3">
+                                            <p className="font-medium">Data Protection</p>
+                                        </td>
+                                        <td className="py-3 pr-3">
+                                            <span className="rounded-full bg-warn-soft px-2 py-0.5 text-[11px] font-semibold text-warn-ink">Not created yet</span>
+                                            <p className="mt-1.5 text-xs text-muted">Reviews DPIAs. Users with this role sign in to the DPO panel.</p>
+                                        </td>
+                                        <td className="py-3 pr-3 tabular-nums text-ink-3">0</td>
+                                        <td className="py-3 text-right">
+                                            {canManage && (
+                                                <Link to="/dashboard/roles/new?preset=dpo" className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">
+                                                    Create role
+                                                </Link>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

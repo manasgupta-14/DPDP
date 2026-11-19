@@ -13,8 +13,8 @@ const pill = "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-
 function Row({ label, children }) {
     return (
         <div className="grid grid-cols-[110px_1fr] gap-3 py-1.5 text-sm">
-            <dt className="text-[#64748B]">{label}</dt>
-            <dd className="min-w-0 break-words font-medium text-[#0F172A]">{children}</dd>
+            <dt className="text-muted">{label}</dt>
+            <dd className="min-w-0 break-words font-medium text-ink">{children}</dd>
         </div>
     );
 }
@@ -39,8 +39,8 @@ function EscalateDialog({ ticket, onClose, onDone }) {
 
     return (
         <form onSubmit={submit} className={`${panel} space-y-4 p-5 sm:p-6`}>
-            <h2 className="pr-8 text-lg font-semibold text-[#0F172A]">Escalate to data breach</h2>
-            <p className="text-sm text-[#475569]">This creates a breach incident from {ticket.referenceId}. Use it only when the complaint points to a real data breach.</p>
+            <h2 className="pr-8 text-lg font-semibold text-ink">Escalate to data breach</h2>
+            <p className="text-sm text-ink-3">This creates a breach incident from {ticket.referenceId}. Use it only when the complaint points to a real data breach.</p>
             <Alert>{error}</Alert>
             <label className="block text-sm font-medium">Breach title
                 <input className={field} value={form.title} maxLength={200} onChange={(e) => setForm({ ...form, title: e.target.value })} />
@@ -110,7 +110,7 @@ export default function GrievanceDetail() {
         setReply(""); setInternal(false);
     };
 
-    if (loading) return <p className="text-sm text-[#475569]">Loading grievance...</p>;
+    if (loading) return <p className="text-sm text-ink-3">Loading grievance...</p>;
     if (!ticket) {
         return (
             <div className="mx-auto max-w-3xl space-y-4">
@@ -130,10 +130,10 @@ export default function GrievanceDetail() {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
-                        <h1 className="break-words text-2xl font-bold tracking-tight text-[#0F172A]">{ticket.subject}</h1>
+                        <h1 className="break-words text-[24px] font-bold tracking-tight text-ink">{ticket.subject}</h1>
                         <span className={`${pill} ${grievanceStatusToneLight(ticket.status)}`}>{ticket.status}</span>
                     </div>
-                    <Link to="/dashboard/grievances" className="mt-1 inline-block text-sm font-semibold text-[#0F766E] hover:underline">&larr; Back to grievances &middot; <span className="font-mono text-xs">{ticket.referenceId}</span></Link>
+                    <Link to="/dashboard/grievances" className="mt-1 inline-block text-sm font-semibold text-brand-ink hover:underline">&larr; Back to grievances &middot; <span className="font-mono text-xs">{ticket.referenceId}</span></Link>
                 </div>
                 {canManage && !closed && (
                     <button
@@ -154,8 +154,9 @@ export default function GrievanceDetail() {
             <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
                 <div className="space-y-5">
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold text-[#0F172A]">Complaint</h2>
-                        <dl className="mt-3 divide-y divide-[#E2E8F0]">
+                        <h2 className="text-base font-semibold text-ink">Complaint</h2>
+                        <p className="mt-0.5 text-xs text-muted">What the person reported, in their own words.</p>
+                        <dl className="mt-3 divide-y divide-line">
                             <Row label="Reference"><span className="font-mono text-xs">{ticket.referenceId}</span></Row>
                             <Row label="Category">{ticket.category}</Row>
                             <Row label="Severity"><span className={`${pill} ${severityTone(ticket.severity)}`}>{ticket.severity || "-"}</span></Row>
@@ -166,39 +167,39 @@ export default function GrievanceDetail() {
                     </section>
 
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold text-[#0F172A]">Conversation</h2>
-                        {canManage && <p className="text-xs text-[#64748B]">Messages marked internal are never shown to the Data Principal.</p>}
+                        <h2 className="text-base font-semibold text-ink">Conversation</h2>
+                        {canManage && <p className="text-xs text-muted">Messages marked internal are never shown to the Data Principal.</p>}
                         {ticket.messages.length === 0 ? (
-                            <p className="mt-4 text-sm text-[#475569]">No messages yet.</p>
+                            <p className="mt-4 text-sm text-ink-3">No messages yet.</p>
                         ) : (
                             <ul className="mt-4 space-y-3">
                                 {ticket.messages.map((m, i) => {
                                     const fromUser = m.senderType === "User";
-                                    const tone = m.isInternal ? "border-[#D97706]/40 bg-[#D97706]/10" : fromUser ? "border-[#E2E8F0] bg-[#F8FAFC]" : "border-[#0F766E]/30 bg-[#CCFBF1]/40";
+                                    const tone = m.isInternal ? "border-warn/40 bg-warn/10" : fromUser ? "border-line bg-soft" : "border-brand/30 bg-brand-soft/40";
                                     return (
                                         <li key={i} className={`rounded-xl border p-3 text-sm ${tone}`}>
-                                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                                                 <span className="flex items-center gap-2">
-                                                    <span className="font-semibold text-[#334155]">{fromUser ? "Data Principal" : "Support team"}</span>
-                                                    {m.isInternal && <span className="rounded bg-[#D97706]/20 px-1.5 py-0.5 text-[10px] font-semibold text-[#0F172A]">Internal note</span>}
+                                                    <span className="font-semibold text-ink-2">{fromUser ? "Data Principal" : "Support team"}</span>
+                                                    {m.isInternal && <span className="rounded bg-warn/20 px-1.5 py-0.5 text-[10px] font-semibold text-ink">Internal note</span>}
                                                 </span>
                                                 <span>{formatDate(m.createdAt)}</span>
                                             </div>
-                                            <p className="mt-1.5 whitespace-pre-wrap break-words text-[#0F172A]">{m.text}</p>
+                                            <p className="mt-1.5 whitespace-pre-wrap break-words text-ink">{m.text}</p>
                                         </li>
                                     );
                                 })}
                             </ul>
                         )}
 
-                        <form onSubmit={send} className="mt-5 space-y-3 border-t border-[#E2E8F0] pt-4">
+                        <form onSubmit={send} className="mt-5 space-y-3 border-t border-line pt-4">
                             <label className="block text-sm font-medium">{canManage ? "Reply to the Data Principal" : "Your reply"}
                                 <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write your message..." />
                             </label>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 {canManage ? (
-                                    <label className="flex items-center gap-2 text-sm text-[#334155]">
-                                        <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} className="h-4 w-4 accent-[#0F766E]" />
+                                    <label className="flex items-center gap-2 text-sm text-ink-2">
+                                        <input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} className="h-4 w-4 accent-brand" />
                                         Internal note (not sent to the complainant)
                                     </label>
                                 ) : <span />}
@@ -211,26 +212,26 @@ export default function GrievanceDetail() {
                 <aside className="space-y-5">
                     {canManage && (
                         <section className={`${panel} p-5`}>
-                            <h2 className="text-base font-semibold text-[#0F172A]">Case handling</h2>
-                            <p className="mt-1 text-xs text-[#64748B]">Current status: <span className="font-semibold text-[#0F172A]">{ticket.status}</span></p>
+                            <h2 className="text-base font-semibold text-ink">Case handling</h2>
+                            <p className="mt-1 text-xs text-muted">Current status: <span className="font-semibold text-ink">{ticket.status}</span></p>
                             <div className="mt-4 flex flex-col gap-2.5">
                                 {isOpen && <button type="button" className={primaryBtn} disabled={busy} onClick={() => act(() => assignGrievance(id), "Ticket assigned to you and moved to In Progress.")}>Assign to me</button>}
                                 {canEscalate && !escalated && <button type="button" className={ghostBtn} disabled={busy} onClick={() => setEscalating(true)}>Escalate to breach</button>}
-                                {closed && !canEscalate && <p className="text-xs text-[#64748B]">No further action is needed on this ticket.</p>}
+                                {closed && !canEscalate && <p className="text-xs text-muted">No further action is needed on this ticket.</p>}
                             </div>
                         </section>
                     )}
 
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold text-[#0F172A]">Timeline</h2>
-                        <p className="text-xs text-[#64748B]">Every action taken on this grievance.</p>
+                        <h2 className="text-base font-semibold text-ink">Timeline</h2>
+                        <p className="text-xs text-muted">Every action taken on this grievance.</p>
                         <ol className="mt-4 space-y-4">
                             {timeline.map((ev) => (
                                 <li key={ev.key} className="flex gap-3">
                                     <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ev.color }} />
                                     <div>
-                                        <p className="text-sm font-semibold text-[#0F172A]">{ev.label}</p>
-                                        <p className="text-xs text-[#64748B]">{formatDate(ev.time)}</p>
+                                        <p className="text-sm font-semibold text-ink">{ev.label}</p>
+                                        <p className="text-xs text-muted">{formatDate(ev.time)}</p>
                                     </div>
                                 </li>
                             ))}

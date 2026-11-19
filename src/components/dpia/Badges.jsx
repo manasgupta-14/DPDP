@@ -8,6 +8,6 @@ export function DpiaStatusBadge({ status }) {
 }
 
 export function RiskBadge({ risk }) {
-    if (!risk) return <span className="text-[#64748B]">-</span>;
+    if (!risk) return <span className="text-muted">-</span>;
     return <span className={`${base} ${riskTone(risk)}`}>{risk}</span>;
 }

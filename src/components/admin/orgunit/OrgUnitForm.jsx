@@ -81,31 +81,32 @@ export default function OrgUnitForm({ flat, parent, onSaved, onClose }) {
     return (
         <form onSubmit={submit} noValidate className={`${panel} p-5 sm:p-6`}>
             <h2 className="pr-8 text-lg font-semibold">{selectedParent ? `New unit under ${selectedParent.name}` : "New top-level unit"}</h2>
+            <p className="mt-0.5 text-xs text-muted">Add a branch, department or team to your organisation.</p>
 
             <div className="mt-5 space-y-4">
-                <label className="block text-sm font-medium text-[#334155]">
-                    Kind <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Kind <span className="text-bad-ink">*</span>
                     <select value={form.kind} onChange={onKind} className={field} aria-invalid={!!errors.kind}>
                         {kinds.map((k) => <option key={k} value={k}>{k}</option>)}
                     </select>
-                    <span className="mt-1 block text-xs text-[#475569]">{selectedParent ? `Under a ${selectedParent.kind}, only lower levels can be added.` : "A top-level unit can be of any kind."}</span>
-                    <span className="block text-xs text-[#DC2626]">{errors.kind}</span>
+                    <span className="mt-1 block text-xs text-ink-3">{selectedParent ? `Under a ${selectedParent.kind}, only lower levels can be added.` : "A top-level unit can be of any kind."}</span>
+                    <span className="block text-xs text-bad-ink">{errors.kind}</span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
-                    Code <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Code <span className="text-bad-ink">*</span>
                     <input value={form.code} onChange={onCode} maxLength={60} placeholder="pune-urban" spellCheck={false} className={`${field} font-mono`} aria-invalid={!!errors.code} />
-                    <span className="mt-1 block text-xs text-[#475569]">Stable machine name used to identify the unit.</span>
-                    <span className="block text-xs text-[#DC2626]">{errors.code}</span>
+                    <span className="mt-1 block text-xs text-ink-3">Short unique code for this unit.</span>
+                    <span className="block text-xs text-bad-ink">{errors.code}</span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
-                    Name <span className="text-[#DC2626]">*</span>
+                <label className="block text-sm font-medium text-ink-2">
+                    Name <span className="text-bad-ink">*</span>
                     <input value={form.name} onChange={onName} maxLength={100} placeholder="Pune Urban" className={field} aria-invalid={!!errors.name} autoFocus />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.name}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.name}</span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Parent
                     <select value={form.parentId} onChange={onParent} className={field} aria-invalid={!!errors.parentId}>
                         <option value="">None (top-level unit)</option>
@@ -115,8 +116,8 @@ export default function OrgUnitForm({ flat, parent, onSaved, onClose }) {
                             </option>
                         ))}
                     </select>
-                    <span className="mt-1 block text-xs text-[#475569]">The hierarchy can have up to {MAX_DEPTH} levels.</span>
-                    <span className="block text-xs text-[#DC2626]">{errors.parentId}</span>
+                    <span className="mt-1 block text-xs text-ink-3">The hierarchy can have up to {MAX_DEPTH} levels.</span>
+                    <span className="block text-xs text-bad-ink">{errors.parentId}</span>
                 </label>
 
                 <Alert>{apiError}</Alert>

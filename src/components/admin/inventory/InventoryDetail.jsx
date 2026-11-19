@@ -3,14 +3,14 @@ import { deleteDataInventory, getDataInventoryItem, updateDataInventory } from "
 import Alert from "../../shared/Alert.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { formatDate } from "../../../utils/breach.js";
-import { retentionText } from "../../../utils/inventory.js";
+import { basisLabel, isMinor, principalLabel, retentionText } from "../../../utils/inventory.js";
 import InventoryForm from "./InventoryForm.jsx";
 
 function Row({ label, children, wide }) {
     return (
         <div className={wide ? "sm:col-span-2" : ""}>
-            <dt className="text-xs font-medium uppercase tracking-wider text-[#64748B]">{label}</dt>
-            <dd className="mt-1 whitespace-pre-wrap break-words text-sm text-[#0F172A]">{children || <span className="text-[#94A3B8]">Not set</span>}</dd>
+            <dt className="text-xs font-medium uppercase tracking-wider text-muted">{label}</dt>
+            <dd className="mt-1 whitespace-pre-wrap break-words text-sm text-ink">{children || <span className="text-faint">Not set</span>}</dd>
         </div>
     );
 }
@@ -80,12 +80,14 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
             <div className="pr-8">
                 <div className="flex flex-wrap items-center gap-2.5">
                     <h2 className="text-lg font-semibold">{item.name}</h2>
-                    <span className="inline-flex rounded-full bg-[#CCFBF1] px-2.5 py-0.5 text-xs font-semibold text-[#0F766E] ring-1 ring-[#0F766E]/25">{item.status}</span>
+                    <span className="inline-flex rounded-full bg-brand-soft px-2.5 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand/25">{item.status}</span>
                 </div>
-                {item.category && <p className="mt-0.5 text-sm text-[#64748B]">{item.category}</p>}
+                {item.category && <p className="mt-0.5 text-sm text-muted">{item.category}</p>}
             </div>
 
             {notice && <Alert tone="success">{notice}</Alert>}
+            {isMinor(item.principalCategory) && <Alert tone="warning">This is children's data. Get verifiable consent from a parent or guardian, and do not use it for tracking or targeted ads (Section 9).</Alert>}
+            {!loading && (!item.lawfulBasis || !item.principalCategory) && <Alert tone="info">Lawful basis or whose data is not recorded yet. Use Edit to add them.</Alert>}
             {loadError && (
                 <Alert tone="info" action={<button type="button" onClick={() => { setLoading(true); fetchFresh(); }} className="shrink-0 font-semibold underline">Retry</button>}>
                     Could not load the latest copy ({loadError}) Showing the data from the list.
@@ -97,6 +99,19 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
                 <Row label="Source">{item.source}</Row>
                 <Row label="Storage">{item.storage}</Row>
                 <Row label="Retention">{item.retentionDays ? retentionText(item.retentionDays) : ""}</Row>
+                <Row label="Lawful basis">{basisLabel(item.lawfulBasis)}</Row>
+                <Row label="Whose data">{principalLabel(item.principalCategory)}</Row>
+                <Row label="Shared with processors" wide>
+                    {item.processors?.length ? (
+                        <span className="flex flex-wrap gap-1.5">
+                            {item.processors.map((p) => (
+                                <span key={p} className="inline-flex rounded-lg bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand/20">{p}</span>
+                            ))}
+                        </span>
+                    ) : (
+                        <span className="text-faint">Not shared with any vendor</span>
+                    )}
+                </Row>
                 <Row label="Added">{item.createdAt ? formatDate(item.createdAt) : ""}</Row>
                 {item.updatedAt && <Row label="Last updated">{formatDate(item.updatedAt)}</Row>}
             </dl>
@@ -104,17 +119,17 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
             {deleteError && <Alert>{deleteError}</Alert>}
 
             {confirming ? (
-                <div className="space-y-3 rounded-xl border border-[#FECACA] bg-[#FEF2F2] p-4">
-                    <p className="text-sm text-[#7F1D1D]">Delete <span className="font-semibold">{item.name}</span>? This cannot be undone.</p>
+                <div className="space-y-3 rounded-xl border border-bad/30 bg-bad-soft p-4">
+                    <p className="text-sm text-bad-ink">Delete <span className="font-semibold">{item.name}</span>? This cannot be undone.</p>
                     <div className="flex gap-2.5">
-                        <button type="button" onClick={remove} disabled={deleting} className="inline-flex flex-1 items-center justify-center rounded-xl bg-[#DC2626] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#B91C1C] disabled:opacity-60">{deleting ? "Deleting..." : "Yes, delete"}</button>
+                        <button type="button" onClick={remove} disabled={deleting} className="inline-flex flex-1 items-center justify-center rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink disabled:opacity-60">{deleting ? "Deleting..." : "Yes, delete"}</button>
                         <button type="button" onClick={() => setConfirming(false)} disabled={deleting} className={ghostBtn}>Cancel</button>
                     </div>
                 </div>
             ) : (
                 <div className="flex gap-2.5">
                     <button type="button" onClick={() => { setNotice(""); setEditing(true); }} disabled={loading} className={`${primaryBtn} flex-1`}>Edit</button>
-                    <button type="button" onClick={() => { setNotice(""); setDeleteError(""); setConfirming(true); }} disabled={loading} className="inline-flex items-center justify-center rounded-xl border border-[#FECACA] px-4 py-2.5 text-sm font-semibold text-[#B91C1C] transition hover:bg-[#FEF2F2] disabled:opacity-60">Delete</button>
+                    <button type="button" onClick={() => { setNotice(""); setDeleteError(""); setConfirming(true); }} disabled={loading} className="inline-flex items-center justify-center rounded-xl border border-bad/30 px-4 py-2.5 text-sm font-semibold text-bad-ink transition hover:bg-bad-soft disabled:opacity-60">Delete</button>
                     <button type="button" onClick={onClose} className={ghostBtn}>Close</button>
                 </div>
             )}

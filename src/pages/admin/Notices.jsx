@@ -1,3 +1,4 @@
+import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
@@ -9,14 +10,14 @@ import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 
-const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-[#64748B]";
-const td = "px-3 py-3 text-sm text-[#334155]";
+const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
+const td = "px-3 py-3 text-sm text-ink-2";
 const isPublished = (s) => String(s).toLowerCase() === "published";
 
 function StatusPill({ status }) {
     return isPublished(status)
-        ? <span className="inline-flex rounded-full bg-[#16A34A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#166534] ring-1 ring-[#16A34A]/25">Published</span>
-        : <span className="inline-flex rounded-full bg-[#D97706]/10 px-2.5 py-0.5 text-xs font-semibold text-[#B45309] ring-1 ring-[#D97706]/25">{status || "Draft"}</span>;
+        ? <span className="inline-flex rounded-full bg-ok/10 px-2.5 py-0.5 text-xs font-semibold text-ok-ink ring-1 ring-ok/25">Published</span>
+        : <span className="inline-flex rounded-full bg-warn/10 px-2.5 py-0.5 text-xs font-semibold text-warn-ink ring-1 ring-warn/25">{status || "Draft"}</span>;
 }
 
 function CreateModal({ onClose, onCreated }) {
@@ -51,19 +52,19 @@ function CreateModal({ onClose, onCreated }) {
             <form onSubmit={submit} noValidate className={`${panel} space-y-3 p-5 sm:p-6`}>
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold">New privacy notice</h2>
-                    <p className="mt-1 text-sm text-[#475569]">It starts as a Draft. Next you pick a template, purposes and translations, then publish.</p>
+                    <p className="mt-1 text-sm text-ink-3">It starts as a Draft. Next you pick a template, purposes and translations, then publish.</p>
                 </div>
                 <div className="grid gap-x-4 sm:grid-cols-2">
-                    <label className="block text-sm font-medium text-[#334155]">Code<input value={form.code} onChange={set("code")} disabled={busy} maxLength={100} placeholder="e.g. GENERAL_NOTICE" className={field} /><span className="mt-1 block text-xs text-[#DC2626]">{errors.code}</span></label>
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">Code<input value={form.code} onChange={set("code")} disabled={busy} maxLength={100} placeholder="e.g. GENERAL_NOTICE" className={field} /><span className="mt-1 block text-xs text-bad-ink">{errors.code}</span></label>
+                    <label className="block text-sm font-medium text-ink-2">
                         Primary language
                         <select value={form.primaryLanguage} onChange={set("primaryLanguage")} disabled={busy} className={field}>
                             {NOTICE_LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
                         </select>
                     </label>
                 </div>
-                <label className="block text-sm font-medium text-[#334155]">Title<input value={form.title} onChange={set("title")} disabled={busy} maxLength={500} placeholder="e.g. How we use your personal data" className={field} /><span className="mt-1 block text-xs text-[#DC2626]">{errors.title}</span></label>
-                <label className="block text-sm font-medium text-[#334155]">Summary<textarea value={form.summary} onChange={set("summary")} disabled={busy} rows={4} placeholder="Short explanation shown to the data principal." className={field} /></label>
+                <label className="block text-sm font-medium text-ink-2">Title<input value={form.title} onChange={set("title")} disabled={busy} maxLength={500} placeholder="e.g. How we use your personal data" className={field} /><span className="mt-1 block text-xs text-bad-ink">{errors.title}</span></label>
+                <label className="block text-sm font-medium text-ink-2">Summary<textarea value={form.summary} onChange={set("summary")} disabled={busy} rows={4} placeholder="Short explanation shown to the customer." className={field} /></label>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
@@ -141,7 +142,7 @@ function EditorModal({ id, onClose, onChanged }) {
 
     return (
         <Modal title="Notice" onClose={() => !busy && onClose()}>
-            <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white p-5 text-[#0F172A] shadow-xl sm:p-6">
+            <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-line bg-surface p-5 text-ink shadow-xl sm:p-6">
                 {state.loading ? (
                     <div className="space-y-2" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-12 pg-shimmer rounded-xl" />)}</div>
                 ) : state.error ? (
@@ -149,32 +150,32 @@ function EditorModal({ id, onClose, onChanged }) {
                 ) : (
                     <>
                         <div className="pr-8">
-                            <p className="font-mono text-xs text-[#64748B]">{n.code} · v{n.version}</p>
+                            <p className="font-mono text-xs text-muted">{n.code} · v{n.version}</p>
                             <div className="mt-1 flex items-center gap-2"><h2 className="text-lg font-semibold">{locked ? "Published notice" : "Edit draft notice"}</h2><StatusPill status={n.status} /></div>
-                            {locked && <p className="mt-1 text-sm text-[#475569]">Published notices are locked. Use "New version" in the list to make changes.</p>}
-                            {n.hash && <p className="mt-1 break-all font-mono text-[11px] text-[#64748B]">SHA-256: {n.hash}</p>}
+                            {locked && <p className="mt-1 text-sm text-ink-3">Published notices are locked. Use "New version" in the list to make changes.</p>}
+                            {n.hash && <p className="mt-1 break-all font-mono text-[11px] text-muted">SHA-256: {n.hash}</p>}
                         </div>
 
                         {!locked && (
-                            <label className="block text-sm font-medium text-[#334155]">
+                            <label className="block text-sm font-medium text-ink-2">
                                 Template (design and default purposes)
                                 <select value={templateId} onChange={(e) => setTemplateId(e.target.value)} disabled={!!busy} className={field}>
                                     <option value="">{n.layout ? `Keep current design (${n.layout})` : "No template"}</option>
                                     {state.templates.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.code})</option>)}
                                 </select>
-                                {state.templatesError && <span className="mt-1 block text-xs text-[#B45309]">Could not load templates: {state.templatesError}</span>}
-                                {template && template.purposes.length > 0 && <span className="mt-1 block text-xs text-[#64748B]">This template adds: {template.purposes.map(nameOf).join(", ")}</span>}
+                                {state.templatesError && <span className="mt-1 block text-xs text-warn-ink">Could not load templates: {state.templatesError}</span>}
+                                {template && template.purposes.length > 0 && <span className="mt-1 block text-xs text-muted">This template adds: {template.purposes.map(nameOf).join(", ")}</span>}
                             </label>
                         )}
 
                         <div>
-                            <p className="text-sm font-medium text-[#334155]">Purposes</p>
+                            <p className="text-sm font-medium text-ink-2">Purposes</p>
                             {options.length === 0 ? (
-                                <p className="mt-1 text-xs text-[#64748B]">No purposes found. Create consent purposes in Consent management first.</p>
+                                <p className="mt-1 text-xs text-muted">No purposes found. Create consent purposes in Consent management first.</p>
                             ) : (
-                                <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-[#E2E8F0] p-3 sm:grid-cols-2">
+                                <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-line p-3 sm:grid-cols-2">
                                     {options.map((p) => (
-                                        <label key={p.code} className="flex items-center gap-2 text-sm text-[#334155]">
+                                        <label key={p.code} className="flex items-center gap-2 text-sm text-ink-2">
                                             <input type="checkbox" checked={picked.includes(p.code)} disabled={locked || !!busy} onChange={() => toggle(p.code)} />
                                             {p.name}
                                         </label>
@@ -185,21 +186,21 @@ function EditorModal({ id, onClose, onChanged }) {
 
                         <div>
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <p className="text-sm font-medium text-[#334155]">Text and translations</p>
-                                <div className="inline-flex rounded-xl border border-[#E2E8F0] p-0.5" role="tablist" aria-label="Language">
+                                <p className="text-sm font-medium text-ink-2">Text and translations</p>
+                                <div className="inline-flex rounded-xl border border-line p-0.5" role="tablist" aria-label="Language">
                                     {NOTICE_LANGUAGES.map((l) => {
                                         const filled = translations.find((t) => t.languageCode === l.code)?.title.trim();
                                         return (
-                                            <button key={l.code} type="button" role="tab" aria-selected={lang === l.code} onClick={() => setLang(l.code)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${lang === l.code ? "bg-[#CCFBF1] text-[#0F766E]" : "text-[#475569] hover:bg-[#F1F5F9]"}`}>
+                                            <button key={l.code} type="button" role="tab" aria-selected={lang === l.code} onClick={() => setLang(l.code)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${lang === l.code ? "bg-brand-soft text-brand-ink" : "text-ink-3 hover:bg-subtle"}`}>
                                                 {l.label}{filled ? " ✓" : ""}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
-                            <label className="mt-2 block text-sm font-medium text-[#334155]">Title<input value={current.title} onChange={setText("title")} disabled={locked || !!busy} maxLength={500} className={field} /></label>
-                            <label className="mt-2 block text-sm font-medium text-[#334155]">Summary<textarea value={current.summary} onChange={setText("summary")} disabled={locked || !!busy} rows={5} className={field} /></label>
-                            <p className="mt-1 text-xs text-[#64748B]">Leave a language empty to skip it. Users get English if their language is missing.</p>
+                            <label className="mt-2 block text-sm font-medium text-ink-2">Title<input value={current.title} onChange={setText("title")} disabled={locked || !!busy} maxLength={500} className={field} /></label>
+                            <label className="mt-2 block text-sm font-medium text-ink-2">Summary<textarea value={current.summary} onChange={setText("summary")} disabled={locked || !!busy} rows={5} className={field} /></label>
+                            <p className="mt-1 text-xs text-muted">Leave a language empty to skip it. Users get English if their language is missing.</p>
                         </div>
 
                         <Alert>{error}</Alert>
@@ -265,8 +266,8 @@ export default function Notices() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Privacy notices</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-[#475569]">Versioned notices shown to data principals. Draft, add translations, then publish. Published versions are locked and hashed; make changes with a new version.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Privacy notices</h1>
+                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Privacy notices shown to customers. Write a draft, add translations, then publish. Published notices are locked; to change one, create a new version.</p>
                 </div>
                 <div className="flex gap-2">
                     <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
@@ -274,34 +275,43 @@ export default function Notices() {
                 </div>
             </div>
 
-            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>}>{flash}</Alert>}
+            {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
             <Alert>{actionError}</Alert>
             {state.error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert>}
+
+            {!state.loading && state.rows.length > 0 && (
+                <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatTile label="All notices" value={state.rows.length} total={state.rows.length} icon="notice" tone="info" hint="Every version" />
+                    <StatTile label="Published" value={state.rows.filter((r) => /publish/i.test(r.status)).length} total={state.rows.length} icon="check" tone="ok" colorValue hint="Shown to data principals" />
+                    <StatTile label="Drafts" value={state.rows.filter((r) => /draft/i.test(r.status)).length} total={state.rows.length} icon="file" tone="warn" colorValue hint="Not visible yet" />
+                    <StatTile label="Notice codes" value={new Set(state.rows.map((r) => r.code)).size} icon="list" tone="violet" hint="Distinct notices" />
+                </section>
+            )}
 
             <div className={`${panel} overflow-hidden`}>
                 {state.loading ? (
                     <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : rows.length === 0 ? (
-                    <p className="px-5 py-12 text-center text-sm text-[#475569]">{state.rows.length ? "No notices match your search." : 'No notices yet. Use "New notice" to create one.'}</p>
+                    <p className="px-5 py-12 text-center text-sm text-ink-3">{state.rows.length ? "No notices match your search." : 'No notices yet. Use "New notice" to create one.'}</p>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[760px]">
-                            <thead className="bg-[#F8FAFC]">
+                            <thead className="bg-soft">
                                 <tr><th className={`${th} pl-5`}>Code</th><th className={th}>Title</th><th className={th}>Version</th><th className={th}>Status</th><th className={th}>Purposes</th><th className={th}>Created</th><th className={`${th} pr-5`} /></tr>
                             </thead>
-                            <tbody className="divide-y divide-[#E2E8F0]">
+                            <tbody className="divide-y divide-line">
                                 {rows.map((r) => (
-                                    <tr key={r.id} className="hover:bg-[#F8FAFC]">
+                                    <tr key={r.id} className="hover:bg-soft">
                                         <td className={`${td} pl-5 font-mono text-xs`}>{r.code}</td>
-                                        <td className={`${td} font-medium text-[#0F172A]`}>{r.title || "-"}</td>
+                                        <td className={`${td} font-medium text-ink`}>{r.title || "-"}</td>
                                         <td className={td}>v{r.version}</td>
                                         <td className={td}><StatusPill status={r.status} /></td>
                                         <td className={td}>{r.purposesCount}</td>
                                         <td className={td}>{formatDate(r.createdAt)}</td>
                                         <td className={`${td} whitespace-nowrap pr-5 text-right`}>
-                                            <button type="button" onClick={() => { setFlash(""); setOpenId(r.id); }} className="font-semibold text-[#0F766E] hover:underline">{isPublished(r.status) ? "View" : "Edit"}</button>
+                                            <button type="button" onClick={() => { setFlash(""); setOpenId(r.id); }} className="font-semibold text-brand-ink hover:underline">{isPublished(r.status) ? "View" : "Edit"}</button>
                                             {isPublished(r.status) && (
-                                                <button type="button" onClick={() => newVersion(r)} disabled={busyId === r.id} className="ml-4 font-semibold text-[#0E7490] hover:underline disabled:opacity-50">{busyId === r.id ? "Creating..." : "New version"}</button>
+                                                <button type="button" onClick={() => newVersion(r)} disabled={busyId === r.id} className="ml-4 font-semibold text-info-ink hover:underline disabled:opacity-50">{busyId === r.id ? "Creating..." : "New version"}</button>
                                             )}
                                         </td>
                                     </tr>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getAllIncidents, getMyTeam } from "../../api/breach.js";
 import Alert from "../../components/shared/Alert.jsx";
 import BreachCharts from "../../components/admin/breach/BreachCharts.jsx";
@@ -16,7 +17,15 @@ export default function BreachManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
-    const [selectedId, setSelectedId] = useState(null);
+    const [pickedId, setSelectedId] = useState(null);
+    const [params, setParams] = useSearchParams();
+    // Bell notification "?incident=<id>" se seedha us incident ka drawer khulta hai.
+    const linkedId = params.get("incident");
+    const selectedId = pickedId ?? linkedId;
+    const closeDrawer = () => {
+        setSelectedId(null);
+        if (linkedId) setParams((p) => { p.delete("incident"); return p; }, { replace: true });
+    };
 
     const fetchAll = useCallback(async () => {
         const [list, members] = await Promise.all([getAllIncidents(), getMyTeam()]);
@@ -85,7 +94,7 @@ export default function BreachManagement() {
             ? `${waiting} open ${waiting === 1 ? "incident is" : "incidents are"} waiting for a severity.`
             : "Every open incident has a severity.";
 
-    const selected = incidents.find((i) => i.id === selectedId) || null;
+    const selected = incidents.find((i) => String(i.id) === String(selectedId)) || null;
     const drawerIncident = selected && {
         ...selected,
         reporterLabel: nameOf(selected.reportedBy, selected.reportedById),
@@ -93,24 +102,25 @@ export default function BreachManagement() {
 
     return (
         <div className="space-y-6">
-            <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-[#0B1220] px-6 py-6 text-white sm:px-8">
+            <header className="flex flex-wrap items-end justify-between gap-4">
                 <div className="max-w-2xl">
-                    <h1 className="text-3xl font-bold tracking-tight">Incident command desk</h1>
-                    <p className="mt-2 text-[15px] leading-relaxed text-[#CBD5E1]">{headline}</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-bad-ink">Governance · Breach</p>
+                    <h1 className="mt-1 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Breach incidents</h1>
+                    <p className="mt-1 text-sm leading-relaxed text-muted">{headline}</p>
                 </div>
-                <button type="button" onClick={reload} disabled={loading} className={`${ghostBtn} cursor-pointer border-blue-800 bg-transparent text-blue-600 hover:border-blue-800 hover:bg-blue-800 hover:text-white`}>
+                <button type="button" onClick={reload} disabled={loading} className={ghostBtn}>
                     {loading ? "Refreshing..." : "Refresh"}
                 </button>
             </header>
 
             {error && (
-                <Alert action={<button type="button" onClick={reload} className="shrink-0 font-semibold text-[#0F766E] hover:underline">Retry</button>}>
+                <Alert action={<button type="button" onClick={reload} className="shrink-0 font-semibold text-brand-ink hover:underline">Retry</button>}>
                     {error}
                 </Alert>
             )}
 
             {loading && incidents.length === 0 ? (
-                <p className="rounded-2xl border border-[#E2E8F0] bg-white p-12 text-center text-sm text-[#475569]">Loading incidents...</p>
+                <p className="rounded-2xl border border-line bg-surface p-12 text-center text-sm text-ink-3">Loading incidents...</p>
             ) : (
                 <>
                     <SummaryCards
@@ -125,7 +135,7 @@ export default function BreachManagement() {
                         filters={filters}
                         onFilters={setFilters}
                         nameOf={nameOf}
-                        onOpen={(i) => setSelectedId(i.id)}
+                        onOpen={(i) => { if (linkedId) setParams((p) => { p.delete("incident"); return p; }, { replace: true }); setSelectedId(i.id); }}
                     />
                 </>
             )}
@@ -136,7 +146,7 @@ export default function BreachManagement() {
                     incident={drawerIncident}
                     statuses={statuses}
                     assigneeName={nameOf(selected.assignedTo, selected.assignedToId, "Unassigned")}
-                    onClose={() => setSelectedId(null)}
+                    onClose={closeDrawer}
                     onChanged={refreshQuietly}
                 />
             )}

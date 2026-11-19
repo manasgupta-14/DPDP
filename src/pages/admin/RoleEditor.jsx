@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createRole, getAllPermissions, getRoleById, getRoleForEdit, updateRole } from "../../api/roles.js";
 import { usePermissions } from "../../auth/usePermissions.js";
 import PermissionPicker from "../../components/admin/roles/PermissionPicker.jsx";
@@ -30,7 +30,11 @@ export default function RoleEditor({ mode }) {
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
     const [reloadKey, setReloadKey] = useState(0);
-    const [form, setForm] = useState(EMPTY);
+    const [params] = useSearchParams();
+    // "Data Protection" ka "Create role" se aaye to naam aur kaam pehle se bhara hua
+    const [form, setForm] = useState(() =>
+        mode === "new" && params.get("preset") === "dpo" ? { roleName: "Data Protection", description: "Reviews DPIAs and oversees DPDP compliance." } : EMPTY,
+    );
     const [userCount, setUserCount] = useState(null);
     const [permissionsKnown, setPermissionsKnown] = useState(true);
     const [selected, setSelected] = useState(() => new Set());
@@ -119,7 +123,7 @@ export default function RoleEditor({ mode }) {
     if (!canView) {
         return (
             <div className="mx-auto max-w-4xl space-y-6">
-                <h1 className="text-3xl font-bold tracking-tight">Roles &amp; permissions</h1>
+                <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Roles &amp; permissions</h1>
                 <Alert>You do not have permission to view roles and permissions. Ask an administrator to grant you access.</Alert>
             </div>
         );
@@ -132,11 +136,11 @@ export default function RoleEditor({ mode }) {
     return (
         <form onSubmit={submit} noValidate className="mx-auto max-w-4xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <Link to="/dashboard/roles" className="text-sm font-semibold text-[#0F766E] hover:underline">&larr; Back to roles</Link>
+                <Link to="/dashboard/roles" className="text-sm font-semibold text-brand-ink hover:underline">&larr; Back to roles</Link>
                 <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">{heading}</h1>
-                        <p className="mt-1.5 text-[15px] text-[#475569]">
+                        <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">{heading}</h1>
+                        <p className="mt-1.5 text-[15px] text-ink-3">
                             {readOnly && !loading && !loadError && userCount !== null ? `${copy.hint} ${userCount} ${userCount === 1 ? "user has" : "users have"} this role.` : copy.hint}
                         </p>
                     </div>
@@ -149,22 +153,22 @@ export default function RoleEditor({ mode }) {
             <Alert action={<button type="button" onClick={retry} className="shrink-0 font-semibold underline">Retry</button>}>{loadError}</Alert>
 
             <div className={`${panel} space-y-4 p-5 sm:p-6`}>
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Role name
                     <input value={form.roleName} onChange={set("roleName")} disabled={readOnly || loading} maxLength={100} placeholder="e.g. Compliance Officer" className={field} aria-invalid={!!errors.roleName} />
-                    {errors.roleName && <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleName}</span>}
+                    {errors.roleName && <span className="mt-1 block text-xs text-bad-ink">{errors.roleName}</span>}
                 </label>
-                {!readOnly && <label className="block text-sm font-medium text-[#334155]">
+                {!readOnly && <label className="block text-sm font-medium text-ink-2">
                     Description (optional)
                     <textarea value={form.description} onChange={set("description")} disabled={loading} rows={2} maxLength={500} placeholder="What is this role responsible for?" className={`${field} resize-y`} aria-invalid={!!errors.description} />
-                    {errors.description && <span className="mt-1 block text-xs text-[#DC2626]">{errors.description}</span>}
+                    {errors.description && <span className="mt-1 block text-xs text-bad-ink">{errors.description}</span>}
                 </label>}
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 className="text-lg font-semibold">Permissions</h2>
-                    <p className="text-sm text-[#475569]">{readOnly && !permissionsKnown ? "Not available yet" : `${selected.size} of ${total} ${readOnly ? "granted" : "selected"}`}</p>
+                    <p className="text-sm text-ink-3">{readOnly && !permissionsKnown ? "Not available yet" : `${selected.size} of ${total} ${readOnly ? "granted" : "selected"}`}</p>
                 </div>
                 {!readOnly && (
                     <div className="flex gap-2.5">
@@ -175,15 +179,15 @@ export default function RoleEditor({ mode }) {
             </div>
 
             {loading ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>Loading permissions...</p>
+                <p className={`${panel} px-5 py-6 text-sm text-ink-3`}>Loading permissions...</p>
             ) : readOnly && !loadError && !permissionsKnown ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>No user has this role yet, so its permissions cannot be shown. They appear here as soon as one user is given this role.</p>
+                <p className={`${panel} px-5 py-6 text-sm text-ink-3`}>No user has this role yet, so its permissions cannot be shown. They appear here as soon as one user is given this role.</p>
             ) : !loadError && modules.length === 0 ? (
-                <p className={`${panel} px-5 py-6 text-sm text-[#475569]`}>No permissions are available yet.</p>
+                <p className={`${panel} px-5 py-6 text-sm text-ink-3`}>No permissions are available yet.</p>
             ) : (
                 !loadError && <PermissionPicker modules={modules} selected={selected} onToggle={toggle} onToggleModule={toggleModule} readOnly={readOnly} />
             )}
-            {errors.permissions && <p role="alert" className="text-sm text-[#DC2626]">{errors.permissions}</p>}
+            {errors.permissions && <p role="alert" className="text-sm text-bad-ink">{errors.permissions}</p>}
 
             <Alert>{apiError}</Alert>
 

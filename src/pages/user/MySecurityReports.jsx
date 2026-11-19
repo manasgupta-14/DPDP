@@ -5,7 +5,7 @@ import MyReportsList from "../../components/user/MyReportsList.jsx";
 import { timeOf } from "../../utils/breach.js";
 
 const FALLBACK_NOTICE =
-    "This list shows the reports submitted from this browser.";
+    "This list shows the reports you submitted from this device.";
 
 export default function MySecurityReports() {
     const [reports, setReports] = useState([]);
@@ -44,8 +44,8 @@ export default function MySecurityReports() {
     return (
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">My Security Reports</h1>
-                <p className="mt-1 text-sm text-[#475569]">Report suspicious activity and follow how the security team responds.</p>
+                <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">My Security Reports</h1>
+                <p className="mt-1 text-sm text-ink-3">Report suspicious activity and follow how the security team responds.</p>
             </div>
             <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                 <IncidentForm onSubmitted={() => load(true)} />

@@ -14,7 +14,7 @@ const toCode = (v) => String(v || "").trim().toLowerCase().replace(/[^a-z0-9]+/g
 function Footer({ busy, error, onClose, onSubmit, label }) {
     return (
         <>
-            {error && <p role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/10 px-3 py-2 text-xs text-[#B91C1C]">{error}</p>}
+            {error && <p role="alert" className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-xs text-bad-ink">{error}</p>}
             <div className="flex justify-end gap-2.5">
                 <button type="button" onClick={onClose} disabled={busy} className={dkBtn}>Cancel</button>
                 <button type="button" onClick={onSubmit} disabled={busy} className={dkPrimary}>{busy ? "Saving..." : label}</button>
@@ -50,6 +50,7 @@ export function CategoryModal({ item, existing, onClose, onCreated }) {
         <Modal title={editing ? "Edit data category" : "Add data category"} onClose={() => !busy && onClose()}>
             <div className={dkModal}>
                 <h2 className="pr-8 text-lg font-semibold">{editing ? `Edit ${item.name}` : "Add data category"}</h2>
+                <p className="mt-0.5 text-xs text-muted">A type of personal data you collect, such as contact details.</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Category name"><input value={form.name} onChange={set("name")} disabled={busy} placeholder="Contact details" className={dkInput} /></Field>
                     <Field label="Code"><input value={code} onChange={(e) => { setCodeTouched(true); set("code")(e); }} disabled={busy || editing} placeholder="contact_details" className={`${dkInput} font-mono`} /></Field>
@@ -94,6 +95,7 @@ export function ProcessorModal({ item, existing, onClose, onCreated }) {
         <Modal title={editing ? "Edit data processor" : "Add data processor"} onClose={() => !busy && onClose()}>
             <div className={dkModal}>
                 <h2 className="pr-8 text-lg font-semibold">{editing ? `Edit ${item.name}` : "Add data processor"}</h2>
+                <p className="mt-0.5 text-xs text-muted">A company that processes personal data on your behalf.</p>
                 <div className="grid gap-3 sm:grid-cols-2">
                     <Field label="Legal name"><input value={form.legalName} onChange={set("legalName")} disabled={busy} placeholder="BillDesk Payment Gateway" className={dkInput} /></Field>
                     <Field label="Code"><input value={code} onChange={(e) => { setCodeTouched(true); set("code")(e); }} disabled={busy || editing} placeholder="billdesk" className={`${dkInput} font-mono`} /></Field>

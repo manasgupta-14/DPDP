@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { inputClass } from "./authStyles.js";
+import { Logo } from "../shared/Brand.jsx";
 
 const ICONS = {
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z M9 12l2 2 4-4",
@@ -21,16 +22,16 @@ export function Icon({ name, className = "h-5 w-5" }) {
 export function Field({ id, label, error, hint, children }) {
     return (
         <div>
-            <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-[#334155]">
+            <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ink-2">
                 {label}
             </label>
             {children}
             {error ? (
-                <p id={`${id}-error`} role="alert" className="mt-1.5 text-xs text-[#DC2626]">
+                <p id={`${id}-error`} role="alert" className="mt-1.5 text-xs text-bad-ink">
                     {error}
                 </p>
             ) : hint ? (
-                <p className="mt-1.5 text-xs text-[#475569]">{hint}</p>
+                <p className="mt-1.5 text-xs text-ink-3">{hint}</p>
             ) : null}
         </div>
     );
@@ -55,7 +56,7 @@ export function PasswordInput({ id, value, onChange, error, placeholder, autoCom
                 type="button"
                 onClick={() => setShow((s) => !s)}
                 aria-label={show ? "Hide password" : "Show password"}
-                className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-lg text-[#475569] transition hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]"
+                className="absolute inset-y-0 right-0 grid w-11 place-items-center rounded-r-lg text-ink-3 transition hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
                 <Icon name={show ? "eyeOff" : "eye"} className="h-[18px] w-[18px]" />
             </button>
@@ -68,7 +69,7 @@ export function SubmitButton({ loading, children }) {
         <button
             type="submit"
             disabled={loading}
-            className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-[#0F766E] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(15,118,110,0.16)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#115E59] hover:shadow-[0_10px_28px_rgba(34,211,238,0.12)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
+            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-brand px-5 py-3 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-strong focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40 disabled:cursor-not-allowed disabled:opacity-70"
         >
             {loading && (
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -83,108 +84,76 @@ export function SubmitButton({ loading, children }) {
 
 const POINTS = [
     "Consent records and withdrawals in one register",
-    "Rights Requests handling with clear status tracking",
+    "Rights requests with clear status tracking",
     "Breach handling and a reviewable audit trail",
 ];
 
+// Login / register ka frame: bayen Kavach ki pehchaan (gehra neela, bharosa), dayen saaf form.
 export default function AuthLayout({ title, subtitle, children, footer }) {
     return (
-        <div className="min-h-screen bg-[#F8FAFC] pt-16">
-            <div className="grid min-h-[calc(100vh-4rem)] lg:grid-cols-[0.9fr_1.1fr]">
-            <style>{`
-        @keyframes pg-rise { 0% { opacity: 0; transform: translateY(18px); } 100% { opacity: 1; transform: translateY(0); } }
-        @keyframes pg-glow-a { 0%,100% { transform: translate(0,0); } 50% { transform: translate(50px,30px); } }
-        @keyframes pg-glow-b { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-60px,-20px); } }
-        @keyframes pg-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        @keyframes pg-pulse-ring { 0% { transform: scale(1); opacity: .5; } 100% { transform: scale(1.9); opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) {
-          .pg-auth, .pg-auth * { animation: none !important; transition: none !important; }
-        }
-      `}</style>
+        <div className="ap-auth min-h-screen">
+            <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
+                <aside className="relative m-3 hidden overflow-hidden kv-auth-panel rounded-[28px] border border-[#D6E4FF] lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-10 xl:px-16">
+                    <Link to="/" className="relative w-fit rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                        <Logo sub="DPDP compliance workspace" />
+                    </Link>
 
-            <aside className="pg-auth relative hidden overflow-hidden bg-[#0B1220] lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-10 xl:px-16">
-                <div aria-hidden className="pointer-events-none absolute inset-0">
-                    <div
-                        className="absolute inset-0 opacity-[0.3]"
-                        style={{
-                            backgroundImage:
-                                "linear-gradient(to right, #263449 1px, transparent 1px), linear-gradient(to bottom, #263449 1px, transparent 1px)",
-                            backgroundSize: "56px 56px",
-                            WebkitMaskImage: "radial-gradient(ellipse 80% 70% at 30% 40%, #000 20%, transparent 80%)",
-                            maskImage: "radial-gradient(ellipse 80% 70% at 30% 40%, #000 20%, transparent 80%)",
-                        }}
-                    />
-                    <div className="absolute -left-20 top-20 h-96 w-96 rounded-full bg-[#0F766E]/30 blur-[120px] animate-[pg-glow-a_22s_ease-in-out_infinite]" />
-                    <div className="absolute -right-10 bottom-10 h-96 w-96 rounded-full bg-[#22D3EE]/10 blur-[120px] animate-[pg-glow-b_26s_ease-in-out_infinite]" />
-                </div>
+                    <div className="relative max-w-lg">
+                        <h2 className="text-[30px] font-bold leading-tight tracking-tight text-[#14213D]">Keep your DPDP obligations organised and easy to review</h2>
+                        <ul className="mt-8 space-y-4">
+                            {POINTS.map((p, i) => (
+                                <li key={p} className="flex items-start gap-3 text-[15px] text-[#33415C]" style={{ animation: `pg-rise .6s ease-out ${200 + i * 110}ms both` }}>
+                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[#3A4CC8] ring-1 ring-[#C9D8FF]">
+                                        <Icon name="check" className="h-3 w-3" />
+                                    </span>
+                                    {p}
+                                </li>
+                            ))}
+                        </ul>
 
-                <Link to="/" className="relative flex w-fit items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
-                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#0F766E]">
-                        <Icon name="shield" className="h-5 w-5 text-white" />
-                    </span>
-                    <span className="text-[17px] font-semibold tracking-tight text-white">
-                        Privy<span className="text-[#22D3EE]">Guard</span>
-                    </span>
-                </Link>
-
-                <div className="relative max-w-xl">
-                    <div className="relative mb-10 h-24 w-24 animate-[pg-float_7s_ease-in-out_infinite]">
-                        <span className="absolute inset-0 rounded-3xl border border-[#22D3EE]/50 animate-[pg-pulse-ring_3.2s_ease-out_infinite]" />
-                        <span className="absolute inset-0 rounded-3xl border border-[#22D3EE]/30 animate-[pg-pulse-ring_3.2s_ease-out_1.6s_infinite]" />
-                        <div className="relative grid h-full w-full place-items-center rounded-3xl bg-gradient-to-br from-[#0F766E] to-[#115E59] shadow-[0_0_50px_rgba(34,211,238,0.25)] ring-1 ring-[#22D3EE]/50">
-                            <Icon name="shield" className="h-11 w-11 text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.7)]" />
+                        <div className="mt-10 grid grid-cols-3 gap-3">
+                            {[
+                                ["3", "panels", "Admin · User · DPO"],
+                                ["30", "days", "rights request deadline"],
+                                ["13", "reports", "PDF or CSV"],
+                            ].map(([n, u, t], i) => (
+                                <div key={u} className="rounded-xl border border-[#D6E4FF] bg-white/80 p-3.5" style={{ animation: `pg-rise .6s ease-out ${500 + i * 100}ms both` }}>
+                                    <p className="text-2xl font-extrabold text-[#14213D]">
+                                        {n}
+                                        <span className="ml-1 text-xs font-semibold text-[#556070]">{u}</span>
+                                    </p>
+                                    <p className="mt-1 text-[11px] leading-snug text-[#556070]">{t}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    <h2 className="text-3xl font-semibold leading-tight tracking-tight text-white">
-                        Keep your DPDP obligations organised and easy to review
-                    </h2>
-                    <ul className="mt-8 space-y-4">
-                        {POINTS.map((p, i) => (
-                            <li key={p} className="flex items-start gap-3 text-sm text-[#CBD5E1]" style={{ animation: `pg-rise .7s ease-out ${300 + i * 120}ms both` }}>
-                                <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#0F766E]/30 text-[#22D3EE] ring-1 ring-[#22D3EE]/30">
-                                    <Icon name="check" className="h-3 w-3" />
-                                </span>
-                                {p}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                    <p className="relative max-w-md text-xs leading-relaxed text-[#556070]">
+                        Accounts and records are stored securely on your organisation's Kavach server.
+                    </p>
+                </aside>
 
-                <p className="relative max-w-md text-xs leading-relaxed text-[#CBD5E1]/60">
-                    Demo environment. Accounts and data stay in this browser only. Not legal advice; completing tasks does not by itself mean legal compliance.
-                </p>
-            </aside>
+                <main className="flex flex-col justify-center px-4 py-10 sm:px-8">
+                    <div className="mx-auto w-full max-w-md">
+                        <div className="mb-6 flex items-center justify-between">
+                            <Link to="/" className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden">
+                                <Logo />
+                            </Link>
+                            <Link to="/" className="ml-auto inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-ink-3 hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                                <Icon name="arrowLeft" className="h-4 w-4" />
+                                Back to home
+                            </Link>
+                        </div>
 
-            <main className="pg-auth flex flex-col justify-center px-4 py-10 sm:px-8">
-                <div className="mx-auto w-full max-w-md">
-                    <div className="mb-8 flex items-center justify-between">
-                        <Link to="/" className="flex items-center gap-2.5 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] lg:hidden">
-                            <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#0F766E]">
-                                <Icon name="shield" className="h-5 w-5 text-white" />
-                            </span>
-                            <span className="text-[17px] font-semibold tracking-tight text-[#0F172A]">
-                                Privy<span className="text-[#0F766E]">Guard</span>
-                            </span>
-                        </Link>
-                        <Link to="/" className="ml-auto inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-[#475569] transition hover:text-[#0F766E] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
-                            <Icon name="arrowLeft" className="h-4 w-4" />
-                            Back to home
-                        </Link>
+                        <div className="rounded-[16px] border border-line bg-surface p-7 shadow-[var(--k-shadow)] sm:p-9" style={{ animation: "pg-rise .5s cubic-bezier(.22,1,.36,1) both" }}>
+                            <h1 className="text-[24px] font-bold tracking-tight text-ink">{title}</h1>
+                            <p className="mt-1.5 text-sm text-muted">{subtitle}</p>
+                            <div className="mt-7">{children}</div>
+                        </div>
+
+                        <p className="mt-6 text-center text-sm text-muted">{footer}</p>
                     </div>
-
-                    <div
-                        className="rounded-2xl border border-[#E2E8F0] bg-white p-7 shadow-xl shadow-slate-900/5 sm:p-9"
-                        style={{ animation: "pg-rise .7s cubic-bezier(.22,1,.36,1) both" }}
-                    >
-                        <h1 className="text-2xl font-semibold tracking-tight text-[#0F172A]">{title}</h1>
-                        <p className="mt-1.5 text-sm text-[#475569]">{subtitle}</p>
-                        <div className="mt-7">{children}</div>
-                    </div>
-
-                    <p className="mt-6 text-center text-sm text-[#475569]">{footer}</p>
-                </div>
-            </main>
+                </main>
             </div>
         </div>
     );

@@ -1,9 +1,25 @@
-// Backend ke [HasPermission] attributes ka map (PrivacyGuard backend se generate kiya).
+// Backend ke [HasPermission] attributes ka map (Kavach backend se generate kiya).
 // 403 aane par user ko saaf batate hain ki kaunsi permission chahiye.
 // Backend me permission badle to ye list bhi update karni hogi.
 
 const RULES = [
     ["GET", "/api/Audit/logs", "Audit.View"],
+    ["GET", "/api/ComplianceChecklist", "Audit.View"],
+    ["GET", "/api/Reports/history", "Audit.View"],
+    ["GET", "/api/Reports/download/{jobId}", "Audit.View"],
+    ["POST", "/api/Reports/generate-campaign-report/{campaignId}", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-grievance-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-grievance-audit", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-consent-audit", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-data-breach", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-dpia", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-dsar-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-data-inventory-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-data-processing-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-data-retention-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-data-sharing-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-security-audit-report", "Audit.Manage"],
+    ["POST", "/api/Reports/generate-compliance-gap-report", "Audit.Manage"],
     ["GET", "/api/Breach/all", "Breaches.View"],
     ["PATCH", "/api/Breach/{id}/assign", "Breaches.Manage"],
     ["PATCH", "/api/Breach/{id}/update", "Breaches.Manage"],
@@ -42,6 +58,10 @@ const RULES = [
     ["GET", "/api/dataprincipal", "DataPrincipal.View"],
     ["POST", "/api/dataprincipal/add", "DataPrincipal.Manage"],
     ["GET", "/api/dataprincipal/{id}/360-view", "DataPrincipal.View"],
+    ["GET", "/api/dataprincipal/count", "DataPrincipal.View"],
+    ["POST", "/api/dataprincipal/bulk-import", "DataPrincipal.Manage"],
+    ["PUT", "/api/dataprincipal/{id:guid}", "DataPrincipal.Manage"],
+    ["DELETE", "/api/dataprincipal/{id:guid}", "DataPrincipal.Manage"],
     ["GET", "/api/dataprincipal/notice/all", "Notice.ReadPublic"],
     ["GET", "/api/dataprincipal/notice/{code}", "Notice.ReadPublic"],
     ["GET", "/api/Dpia/all", "DPIA.View"],

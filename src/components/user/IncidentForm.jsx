@@ -67,32 +67,32 @@ export default function IncidentForm({ onSubmitted }) {
 
     return (
         <form onSubmit={onSubmit} noValidate className={`${panel} p-5 sm:p-6`} aria-labelledby="report-form-title">
-            <h2 id="report-form-title" className="text-lg font-semibold text-[#0F172A]">Report an incident</h2>
-            <p className="mt-1 text-sm text-[#475569]">Describe what you noticed. Severity and investigation are handled by the security team.</p>
+            <h2 id="report-form-title" className="text-lg font-semibold text-ink">Report an incident</h2>
+            <p className="mt-1 text-sm text-ink-3">Describe what you noticed. Severity and investigation are handled by the security team.</p>
 
             <div className="mt-5 space-y-4">
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Title
                     <input value={form.title} onChange={set("title")} maxLength={LIMITS.title} placeholder="e.g. Unrecognised login alert" aria-invalid={!!errors.title} className={field} />
                     <span className="mt-1 flex justify-between text-xs">
-                        <span className="text-[#DC2626]">{errors.title}</span>
-                        <span className="text-[#475569]">{form.title.length}/{LIMITS.title}</span>
+                        <span className="text-bad-ink">{errors.title}</span>
+                        <span className="text-ink-3">{form.title.length}/{LIMITS.title}</span>
                     </span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Description
                     <textarea value={form.description} onChange={set("description")} maxLength={LIMITS.description} rows={5} placeholder="What happened, what you saw, and any systems or data involved" aria-invalid={!!errors.description} className={`${field} resize-y`} />
                     <span className="mt-1 flex justify-between text-xs">
-                        <span className="text-[#DC2626]">{errors.description}</span>
-                        <span className="text-[#475569]">{form.description.length}/{LIMITS.description}</span>
+                        <span className="text-bad-ink">{errors.description}</span>
+                        <span className="text-ink-3">{form.description.length}/{LIMITS.description}</span>
                     </span>
                 </label>
 
-                <label className="block text-sm font-medium text-[#334155]">
+                <label className="block text-sm font-medium text-ink-2">
                     Incident date and time
                     <input type="datetime-local" value={form.incidentDate} onChange={set("incidentDate")} max={nowLocalInput()} aria-invalid={!!errors.incidentDate} className={field} />
-                    <span className="mt-1 block text-xs text-[#DC2626]">{errors.incidentDate}</span>
+                    <span className="mt-1 block text-xs text-bad-ink">{errors.incidentDate}</span>
                 </label>
 
                 <Alert>{apiError}</Alert>

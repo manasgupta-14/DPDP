@@ -39,24 +39,24 @@ export function normalizeGrievance(r) {
 }
 
 export function grievanceStatusToneLight(status) {
-    if (sameText(status, "open")) return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
-    if (sameText(status, "in progress")) return "bg-[#22D3EE]/15 text-[#0F172A] ring-[#22D3EE]/50";
-    if (sameText(status, "resolved") || sameText(status, "closed")) return "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/30";
-    if (sameText(status, "escalated to breach")) return "bg-[#DC2626]/10 text-[#B91C1C] ring-[#DC2626]/30";
-    return "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+    if (sameText(status, "open")) return "bg-warn/15 text-ink ring-warn/40";
+    if (sameText(status, "in progress")) return "bg-brand/15 text-ink ring-focus/50";
+    if (sameText(status, "resolved") || sameText(status, "closed")) return "bg-ok/10 text-ok-ink ring-ok/30";
+    if (sameText(status, "escalated to breach")) return "bg-bad/10 text-bad-ink ring-bad/30";
+    return "bg-line text-ink-2 ring-line-strong";
 }
 
 export const isClosedStatus = (s) => sameText(s, "resolved") || sameText(s, "closed") || sameText(s, "escalated to breach");
 
 export function buildTimeline(ticket) {
-    const events = [{ key: "raised", label: "Grievance raised", time: ticket.createdAt, color: "#0F766E" }];
+    const events = [{ key: "raised", label: "Grievance raised", time: ticket.createdAt, color: "var(--k-brand)" }];
     ticket.messages.forEach((m, i) => {
         const fromUser = m.senderType === "User";
         events.push({
             key: `m${i}`,
             label: m.isInternal ? "Internal note added" : fromUser ? "Message from data principal" : "Reply sent to data principal",
             time: m.createdAt,
-            color: m.isInternal ? "#D97706" : fromUser ? "#22D3EE" : "#0F766E",
+            color: m.isInternal ? "var(--k-warn)" : fromUser ? "var(--k-info)" : "var(--k-brand)",
         });
     });
     return events;

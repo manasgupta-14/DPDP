@@ -18,12 +18,12 @@ export function kindRuleMessage(parent) {
 }
 
 const KIND_TONES = {
-    Zone: "bg-[#0F766E]/10 text-[#0F766E] ring-[#0F766E]/25",
-    Circle: "bg-[#22D3EE]/15 text-[#0E7490] ring-[#22D3EE]/45",
-    Division: "bg-[#334155]/10 text-[#334155] ring-[#334155]/20",
-    Subdivision: "bg-[#D97706]/10 text-[#B45309] ring-[#D97706]/25",
-    Branch: "bg-[#16A34A]/10 text-[#15803D] ring-[#16A34A]/25",
-    Other: "bg-[#64748B]/10 text-[#475569] ring-[#64748B]/20",
+    Zone: "bg-brand/10 text-brand-ink ring-brand/25",
+    Circle: "bg-brand/15 text-info-ink ring-focus/45",
+    Division: "bg-ink-2/10 text-ink-2 ring-ink-2/20",
+    Subdivision: "bg-warn/10 text-warn-ink ring-warn/25",
+    Branch: "bg-ok/10 text-ok-ink ring-ok/25",
+    Other: "bg-muted/10 text-ink-3 ring-muted/20",
 };
 
 export const kindTone = (kind) => KIND_TONES[kind] || KIND_TONES.Other;

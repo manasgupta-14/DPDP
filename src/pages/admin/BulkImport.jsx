@@ -4,6 +4,7 @@ import { getBatches } from "../../api/imports.js";
 import BatchList from "../../components/admin/imports/BatchList.jsx";
 import BatchReview from "../../components/admin/imports/BatchReview.jsx";
 import AddDataPrincipalModal from "../../components/admin/principals/AddDataPrincipalModal.jsx";
+import QuickImportCard from "../../components/admin/imports/QuickImportCard.jsx";
 import UploadCard from "../../components/admin/imports/UploadCard.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -47,7 +48,7 @@ export default function BulkImport() {
     }, [apply]);
 
     const staged = (batchId) => {
-        setNotice({ id: batchId, text: "Batch staged. Review it before executing." });
+        setNotice({ id: batchId, text: "File uploaded. Check the rows, then import." });
         load();
     };
 
@@ -62,8 +63,8 @@ export default function BulkImport() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <header className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Bulk import</h1>
-                    <p className="mt-1.5 max-w-3xl text-[15px] text-[#475569]">Migrate an existing consumer base from a CSV. Rows are staged and validated first, and nothing is written to consumer records until you execute the batch.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Bulk import</h1>
+                    <p className="mt-1.5 max-w-3xl text-[15px] text-ink-3">Bring in existing customers from a CSV file. Rows are checked first, and nothing is saved until you import the batch.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                     <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
@@ -83,8 +84,8 @@ export default function BulkImport() {
                     tone="success"
                     action={
                         <span className="flex shrink-0 items-center gap-3">
-                            {notice.id && <button type="button" onClick={() => { setActiveId(notice.id); setNotice(null); }} className="font-semibold text-[#0F766E] hover:underline">Review</button>}
-                            <button type="button" aria-label="Dismiss" onClick={() => setNotice(null)} className="text-lg leading-none text-[#64748B] hover:text-[#0F172A]">&times;</button>
+                            {notice.id && <button type="button" onClick={() => { setActiveId(notice.id); setNotice(null); }} className="font-semibold text-brand-ink hover:underline">Review</button>}
+                            <button type="button" aria-label="Dismiss" onClick={() => setNotice(null)} className="text-lg leading-none text-muted hover:text-ink">&times;</button>
                         </span>
                     }
                 >
@@ -94,6 +95,7 @@ export default function BulkImport() {
 
             {addingUser && <AddDataPrincipalModal onClose={() => setAddingUser(false)} onAdded={(d) => setNotice({ id: "", text: `User added${d.referenceId ? ` (${d.referenceId})` : ""}. It is now a data principal.` })} />}
 
+            <QuickImportCard onImported={(n) => setNotice({ id: "", text: `${n} data principal${n === 1 ? "" : "s"} imported. They are now in Consent → Data principals.` })} />
             <UploadCard kinds={IMPORT_KINDS} onStaged={staged} />
             <BatchList batches={batches} kinds={IMPORT_KINDS} statuses={IMPORT_STATUSES} loading={loading} query={query} onOpen={(id) => { setActiveId(id); setNotice(null); }} />
         </div>

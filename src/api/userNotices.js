@@ -7,7 +7,7 @@ import { parsePurposes } from "../utils/noticeApi.js";
 const pick = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 const str = (v) => (v === undefined || v === null ? "" : String(v));
 
-export const safeColor = (value) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(str(value).trim()) ? str(value).trim() : "#0F766E");
+export const safeColor = (value) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(str(value).trim()) ? str(value).trim() : "#2B59C3");
 
 function normalizeListItem(raw) {
     return {

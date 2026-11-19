@@ -27,7 +27,7 @@ export default function GrievanceForm({ onClose, onSubmitted }) {
         <form onSubmit={submit} className={`${panel} space-y-4 p-5 sm:p-6`}>
             <div className="pr-8">
                 <h2 className="text-lg font-semibold">Raise a grievance</h2>
-                <p className="mt-1 text-sm text-[#475569]">Tell us how your personal data is being handled badly. The Data Protection team will review it and reply.</p>
+                <p className="mt-1 text-sm text-ink-3">Tell us how your personal data is being handled badly. The Data Protection team will review it and reply.</p>
             </div>
             <Alert>{error}</Alert>
             <label className="block text-sm font-medium">Category

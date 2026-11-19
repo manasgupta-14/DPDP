@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { assignIncident, updateIncident } from "../../../api/breach.js";
 import { BASE_STATUSES, SEVERITIES, formatDate, isFinished, sameText, severityColor } from "../../../utils/breach.js";
 import Alert from "../../shared/Alert.jsx";
@@ -126,32 +127,34 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
 
     const busy = saving || assigning;
 
-    return (
-        <div className="fixed inset-0 z-50">
-            <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="absolute inset-0 bg-[#0B1220]/60" />
-            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="pg-pop absolute inset-y-0 right-0 flex w-full max-w-xl flex-col bg-white shadow-2xl">
-                <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] p-5">
+    // Portal: page ke animated (transform) parent ke andar fixed drawer poore page jitna lamba ho jata tha
+    // aur scroll nahi hota tha. Body par render karne se drawer screen ki height me rehta hai.
+    return createPortal(
+        <div className="fixed inset-0 z-50 overscroll-contain">
+            <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="pg-modal-backdrop absolute inset-0" />
+            <aside ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="triage-title" className="kv-drawer pg-pop absolute inset-y-0 right-0 flex h-[100dvh] max-h-screen w-full max-w-xl flex-col bg-surface shadow-2xl">
+                <div className="flex items-start justify-between gap-3 border-b border-line p-5">
                     <div className="min-w-0">
-                        <h2 id="triage-title" className="mt-1 break-words text-xl font-bold text-[#0F172A]">{incident.title}</h2>
+                        <h2 id="triage-title" className="mt-1 break-words text-xl font-bold text-ink">{incident.title}</h2>
                         <div className="mt-2 flex flex-wrap gap-2">
                             <StatusBadge status={incident.status} />
                             <SeverityBadge severity={incident.severity} />
                         </div>
                     </div>
-                    <button type="button" onClick={onClose} aria-label="Close" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[#475569] hover:bg-[#F8FAFC] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                    <button type="button" onClick={onClose} aria-label="Close" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink-3 hover:bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
                 </div>
 
                 <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
-                    <div className="flex-1 space-y-5 overflow-y-auto p-5">
-                        <section className="rounded-xl bg-[#F8FAFC] p-4" aria-label="Incident details">
-                            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-[#334155]">{incident.description || "No description provided."}</p>
-                            <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-[#475569]">
-                                <div><dt className="font-semibold">Reported by</dt><dd className="mt-0.5 text-[#0F172A]">{incident.reporterLabel}</dd></div>
-                                <div><dt className="font-semibold">Assigned to</dt><dd className="mt-0.5 text-[#0F172A]">{assigneeName}</dd></div>
-                                <div><dt className="font-semibold">Discovered</dt><dd className="mt-0.5 text-[#0F172A]">{formatDate(incident.discoveryDate)}</dd></div>
-                                <div><dt className="font-semibold">Reported</dt><dd className="mt-0.5 text-[#0F172A]">{formatDate(incident.reportedAt)}</dd></div>
+                    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
+                        <section className="rounded-xl bg-soft p-4" aria-label="Incident details">
+                            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-ink-2">{incident.description || "No description provided."}</p>
+                            <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-ink-3">
+                                <div><dt className="font-semibold">Reported by</dt><dd className="mt-0.5 text-ink">{incident.reporterLabel}</dd></div>
+                                <div><dt className="font-semibold">Assigned to</dt><dd className="mt-0.5 text-ink">{assigneeName}</dd></div>
+                                <div><dt className="font-semibold">Discovered</dt><dd className="mt-0.5 text-ink">{formatDate(incident.discoveryDate)}</dd></div>
+                                <div><dt className="font-semibold">Reported</dt><dd className="mt-0.5 text-ink">{formatDate(incident.reportedAt)}</dd></div>
                             </dl>
                             <button type="button" onClick={onAssign} disabled={busy} className={`${ghostBtn} mt-4 w-full py-2 text-xs`}>
                                 {assigning ? "Assigning..." : "Assign this incident to me"}
@@ -159,7 +162,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                         </section>
 
                         <fieldset>
-                            <legend className="text-sm font-medium text-[#334155]">Severity</legend>
+                            <legend className="text-sm font-medium text-ink-2">Severity</legend>
                             <div role="radiogroup" aria-label="Severity" className="mt-1.5 grid grid-cols-4 gap-1.5">
                                 {SEVERITIES.map((s) => {
                                     const on = sameText(form.severity, s);
@@ -171,40 +174,40 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                                             aria-checked={on}
                                             onClick={() => pickSeverity(s)}
                                             style={on ? { background: severityColor(s) } : undefined}
-                                            className={`rounded-xl border px-2 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] ${on ? "border-transparent text-white" : "border-[#E2E8F0] bg-white text-[#334155] hover:border-[#0F766E]/50"}`}
+                                            className={`rounded-xl border px-2 py-2.5 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${on ? "border-transparent text-white" : "border-line bg-surface text-ink-2 hover:border-brand/50"}`}
                                         >
                                             {s}
                                         </button>
                                     );
                                 })}
                             </div>
-                            <span className="mt-1 block text-xs text-[#DC2626]">{errors.severity}</span>
+                            <span className="mt-1 block text-xs text-bad-ink">{errors.severity}</span>
                         </fieldset>
 
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <label className="block text-sm font-medium text-[#334155]">
+                            <label className="block text-sm font-medium text-ink-2">
                                 Status
                                 <select value={form.status} onChange={set("status")} className={field}>
                                     {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}
                                 </select>
                             </label>
-                            <label className="block text-sm font-medium text-[#334155]">
+                            <label className="block text-sm font-medium text-ink-2">
                                 Estimated affected records
                                 <input type="number" inputMode="numeric" min="0" step="1" value={form.estimatedAffectedRecords} onChange={set("estimatedAffectedRecords")} aria-invalid={!!errors.estimatedAffectedRecords} className={field} />
-                                <span className="mt-1 block text-xs text-[#DC2626]">{errors.estimatedAffectedRecords}</span>
+                                <span className="mt-1 block text-xs text-bad-ink">{errors.estimatedAffectedRecords}</span>
                             </label>
                         </div>
 
-                        <label className="block text-sm font-medium text-[#334155]">
+                        <label className="block text-sm font-medium text-ink-2">
                             Mitigation steps
                             <textarea rows={5} maxLength={4000} value={form.mitigationSteps} onChange={set("mitigationSteps")} aria-invalid={!!errors.mitigationSteps} placeholder="What was investigated or done to contain and fix the incident" className={`${field} resize-y`} />
-                            <span className="mt-1 block text-xs text-[#DC2626]">{errors.mitigationSteps}</span>
+                            <span className="mt-1 block text-xs text-bad-ink">{errors.mitigationSteps}</span>
                         </label>
 
                         {confirming && (
-                            <div role="alertdialog" aria-label="Confirm closing" className="rounded-xl border border-[#D97706]/40 bg-[#D97706]/10 p-4 text-sm text-[#0F172A]">
+                            <div role="alertdialog" aria-label="Confirm closing" className="rounded-xl border border-warn/40 bg-warn/10 p-4 text-sm text-ink">
                                 <p className="font-semibold">Mark this incident as {form.status}?</p>
-                                <p className="mt-1 text-[#475569]">The reporter will be able to see the outcome. Select Save changes again to confirm.</p>
+                                <p className="mt-1 text-ink-3">The reporter will be able to see the outcome. Select Save changes again to confirm.</p>
                             </div>
                         )}
 
@@ -212,7 +215,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                         <Alert tone="success">{success}</Alert>
                     </div>
 
-                    <div className="flex gap-3 border-t border-[#E2E8F0] p-5">
+                    <div className="flex gap-3 border-t border-line p-5">
                         <button type="button" onClick={onClose} className={`${ghostBtn} flex-1`}>Cancel</button>
                         <button type="submit" disabled={busy} className={`${primaryBtn} flex-1`}>
                             {saving ? "Saving..." : confirming ? "Confirm and save" : "Save changes"}
@@ -220,6 +223,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                     </div>
                 </form>
             </aside>
-        </div>
+        </div>,
+        document.body,
     );
 }

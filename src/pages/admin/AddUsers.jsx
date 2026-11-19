@@ -1,3 +1,4 @@
+import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
@@ -10,7 +11,7 @@ import Modal from "../../components/shared/Modal.jsx";
 import { toDate } from "../../utils/audit.js";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", roleId: "" };
-const input = "mt-1.5 h-11 w-full rounded-xl border border-[#E2E8F0] bg-white px-3.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:outline-none focus:ring-2 focus:ring-[#22D3EE]/40";
+const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40";
 
 export default function AddUsers() {
     const { query } = useOutletContext();
@@ -134,72 +135,82 @@ export default function AddUsers() {
         <div className="space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <header className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-                    <p className="mt-1.5 text-[15px] text-[#475569]">Add employees to your organisation&apos;s PrivyGuard workspace and manage their access.</p>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Users</h1>
+                    <p className="mt-1.5 text-[15px] text-ink-3">Add employees to your organisation&apos;s Kavach workspace and manage their access.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
                     {ADMIN_REGISTER_ENABLED && (
-                        <Link to="/admin/register" className="inline-flex items-center gap-2 rounded-xl border border-[#0F766E]/30 bg-white px-4 py-2.5 text-sm font-semibold text-[#0F766E] transition hover:bg-[#CCFBF1]">
+                        <Link to="/admin/register" className="inline-flex items-center gap-2 rounded-xl border border-brand/30 bg-surface px-4 py-2.5 text-sm font-semibold text-brand-ink transition hover:bg-brand-soft">
                             <Icon name="adduser" className="h-4 w-4" /> Register new admin
                         </Link>
                     )}
-                    <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-[#0F766E] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#115E59] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE]">
+                    <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         <Icon name="adduser" className="h-4 w-4" /> Add user
                     </button>
                 </div>
             </header>
 
-            {notice && <p role="status" className="rounded-xl border border-[#16A34A]/30 bg-[#16A34A]/10 px-4 py-3 text-sm font-medium text-[#15803D]">{notice}</p>}
+            {notice && <p role="status" className="rounded-xl border border-ok/30 bg-ok/10 px-4 py-3 text-sm font-medium text-ok-ink">{notice}</p>}
+
+            {!loading && users.length > 0 && (
+                <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <StatTile label="All users" value={users.length} total={users.length} icon="users" tone="info" hint="In your organisation" />
+                    <StatTile label="Active" value={users.filter((u) => u.active).length} total={users.length} icon="check" tone="ok" colorValue hint="Can sign in" />
+                    <StatTile label="Disabled" value={users.filter((u) => !u.active).length} total={users.length} icon="lock" tone="bad" colorValue hint="Cannot sign in" />
+                    <StatTile label="Roles in use" value={new Set(users.map((u) => u.role).filter(Boolean)).size} icon="key" tone="violet" hint="Distinct roles assigned" />
+                </section>
+            )}
 
             <div>
                 {adding && (
                 <Modal title="New user" onClose={() => setAdding(false)}>
-                <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-6">
+                <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-line bg-surface p-6">
                     <h2 className="pr-8 text-lg font-semibold">New user</h2>
+                    <p className="mt-0.5 text-xs text-muted">Create a staff account and choose what they can access.</p>
 
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Full name
                         <input value={form.name} onChange={set("name")} placeholder="e.g. Priya Singh" autoComplete="off" className={input} />
-                        {errors.name && <span className="mt-1 block text-xs text-[#DC2626]">{errors.name}</span>}
+                        {errors.name && <span className="mt-1 block text-xs text-bad-ink">{errors.name}</span>}
                     </label>
 
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Email
                         <input type="email" value={form.email} onChange={set("email")} placeholder="name@company.com" autoComplete="off" className={input} />
-                        {errors.email && <span className="mt-1 block text-xs text-[#DC2626]">{errors.email}</span>}
+                        {errors.email && <span className="mt-1 block text-xs text-bad-ink">{errors.email}</span>}
                     </label>
 
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Phone number
                         <input type="tel" value={form.phone} onChange={set("phone")} placeholder="+91 98765 43210" className={input} />
-                        {errors.phone && <span className="mt-1 block text-xs text-[#DC2626]">{errors.phone}</span>}
+                        {errors.phone && <span className="mt-1 block text-xs text-bad-ink">{errors.phone}</span>}
                     </label>
 
-                    <label className="block text-sm font-medium text-[#334155]">
+                    <label className="block text-sm font-medium text-ink-2">
                         Password
                         <input type="password" value={form.password} onChange={set("password")} placeholder="At least 8 characters" autoComplete="new-password" className={input} />
-                        {errors.password && <span className="mt-1 block text-xs text-[#DC2626]">{errors.password}</span>}
+                        {errors.password && <span className="mt-1 block text-xs text-bad-ink">{errors.password}</span>}
                     </label>
 
-                    <label className="block text-sm font-medium text-[#334155]">
-                        Assign role <span className="text-[#DC2626]">*</span>
+                    <label className="block text-sm font-medium text-ink-2">
+                        Assign role <span className="text-bad-ink">*</span>
                         <select value={form.roleId} onChange={set("roleId")} className={input} disabled={rolesLoading || roles.length === 0}>
                             <option value="">{rolesLoading ? "Loading roles..." : "Select a role"}</option>
                             {roles.map((role) => (
                                 <option key={role.id} value={role.id}>{role.name}</option>
                             ))}
                         </select>
-                        <span className="mt-1 block text-xs text-[#64748B]">The selected role controls which modules and actions this user can access.</span>
-                        {rolesError && <span role="alert" className="mt-1 block text-xs text-[#B45309]">Could not load roles: {rolesError}</span>}
+                        <span className="mt-1 block text-xs text-muted">The selected role controls which modules and actions this user can access.</span>
+                        {rolesError && <span role="alert" className="mt-1 block text-xs text-warn-ink">Could not load roles: {rolesError}</span>}
                         {!rolesLoading && !rolesError && roles.length === 0 && (
-                            <span className="mt-1 block text-xs text-[#B45309]">No roles yet. <Link to="/dashboard/roles/new" className="font-semibold underline">Create a role</Link> first, then come back to add the user.</span>
+                            <span className="mt-1 block text-xs text-warn-ink">No roles yet. <Link to="/dashboard/roles/new" className="font-semibold underline">Create a role</Link> first, then come back to add the user.</span>
                         )}
-                        {errors.roleId && <span className="mt-1 block text-xs text-[#DC2626]">{errors.roleId}</span>}
+                        {errors.roleId && <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>}
                     </label>
 
-                    {apiError && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{apiError}</p>}
+                    {apiError && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{apiError}</p>}
 
-                    <button type="submit" disabled={saving || rolesLoading || roles.length === 0} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0F766E] text-sm font-semibold text-white transition hover:bg-[#115E59] hover:shadow-[0_0_20px_rgba(34,211,238,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#22D3EE] disabled:cursor-not-allowed disabled:opacity-60">
+                    <button type="submit" disabled={saving || rolesLoading || roles.length === 0} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-white transition hover:bg-brand-strong hover:shadow-[0_0_20px_rgba(91,141,239,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-60">
                         <Icon name="adduser" className="h-4 w-4" /> {saving ? "Adding..." : "Add user"}
                     </button>
                 </form>
@@ -218,26 +229,26 @@ export default function AddUsers() {
                     />
                 )}
 
-                <section className="rounded-2xl border border-[#E2E8F0] bg-white p-6">
+                <section className="rounded-2xl border border-line bg-surface p-6">
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-lg font-semibold">People in your organisation</h2>
-                            <p className="text-xs text-[#64748B]">Live from the server. Deactivate an employee to block their login.{canEdit ? " Use Edit to update their details or role." : ""}</p>
+                            <p className="text-xs text-muted">Live from the server. Deactivate an employee to block their login.{canEdit ? " Use Edit to update their details or role." : ""}</p>
                         </div>
-                        <span className="rounded-full bg-[#CCFBF1] px-2.5 py-1 text-xs font-semibold text-[#0F766E]">{users.length} total</span>
+                        <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs font-semibold text-brand-ink">{users.length} total</span>
                     </div>
 
-                    {listError && <p role="alert" className="mt-4 rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{listError}</p>}
+                    {listError && <p role="alert" className="mt-4 rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{listError}</p>}
 
                     {loading ? (
-                        <p className="py-12 text-center text-sm text-[#64748B]">Loading users...</p>
+                        <p className="py-12 text-center text-sm text-muted">Loading users...</p>
                     ) : shown.length === 0 ? (
-                        <p className="py-12 text-center text-sm text-[#64748B]">{users.length ? "No users match your search." : "No users yet. Use the form to add the first one."}</p>
+                        <p className="py-12 text-center text-sm text-muted">{users.length ? "No users match your search." : "No users yet. Use the form to add the first one."}</p>
                     ) : (
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full min-w-[560px] text-left text-sm">
                                 <thead>
-                                    <tr className="border-b border-[#E2E8F0] text-xs uppercase tracking-wide text-[#64748B]">
+                                    <tr className="border-b border-line text-xs uppercase tracking-wide text-muted">
                                         <th className="py-2 pr-3 font-semibold">Name</th>
                                         <th className="py-2 pr-3 font-semibold">Role</th>
                                         <th className="py-2 pr-3 font-semibold">Added</th>
@@ -247,24 +258,24 @@ export default function AddUsers() {
                                 </thead>
                                 <tbody>
                                     {shown.map((u) => (
-                                        <tr key={u.id} className="border-b border-[#E2E8F0] last:border-0">
+                                        <tr key={u.id} className="border-b border-line last:border-0">
                                             <td className="py-3 pr-3">
                                                 <p className="font-medium">{u.name}</p>
-                                                <p className="text-xs text-[#64748B]">{u.email}{u.phone ? ` · ${u.phone}` : ""}</p>
+                                                <p className="text-xs text-muted">{u.email}{u.phone ? ` · ${u.phone}` : ""}</p>
                                             </td>
-                                            <td className="py-3 pr-3 text-[#475569]">{u.role}</td>
-                                            <td className="py-3 pr-3 text-[#475569]">{toDate(u.createdAt)?.toLocaleDateString(undefined, { dateStyle: "medium" }) ?? "-"}</td>
+                                            <td className="py-3 pr-3 text-ink-3">{u.role}</td>
+                                            <td className="py-3 pr-3 text-ink-3">{toDate(u.createdAt)?.toLocaleDateString(undefined, { dateStyle: "medium" }) ?? "-"}</td>
                                             <td className="py-3 pr-3">
-                                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${u.active ? "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/25" : "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]"}`}>{u.active ? "Active" : "Disabled"}</span>
+                                                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${u.active ? "bg-ok/10 text-ok-ink ring-ok/25" : "bg-line text-ink-2 ring-line-strong"}`}>{u.active ? "Active" : "Disabled"}</span>
                                             </td>
                                             <td className="py-3 text-right">
                                                 {canEdit && (
                                                     <div className="flex items-center justify-end gap-4">
-                                                        <button type="button" disabled={busyId === u.id} onClick={() => setEditing(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
+                                                        <button type="button" disabled={busyId === u.id} onClick={() => setEditing(u)} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                             Edit
                                                         </button>
                                                         {u.role !== "Admin" && (
-                                                            <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-[#0F766E] hover:underline disabled:opacity-50">
+                                                            <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                                 {busyId === u.id ? "Saving..." : u.active ? "Deactivate" : "Activate"}
                                                             </button>
                                                         )}

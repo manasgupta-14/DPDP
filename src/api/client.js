@@ -4,6 +4,22 @@ import { permissionMessage } from "./permissionMap.js";
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const TIMEOUT_MS = 15000;
 
+// Backend ka naya standard wrapper: { success, message, data }.
+// Sabhi API calls yahin se guzarti hain, isliye unwrap ek hi jagah hota hai (axios interceptor jaisa).
+// Purane endpoints jo seedha array/object bhejte hain, waise hi chalte rahenge.
+const ENVELOPE_KEYS = new Set(["success", "message", "data", "errors", "statuscode", "timestamp", "traceid"]);
+
+export function readEnvelope(body) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+    const keys = Object.keys(body);
+    const lower = keys.map((k) => k.toLowerCase());
+    if (!lower.includes("success") || !lower.includes("data")) return null;
+    if (!lower.every((k) => ENVELOPE_KEYS.has(k))) return null;
+    const get = (name) => body[keys[lower.indexOf(name)]];
+    if (typeof get("success") !== "boolean") return null;
+    return { success: get("success"), message: typeof get("message") === "string" ? get("message") : "", data: get("data") ?? null, errors: lower.includes("errors") ? get("errors") : undefined };
+}
+
 function extractError(data, status, method, path) {
     if (status === 403) return permissionMessage(method, path);
     // DbUpdateException par backend asli wajah innerError / rootError me bhejta hai
@@ -23,8 +39,8 @@ function extractError(data, status, method, path) {
     }
     if (status === 401) return "Your session has expired. Please sign in again.";
     if (status === 403) return "You do not have permission to do this.";
-    if (status === 404) return "This API endpoint was not found on the backend. Rebuild and restart the backend, then try again.";
-    if (status === 502 || status === 503 || status === 504) return "Cannot reach the backend. Start the backend (https://localhost:7139), wait until it is running, then try again.";
+    if (status === 404) return "This feature is not available on the server yet. Please contact your administrator.";
+    if (status === 502 || status === 503 || status === 504) return "Cannot reach the server right now. Please try again in a moment.";
     if (status >= 500) return "Server error. Please try again in a moment.";
     return "Something went wrong. Please try again.";
 }
@@ -56,6 +72,13 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
             data = null;
         }
 
+        const env = readEnvelope(data);
+        if (env) {
+            // 200 aaya par success:false — ise error hi maano
+            if (res.ok && !env.success) return { ok: false, status: res.status, data: env.data, message: env.message, error: env.message || extractError(env.errors ? { errors: env.errors } : null, res.status, method, path) };
+            if (res.ok) return { ok: true, status: res.status, data: env.data, message: env.message, error: null };
+        }
+
         if (res.ok) return { ok: true, status: res.status, data, error: null };
 
         if (res.status === 401 && jwt) {
@@ -69,7 +92,7 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
         const error =
             err.name === "AbortError"
                 ? "The server took too long to respond. Please try again."
-                : "Cannot reach the server. Make sure the backend is running on https://localhost:7139.";
+                : "Cannot reach the server. Check your connection and try again.";
         return { ok: false, status: 0, data: null, error };
     } finally {
         clearTimeout(timer);

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getPrivacyRequestDetail, resolvePrivacyRequest } from "../../api/privacyRequest.js";
 import Alert from "../../components/shared/Alert.jsx";
-import NotInApi from "../../components/shared/NotInApi.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { REPLY_TEMPLATES, STATUSES, dateText, dateTimeText, dueInfo, isClosed, shortId, statusLabel, typeLabel } from "../../utils/privacyRequest.js";
@@ -12,9 +11,9 @@ const allTemplates = Object.values(REPLY_TEMPLATES).flat();
 function Card({ title, subtitle, children }) {
     return (
         <section className={panel}>
-            <header className="border-b border-[#E2E8F0] px-5 py-4">
-                <h2 className="font-semibold text-[#0F172A]">{title}</h2>
-                {subtitle && <p className="mt-0.5 text-xs text-[#64748B]">{subtitle}</p>}
+            <header className="border-b border-line px-5 py-4">
+                <h2 className="font-semibold text-ink">{title}</h2>
+                {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
             </header>
             <div className="px-5 py-4">{children}</div>
         </section>
@@ -24,16 +23,16 @@ function Card({ title, subtitle, children }) {
 function Row({ label, children }) {
     return (
         <div className="grid grid-cols-[130px_1fr] gap-3 py-1.5 text-sm">
-            <dt className="text-[#64748B]">{label}</dt>
-            <dd className="min-w-0 break-words font-medium text-[#0F172A]">{children}</dd>
+            <dt className="text-muted">{label}</dt>
+            <dd className="min-w-0 break-words font-medium text-ink">{children}</dd>
         </div>
     );
 }
 
 function buildTimeline(r) {
-    const events = [{ title: "Submitted", text: r.details ? `Request received: ${r.details}` : "Request received", at: r.created, by: "Principal", tone: "bg-[#3B82F6]" }];
+    const events = [{ title: "Submitted", text: r.details ? `Request received: ${r.details}` : "Request received", at: r.created, by: "Principal", tone: "bg-brand" }];
     if (r.resolved && r.status !== "Submitted") {
-        events.push({ title: `Status: ${statusLabel(r.status)}`, text: r.remarks || "No response note recorded.", at: r.resolved, by: "Staff", tone: isClosed(r.status) ? (r.status === "Fulfilled" ? "bg-[#16A34A]" : "bg-[#DC2626]") : "bg-[#3B82F6]" });
+        events.push({ title: `Status: ${statusLabel(r.status)}`, text: r.remarks || "No response note recorded.", at: r.resolved, by: "Staff", tone: isClosed(r.status) ? (r.status === "Fulfilled" ? "bg-ok" : "bg-bad") : "bg-brand" });
     }
     return events;
 }
@@ -107,7 +106,7 @@ export default function PrivacyRequestDetail() {
     if (!request) {
         return (
             <div className="space-y-4">
-                <Link to="/dashboard/rights-requests" className="text-sm font-semibold text-[#0F766E] hover:underline">← Back to Rights Requests</Link>
+                <Link to="/dashboard/rights-requests" className="text-sm font-semibold text-brand-ink hover:underline">← Back to Rights Requests</Link>
                 <Alert>{error || "Request not found."}</Alert>
             </div>
         );
@@ -122,9 +121,9 @@ export default function PrivacyRequestDetail() {
         <div className="mx-auto max-w-6xl space-y-6" style={{ animation: "pg-rise .6s ease-out both" }}>
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{typeLabel(request.type)}</h1>
-                    <p className="mt-1 text-sm text-[#475569]">
-                        <Link to="/dashboard/rights-requests" className="font-semibold text-[#0F766E] hover:underline">← Back to Rights Requests</Link>
+                    <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">{typeLabel(request.type)}</h1>
+                    <p className="mt-1 text-sm text-ink-3">
+                        <Link to="/dashboard/rights-requests" className="font-semibold text-brand-ink hover:underline">← Back to Rights Requests</Link>
                         <span className="mx-1.5">·</span>
                         <span className="font-mono text-xs" title={request.id}>{request.referenceId || shortId(request.id)}</span>
                     </p>
@@ -136,59 +135,57 @@ export default function PrivacyRequestDetail() {
             {notice && <Alert tone="success">{notice}</Alert>}
 
             {due?.overdue && (
-                <div role="alert" className="rounded-2xl border border-[#DC2626]/30 bg-[#DC2626]/10 px-5 py-4 text-sm text-[#0F172A]">
-                    <p className="font-semibold text-[#991B1B]">This request is past its statutory deadline</p>
-                    <p className="mt-0.5 text-[#475569]">It was due {dateText(request.target)} — {due.text.toLowerCase()}. Complete it now and record the reason for the delay in the response notes.</p>
+                <div role="alert" className="rounded-2xl border border-bad/30 bg-bad/10 px-5 py-4 text-sm text-ink">
+                    <p className="font-semibold text-bad-ink">This request is past its legal deadline</p>
+                    <p className="mt-0.5 text-ink-3">It was due {dateText(request.target)} — {due.text.toLowerCase()}. Complete it now and record the reason for the delay in the response notes.</p>
                 </div>
             )}
 
             <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
                 <div className="space-y-6">
                     <Card title="Request">
-                        <dl className="divide-y divide-[#F1F5F9]">
+                        <dl className="divide-y divide-subtle">
                             <Row label="Reference"><span className="font-mono text-xs">{request.referenceId || "-"}</span></Row>
                             <Row label="Right exercised">{typeLabel(request.type)}</Row>
                             <Row label="Status"><StatusBadge status={request.status} /></Row>
                             <Row label="Data principal">
-                                {request.principalName || "-"} <span className="ml-1 font-mono text-xs font-normal text-[#64748B]" title={request.principalId}>{shortId(request.principalId)}</span>
+                                {request.principalName || "-"} <span className="ml-1 font-mono text-xs font-normal text-muted" title={request.principalId}>{shortId(request.principalId)}</span>
                             </Row>
                             <Row label="Email">{request.principalEmail || "-"}</Row>
                             <Row label="Mobile">{request.principalMobile || "-"}</Row>
-                            <Row label="Raised via"><NotInApi /></Row>
                             <Row label="Raised">{dateTimeText(request.created)}</Row>
                             <Row label="Deadline">
                                 <span className="flex flex-wrap items-center gap-2">
-                                    {due && <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${due.overdue ? "bg-[#DC2626]/10 text-[#B91C1C]" : "bg-[#D97706]/10 text-[#B45309]"}`}>{due.text}</span>}
-                                    <span className="text-xs font-normal text-[#64748B]">{dateTimeText(request.target)}</span>
+                                    {due && <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${due.overdue ? "bg-bad/10 text-bad-ink" : "bg-warn/10 text-warn-ink"}`}>{due.text}</span>}
+                                    <span className="text-xs font-normal text-muted">{dateTimeText(request.target)}</span>
                                 </span>
                             </Row>
-                            <Row label="Assigned to"><NotInApi /></Row>
                             <Row label="Details"><span className="whitespace-pre-wrap font-normal">{request.details || "-"}</span></Row>
                             {closed && <Row label="Closed">{dateTimeText(request.resolved)}</Row>}
                         </dl>
                     </Card>
 
-                    <Card title="Move this request on">
+                    <Card title="Update this request">
                         <div className="space-y-4">
                             <Alert>{formError}</Alert>
                             <div className="grid gap-4">
-                                <label className="block text-sm font-medium text-[#0F172A]">
+                                <label className="block text-sm font-medium text-ink">
                                     Status
                                     <select value={status} onChange={(e) => changeStatus(e.target.value)} className={field}>
                                         {STATUSES.map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
                                     </select>
-                                    <span className="mt-1 block text-xs font-normal text-[#64748B]">Shown to the user in their History.</span>
+                                    <span className="mt-1 block text-xs font-normal text-muted">Shown to the user in their History.</span>
                                 </label>
                             </div>
-                            <label className="block text-sm font-medium text-[#0F172A]">
+                            <label className="block text-sm font-medium text-ink">
                                 Response notes
                                 <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={4} placeholder="What was done, and where the data came from. Included in the response to the Data Principal." className={field} />
                             </label>
                             {(REPLY_TEMPLATES[status] || []).length > 0 && (
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                    <span className="font-medium text-[#64748B]">Quick note:</span>
+                                    <span className="font-medium text-muted">Quick note:</span>
                                     {REPLY_TEMPLATES[status].map((t) => (
-                                        <button key={t} type="button" onClick={() => setRemarks(t)} className="rounded-full border border-[#E2E8F0] bg-white px-3 py-1 text-left text-[#334155] transition hover:border-[#0F766E] hover:text-[#0F766E]">
+                                        <button key={t} type="button" onClick={() => setRemarks(t)} className="rounded-full border border-line bg-surface px-3 py-1 text-left text-ink-2 transition hover:border-brand hover:text-brand-ink">
                                             {t.length > 52 ? `${t.slice(0, 50)}...` : t}
                                         </button>
                                     ))}
@@ -205,15 +202,19 @@ export default function PrivacyRequestDetail() {
 
                 <div className="space-y-6">
                     <Card title="Progress">
-                        <div className="grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-[#E2E8F0] p-4">
-                                <p className="text-xs text-[#64748B]">Tasks complete</p>
-                                <p className="mt-2">{request.totalTasks == null ? <NotInApi /> : <span className="text-2xl font-bold text-[#0F172A]">{request.completedTasks ?? 0} of {request.totalTasks}</span>}</p>
-                            </div>
-                            <div className="rounded-xl border border-[#E2E8F0] p-4">
-                                <p className="text-xs text-[#64748B]">Days remaining</p>
-                                <p className={`mt-1 text-2xl font-bold ${closed ? "text-[#16A34A]" : daysLeft !== null && daysLeft < 0 ? "text-[#DC2626]" : "text-[#0F172A]"}`}>{closed ? "Closed" : daysLeft ?? "-"}</p>
-                                <p className="mt-0.5 text-xs text-[#64748B]">Due {dateText(request.target)}</p>
+                        <div className={`grid gap-3 ${request.totalTasks == null ? "grid-cols-1" : "grid-cols-2"}`}>
+                            {request.totalTasks != null && (
+                                <div className="rounded-xl border border-line p-4">
+                                    <p className="text-xs text-muted">Tasks complete</p>
+                                    <p className="mt-2 text-2xl font-bold text-ink">
+                                        {request.completedTasks ?? 0} of {request.totalTasks}
+                                    </p>
+                                </div>
+                            )}
+                            <div className="rounded-xl border border-line p-4">
+                                <p className="text-xs text-muted">Days remaining</p>
+                                <p className={`mt-1 text-2xl font-bold ${closed ? "text-ok-ink" : daysLeft !== null && daysLeft < 0 ? "text-bad-ink" : "text-ink"}`}>{closed ? "Closed" : daysLeft ?? "-"}</p>
+                                <p className="mt-0.5 text-xs text-muted">Due {dateText(request.target)}</p>
                             </div>
                         </div>
                     </Card>
@@ -224,9 +225,9 @@ export default function PrivacyRequestDetail() {
                                 <li key={e.title} className="flex gap-3">
                                     <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${e.tone}`} />
                                     <div className="min-w-0">
-                                        <p className="text-sm font-semibold text-[#0F172A]">{e.title}</p>
-                                        <p className="whitespace-pre-wrap break-words text-sm text-[#475569]">{e.text}</p>
-                                        <p className="mt-0.5 text-xs text-[#94A3B8]">{dateTimeText(e.at)} · {e.by}</p>
+                                        <p className="text-sm font-semibold text-ink">{e.title}</p>
+                                        <p className="whitespace-pre-wrap break-words text-sm text-ink-3">{e.text}</p>
+                                        <p className="mt-0.5 text-xs text-faint">{dateTimeText(e.at)} · {e.by}</p>
                                     </div>
                                 </li>
                             ))}

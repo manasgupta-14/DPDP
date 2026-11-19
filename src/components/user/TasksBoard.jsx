@@ -13,20 +13,20 @@ function TaskCard({ campaign, busy, onAct }) {
     return (
         <li className={`${panel} p-5`}>
             <div className="flex items-start gap-3">
-                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="consent" className="h-5 w-5" /></span>
+                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand-ink"><Icon name="consent" className="h-5 w-5" /></span>
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-base font-semibold">{campaign.title}</h3>
-                        <span className="rounded-full bg-[#E2E8F0] px-2.5 py-0.5 text-xs font-semibold text-[#334155]">{typeLabel(campaign.type)}</span>
+                        <span className="rounded-full bg-line px-2.5 py-0.5 text-xs font-semibold text-ink-2">{typeLabel(campaign.type)}</span>
                     </div>
-                    {campaign.description && <p className="mt-1.5 whitespace-pre-line text-sm leading-6 text-[#475569]">{campaign.description}</p>}
+                    {campaign.description && <p className="mt-1.5 whitespace-pre-line text-sm leading-6 text-ink-3">{campaign.description}</p>}
                     {isConsent(campaign.type) && inv?.name && (
-                        <div className="mt-3 rounded-xl bg-[#F8FAFC] p-3 text-sm ring-1 ring-[#E2E8F0]">
-                            <p className="font-semibold text-[#0F172A]">Data: {inv.name}{inv.category ? ` (${inv.category})` : ""}</p>
-                            {inv.purpose && <p className="mt-0.5 text-[#475569]">Purpose: {inv.purpose}</p>}
+                        <div className="mt-3 rounded-xl bg-soft p-3 text-sm ring-1 ring-line">
+                            <p className="font-semibold text-ink">Data: {inv.name}{inv.category ? ` (${inv.category})` : ""}</p>
+                            {inv.purpose && <p className="mt-0.5 text-ink-3">Purpose: {inv.purpose}</p>}
                         </div>
                     )}
-                    <p className="mt-2 text-xs text-[#64748B]">
+                    <p className="mt-2 text-xs text-muted">
                         Started {formatDay(campaign.startDate)}
                         {campaign.endDate ? ` · Respond by ${formatDay(campaign.endDate)}` : ""}
                     </p>
@@ -95,12 +95,12 @@ export default function TasksBoard() {
             <Alert tone="success">{notice}</Alert>
 
             {loading ? (
-                <p className="text-sm text-[#475569]">Loading your tasks...</p>
+                <p className="text-sm text-ink-3">Loading your tasks...</p>
             ) : items.length === 0 && !error ? (
                 <div className={`${panel} p-10 text-center`}>
-                    <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[#CCFBF1] text-[#0F766E]"><Icon name="check" className="h-7 w-7" /></span>
+                    <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="check" className="h-7 w-7" /></span>
                     <p className="mt-4 text-base font-semibold">You are all caught up</p>
-                    <p className="mt-1 text-sm text-[#475569]">No pending approvals right now.</p>
+                    <p className="mt-1 text-sm text-ink-3">No pending approvals right now.</p>
                 </div>
             ) : (
                 <ul className="space-y-4">

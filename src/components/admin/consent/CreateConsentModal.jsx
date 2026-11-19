@@ -60,10 +60,10 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
 
     return (
         <Modal title="Create consent" onClose={() => !busy && onClose()}>
-            <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-[#E2E8F0] bg-white p-5 text-[#0F172A] shadow-xl sm:p-6">
+            <div className="max-h-[88vh] space-y-5 overflow-y-auto rounded-2xl border border-line bg-surface p-5 text-ink shadow-xl sm:p-6">
                 <div className="pr-8">
                     <h2 className="text-lg font-semibold">Create consent</h2>
-                    <p className="mt-1 text-sm text-[#475569]">Select the details you need permission for. The user will be asked about each one separately and will choose Allow or Don't allow.</p>
+                    <p className="mt-1 text-sm text-ink-3">Select the details you need permission for. The user will be asked about each one separately and will choose Allow or Don't allow.</p>
                 </div>
 
                 <div>
@@ -73,7 +73,7 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
                             const taken = isTaken(p.name, p.code);
                             return (
                                 <li key={p.key}>
-                                    <label className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${taken ? "border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B]" : "cursor-pointer border-[#E2E8F0] hover:border-[#0F766E]"}`}>
+                                    <label className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${taken ? "border-line bg-soft text-muted" : "cursor-pointer border-line hover:border-brand"}`}>
                                         <input type="checkbox" disabled={taken || busy} checked={taken ? true : !!picked[p.key]} onChange={(e) => setPicked((s) => ({ ...s, [p.key]: e.target.checked }))} />
                                         <span className="flex-1 font-medium">{p.name.replace("Use of my ", "").replace(/^./, (c) => c.toUpperCase())}</span>
                                         {taken && <span className="text-xs">Already created</span>}
@@ -93,7 +93,7 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
                         {customs.map((c) => (
                             <li key={c.id} className="flex items-center gap-2">
                                 <input value={c.name} onChange={(e) => setCustoms((l) => l.map((x) => (x.id === c.id ? { ...x, name: e.target.value } : x)))} placeholder="e.g. Use of my address" className={`${dkInput} mt-0`} />
-                                <button type="button" onClick={() => setCustoms((l) => l.filter((x) => x.id !== c.id))} className="shrink-0 px-2 text-xs font-semibold text-[#B91C1C] hover:underline">Remove</button>
+                                <button type="button" onClick={() => setCustoms((l) => l.filter((x) => x.id !== c.id))} className="shrink-0 px-2 text-xs font-semibold text-bad-ink hover:underline">Remove</button>
                             </li>
                         ))}
                     </ul>
@@ -102,19 +102,19 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
                 <div>
                     <h3 className="text-sm font-semibold">The user will be asked</h3>
                     {items.length === 0 ? (
-                        <p className="mt-2 text-xs text-[#64748B]">Nothing selected.</p>
+                        <p className="mt-2 text-xs text-muted">Nothing selected.</p>
                     ) : (
-                        <ol className="mt-2 list-decimal space-y-1 rounded-xl bg-[#F8FAFC] py-3 pl-8 pr-3 text-sm text-[#334155]">
+                        <ol className="mt-2 list-decimal space-y-1 rounded-xl bg-soft py-3 pl-8 pr-3 text-sm text-ink-2">
                             {items.map((it) => <li key={it.id}>{it.question}</li>)}
                         </ol>
                     )}
                 </div>
 
-                {error && <p role="alert" className="rounded-lg bg-[#FEF2F2] px-3 py-2 text-sm text-[#B91C1C]">{error}</p>}
+                {error && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{error}</p>}
 
                 <div className="flex justify-end gap-2.5">
                     <button type="button" onClick={onClose} disabled={busy} className={dkBtn}>Cancel</button>
-                    <button type="button" onClick={submit} disabled={busy || items.length === 0} className="inline-flex h-9 items-center justify-center rounded-xl bg-[#0F766E] px-4 text-xs font-semibold text-white transition hover:bg-[#0E6B63] disabled:cursor-not-allowed disabled:opacity-60">
+                    <button type="button" onClick={submit} disabled={busy || items.length === 0} className="inline-flex h-9 items-center justify-center rounded-xl bg-brand px-4 text-xs font-semibold text-white transition hover:bg-brand-strong disabled:cursor-not-allowed disabled:opacity-60">
                         {busy ? "Creating..." : "Create consent"}
                     </button>
                 </div>

@@ -51,19 +51,19 @@ export const sameText = (a, b) => String(a ?? "").toLowerCase() === String(b ?? 
 export const isFinished = (status) => sameText(status, "closed") || sameText(status, "resolved");
 
 export function statusTone(status) {
-    if (isFinished(status)) return "bg-[#16A34A]/10 text-[#166534] ring-[#16A34A]/30";
-    if (sameText(status, "investigating")) return "bg-[#22D3EE]/15 text-[#0F172A] ring-[#22D3EE]/50";
-    if (sameText(status, "mitigated")) return "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/30";
-    if (sameText(status, "open")) return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
-    return "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+    if (isFinished(status)) return "bg-ok/10 text-ok-ink ring-ok/30";
+    if (sameText(status, "investigating")) return "bg-brand/15 text-ink ring-focus/50";
+    if (sameText(status, "mitigated")) return "bg-brand-soft text-brand-ink ring-brand/30";
+    if (sameText(status, "open")) return "bg-warn/15 text-ink ring-warn/40";
+    return "bg-line text-ink-2 ring-line-strong";
 }
 
 export function severityTone(severity) {
-    if (sameText(severity, "critical")) return "bg-[#7F1D1D] text-white ring-[#7F1D1D]/40";
-    if (sameText(severity, "high")) return "bg-[#DC2626]/10 text-[#DC2626] ring-[#DC2626]/30";
-    if (sameText(severity, "medium")) return "bg-[#D97706]/15 text-[#0F172A] ring-[#D97706]/40";
-    if (sameText(severity, "low")) return "bg-[#CCFBF1] text-[#0F766E] ring-[#0F766E]/30";
-    return "bg-[#E2E8F0] text-[#334155] ring-[#CBD5E1]";
+    if (sameText(severity, "critical")) return "bg-bad-ink text-white ring-bad-ink/40";
+    if (sameText(severity, "high")) return "bg-bad/10 text-bad-ink ring-bad/30";
+    if (sameText(severity, "medium")) return "bg-warn/15 text-ink ring-warn/40";
+    if (sameText(severity, "low")) return "bg-brand-soft text-brand-ink ring-brand/30";
+    return "bg-line text-ink-2 ring-line-strong";
 }
 
 export function formatDate(value) {
@@ -94,19 +94,19 @@ export function statusList(incidents) {
 export const severityRank = (severity) => SEVERITIES.findIndex((s) => sameText(s, severity));
 
 export function severityColor(severity) {
-    if (sameText(severity, "critical")) return "#7F1D1D";
-    if (sameText(severity, "high")) return "#DC2626";
-    if (sameText(severity, "medium")) return "#D97706";
-    if (sameText(severity, "low")) return "#0F766E";
-    return "#CBD5E1";
+    if (sameText(severity, "critical")) return "var(--k-bad-ink)";
+    if (sameText(severity, "high")) return "var(--k-bad)";
+    if (sameText(severity, "medium")) return "var(--k-warn)";
+    if (sameText(severity, "low")) return "var(--k-brand)";
+    return "var(--k-line-strong)";
 }
 
 export function statusColor(status) {
-    if (isFinished(status)) return "#16A34A";
-    if (sameText(status, "investigating")) return "#22D3EE";
-    if (sameText(status, "mitigated")) return "#0F766E";
-    if (sameText(status, "open")) return "#D97706";
-    return "#94A3B8";
+    if (isFinished(status)) return "var(--k-ok)";
+    if (sameText(status, "investigating")) return "var(--k-info)";
+    if (sameText(status, "mitigated")) return "var(--k-brand)";
+    if (sameText(status, "open")) return "var(--k-warn)";
+    return "var(--k-faint)";
 }
 
 export function timeAgo(value) {

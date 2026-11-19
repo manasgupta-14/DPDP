@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getMyPendingCampaigns } from "../api/campaign.js";
-import { getProfile, isDataPrincipal } from "../auth/authStore.js";
+import { getProfile, isDataPrincipal, roleInfo } from "../auth/authStore.js";
 import { USER_SECTIONS } from "../config/navigation.js";
 import ConsentGate from "../components/user/ConsentGate.jsx";
 import { TASKS_CHANGED, formatDay } from "../utils/campaign.js";
@@ -45,8 +45,10 @@ export default function UserLayout() {
         <DashboardShell
             key={profile?.email}
             sections={customer ? CUSTOMER_SECTIONS : USER_SECTIONS}
-            subtitle={customer ? "DPDP Act 2023 · Customer" : "DPDP Act 2023 · Employee"}
-            roleLabel={customer ? "Customer" : "Employee"}
+            subtitle={`DPDP Act 2023 · ${roleInfo(profile).long}`}
+            roleLabel={roleInfo(profile).label}
+            profileLink="/user/profile"
+            profileLabel={roleInfo(profile).profileLabel}
             search={false}
             footer={customer ? "Your choices are recorded as your consent under the DPDP Act, 2023." : "Your responses are recorded for your organisation's DPDP compliance."}
             bell={{ title: "Pending tasks", items, count: pending.length, emptyText: "You are all caught up." }}

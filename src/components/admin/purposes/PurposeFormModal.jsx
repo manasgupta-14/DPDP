@@ -21,16 +21,16 @@ function parseRetention(text) {
 
 function PickList({ title, items, picked, toggle, disabled, detail, emptyText }) {
     return (
-        <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-            <p className="text-xs font-semibold text-[#0F172A]">{title}</p>
+        <div className="rounded-xl border border-line bg-soft p-3">
+            <p className="text-xs font-semibold text-ink">{title}</p>
             {items.length === 0 ? (
-                <p className="mt-2 text-xs text-[#475569]">{emptyText}</p>
+                <p className="mt-2 text-xs text-ink-3">{emptyText}</p>
             ) : (
                 <div className="mt-2 grid gap-x-4 gap-y-2 sm:grid-cols-2">
                     {items.map((i) => (
-                        <label key={i.id} className="flex items-center gap-2 text-xs text-[#0F172A]">
-                            <input type="checkbox" checked={picked.has(i.id)} onChange={() => toggle(i.id)} disabled={disabled} className="accent-[#0F766E]" />
-                            <span>{i.name}{detail(i) && <span className="text-[#475569]"> ({detail(i)})</span>}</span>
+                        <label key={i.id} className="flex items-center gap-2 text-xs text-ink">
+                            <input type="checkbox" checked={picked.has(i.id)} onChange={() => toggle(i.id)} disabled={disabled} className="accent-brand" />
+                            <span>{i.name}{detail(i) && <span className="text-ink-3"> ({detail(i)})</span>}</span>
                         </label>
                     ))}
                 </div>
@@ -97,10 +97,10 @@ export default function PurposeFormModal({ purpose, existing, categories, proces
         <Modal title={editing ? "Edit processing purpose" : "New processing purpose"} onClose={() => !busy && onClose()}>
             <div className={dkModal}>
                 <h2 className="pr-8 text-lg font-semibold">{editing ? `Edit ${purpose.name}` : "New processing purpose"}</h2>
-                {editing && <p className="rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-2 text-[11px] text-[#475569]">Saving creates version {purpose.version + 1}. The current version (v{purpose.version}) is archived, and its history stays available.</p>}
+                {editing && <p className="rounded-lg border border-line bg-soft px-3 py-2 text-[11px] text-ink-3">Saving creates version {purpose.version + 1}. The current version (v{purpose.version}) is archived, and its history stays available.</p>}
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                    <Field label="Code" hint={editing ? "Code stays the same across versions." : "Stable machine name, appears in consent artifacts"}>
+                    <Field label="Code" hint={editing ? "Code stays the same across versions." : "Short unique code, shown on consent records"}>
                         <input value={code} placeholder="billing_metering" onChange={(e) => { setCodeTouched(true); set("code")(e); }} disabled={busy || editing} className={`${dkInput} font-mono`} />
                     </Field>
                     <Field label="Display name">
@@ -170,7 +170,7 @@ export default function PurposeFormModal({ purpose, existing, categories, proces
                     emptyText="No processors yet. Add one in the Processors tab first."
                 />
 
-                {error && <p role="alert" className="rounded-lg border border-[#DC2626]/30 bg-[#DC2626]/10 px-3 py-2 text-xs text-[#B91C1C]">{error}</p>}
+                {error && <p role="alert" className="rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-xs text-bad-ink">{error}</p>}
 
                 <div className="flex items-center justify-between gap-2.5">
                     <span />
