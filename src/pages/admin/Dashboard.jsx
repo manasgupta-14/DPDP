@@ -455,48 +455,6 @@ export default function Dashboard() {
                         ))}
                     </div>
 
-                    {/* Consent by purpose · campaigns */}
-                    <div className="grid gap-4 lg:grid-cols-2">
-                        <Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
-                            {m.consent ? (
-                                m.consent.purposes.length ? (
-                                    <HBars rows={m.consent.purposes.map((p, i) => ({ label: p.label, value: p.rate, display: `${p.rate}%`, note: `${fmtNum(p.allowed)} of ${fmtNum(p.total)} allowed`, color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6] }))} max={100} />
-                                ) : (
-                                    <p className="py-8 text-center text-sm text-muted">No purpose decisions recorded yet.</p>
-                                )
-                            ) : (
-                                <NoAccess />
-                            )}
-                        </Card>
-
-                        <Card
-                            i={13}
-                            title="Campaign performance"
-                            sub={m.campaignTotals ? `${m.campaigns.length} campaign${m.campaigns.length === 1 ? "" : "s"} · ${fmtNum(m.campaignTotals.total)} responses` : "Responses by campaign"}
-                            action={<Link to="/dashboard/campaigns" className="kd-link">View all</Link>}
-                        >
-                            {m.campaigns.length ? (
-                                <>
-                                    <ColumnChart
-                                        labels={m.campaigns.slice(0, 6).map((c) => c.title)}
-                                        series={[
-                                            { name: "Accepted", values: m.campaigns.slice(0, 6).map((c) => c.accepted), color: C.ok },
-                                            { name: "Rejected", values: m.campaigns.slice(0, 6).map((c) => c.rejected), color: C.red },
-                                            { name: "Completed", values: m.campaigns.slice(0, 6).map((c) => c.completed), color: C.sky },
-                                        ]}
-                                        height={220}
-                                        ariaLabel="Accepted, rejected and completed responses per campaign"
-                                    />
-                                    <div className="mt-3">
-                                        <Legend items={[{ label: "Accepted", color: C.ok, value: m.campaignTotals.accepted }, { label: "Rejected", color: C.red, value: m.campaignTotals.rejected }, { label: "Completed", color: C.sky, value: m.campaignTotals.completed }]} />
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="py-8 text-center text-sm text-muted">No campaign responses yet. Create a campaign to start collecting consent.</p>
-                            )}
-                        </Card>
-                    </div>
-
                     {/* Score · exposure · incidents */}
                     <div className="grid gap-4 lg:grid-cols-3">
                         <Card i={5} title="Compliance score" sub="Worked out live from your records">
@@ -569,6 +527,32 @@ export default function Dashboard() {
                         </Card>
                     </div>
 
+                    {/* Module health */}
+                    <Card i={11} title="Module health" sub="Score and highest fine for each area">
+                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                            {m.modules.map((mod, idx) => (
+                                <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="kd-tile-tint group rounded-xl border border-line p-4 text-left hover:shadow-[var(--k-shadow)]" style={{ "--kv-tint": mod.band.color || CARD_TINTS[idx % CARD_TINTS.length] }}>
+                                    <div className="flex items-center gap-2">
+                                        <span className={`grid h-6 w-6 place-items-center rounded-full ${TONE_ICON_BG[mod.band.tone]}`}>
+                                            <Icon name={mod.band.tone === "ok" ? "check" : mod.band.tone === "muted" ? "info" : "alert"} className="h-3.5 w-3.5" strokeWidth={2.2} />
+                                        </span>
+                                        <span className={`kd-big text-[28px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score === null ? "—" : <CountUp value={mod.score} suffix="%" />}</span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <Progress value={mod.score ?? 0} color={mod.band.color} height={6} delay={idx * 90} name={mod.title} valueName={mod.band.label || "Score"} />
+                                    </div>
+                                    <p className="mt-3 text-sm font-semibold leading-snug text-ink">{mod.title}</p>
+                                    <p className="mt-1 font-mono text-[11px] text-muted">
+                                        {mod.codes} · Max ₹{mod.max} Cr
+                                    </p>
+                                    <span className="kd-link mt-2">
+                                        Details <Icon name="arrowRight" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </Card>
+
                     {/* Deadline donut · consent trend */}
                     <div className="grid gap-4 lg:grid-cols-5">
                         <Card i={8} className="lg:col-span-2" title="Rights request deadlines" sub="Open requests vs. the 30-day limit" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
@@ -632,6 +616,48 @@ export default function Dashboard() {
                         </Card>
                     </div>
 
+                    {/* Consent by purpose · campaigns */}
+                    <div className="grid gap-4 lg:grid-cols-2">
+                        <Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
+                            {m.consent ? (
+                                m.consent.purposes.length ? (
+                                    <HBars rows={m.consent.purposes.map((p, i) => ({ label: p.label, value: p.rate, display: `${p.rate}%`, note: `${fmtNum(p.allowed)} of ${fmtNum(p.total)} allowed`, color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6] }))} max={100} />
+                                ) : (
+                                    <p className="py-8 text-center text-sm text-muted">No purpose decisions recorded yet.</p>
+                                )
+                            ) : (
+                                <NoAccess />
+                            )}
+                        </Card>
+
+                        <Card
+                            i={13}
+                            title="Campaign performance"
+                            sub={m.campaignTotals ? `${m.campaigns.length} campaign${m.campaigns.length === 1 ? "" : "s"} · ${fmtNum(m.campaignTotals.total)} responses` : "Responses by campaign"}
+                            action={<Link to="/dashboard/campaigns" className="kd-link">View all</Link>}
+                        >
+                            {m.campaigns.length ? (
+                                <>
+                                    <ColumnChart
+                                        labels={m.campaigns.slice(0, 6).map((c) => c.title)}
+                                        series={[
+                                            { name: "Accepted", values: m.campaigns.slice(0, 6).map((c) => c.accepted), color: C.ok },
+                                            { name: "Rejected", values: m.campaigns.slice(0, 6).map((c) => c.rejected), color: C.red },
+                                            { name: "Completed", values: m.campaigns.slice(0, 6).map((c) => c.completed), color: C.sky },
+                                        ]}
+                                        height={220}
+                                        ariaLabel="Accepted, rejected and completed responses per campaign"
+                                    />
+                                    <div className="mt-3">
+                                        <Legend items={[{ label: "Accepted", color: C.ok, value: m.campaignTotals.accepted }, { label: "Rejected", color: C.red, value: m.campaignTotals.rejected }, { label: "Completed", color: C.sky, value: m.campaignTotals.completed }]} />
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="py-8 text-center text-sm text-muted">No campaign responses yet. Create a campaign to start collecting consent.</p>
+                            )}
+                        </Card>
+                    </div>
+
                     {/* KPI row: score, deadlines aur consent trend ke neeche (PDF ke hisaab se) */}
                     <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                         <Kpi i={1} label="Staff users" icon="users" tone="info" value={m.kpi.users} note="Accounts in your organisation" to="/dashboard/add-users" />
@@ -651,7 +677,7 @@ export default function Dashboard() {
                     </section>
 
                     {/* RoPA / inventory coverage */}
-                    <Card i={10} title="Data inventory coverage" sub="Data with purpose, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
+                    <Card i={10} title="Data inventory coverage" sub="Data with purpose, lawful basis, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
                         {m.inventory ? (
                             <div>
                                 <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
@@ -670,32 +696,6 @@ export default function Dashboard() {
                         ) : (
                             <NoAccess />
                         )}
-                    </Card>
-
-                    {/* Module health */}
-                    <Card i={11} title="Module health" sub="Score and highest fine for each area">
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                            {m.modules.map((mod, idx) => (
-                                <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="kd-tile-tint group rounded-xl border border-line p-4 text-left hover:shadow-[var(--k-shadow)]" style={{ "--kv-tint": mod.band.color || CARD_TINTS[idx % CARD_TINTS.length] }}>
-                                    <div className="flex items-center gap-2">
-                                        <span className={`grid h-6 w-6 place-items-center rounded-full ${TONE_ICON_BG[mod.band.tone]}`}>
-                                            <Icon name={mod.band.tone === "ok" ? "check" : mod.band.tone === "muted" ? "info" : "alert"} className="h-3.5 w-3.5" strokeWidth={2.2} />
-                                        </span>
-                                        <span className={`kd-big text-[28px] ${TONE_TEXT[mod.band.tone]}`}>{mod.score === null ? "—" : <CountUp value={mod.score} suffix="%" />}</span>
-                                    </div>
-                                    <div className="mt-3">
-                                        <Progress value={mod.score ?? 0} color={mod.band.color} height={6} delay={idx * 90} name={mod.title} valueName={mod.band.label || "Score"} />
-                                    </div>
-                                    <p className="mt-3 text-sm font-semibold leading-snug text-ink">{mod.title}</p>
-                                    <p className="mt-1 font-mono text-[11px] text-muted">
-                                        {mod.codes} · Max ₹{mod.max} Cr
-                                    </p>
-                                    <span className="kd-link mt-2">
-                                        Details <Icon name="arrowRight" className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
                     </Card>
 
                     {/* Request types (bar) · breach trend (column) */}
