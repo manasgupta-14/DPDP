@@ -34,7 +34,7 @@ export function checklistStatus(raw) {
     if (s === "complete") return { key: "complete", label: "Complete", tone: "ok" };
     if (s === "needsattention") return { key: "attention", label: "Needs attention", tone: "warn" };
     if (s === "nottracked") return { key: "untracked", label: "Tracked outside Kavach", tone: "muted" };
-    return { key: "other", label: String(raw || "Unknown"), tone: "muted" };
+    return { key: "other", label: String(raw || "Not recorded"), tone: "muted" };
 }
 
 export function normalizeChecklist(raw) {

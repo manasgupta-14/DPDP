@@ -98,8 +98,8 @@ export default function Purposes() {
             </div>
 
             {flash && <p role="status" className={dkSuccess}>{flash}</p>}
-            {errors.map((message) => (
-                <div key={message} role="alert" className={dkAlert}>
+            {errors.map((message, ki) => (
+                <div key={`${message}-${ki}`} role="alert" className={dkAlert}>
                     <span className="min-w-0 break-words">{message}</span>
                     <button type="button" onClick={reload} className="shrink-0 font-semibold underline">Retry</button>
                 </div>

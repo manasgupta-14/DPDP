@@ -42,8 +42,8 @@ function NoticeReader({ code, lang, purposeNames, onClose }) {
                                 <div>
                                     <p className="text-sm font-semibold">We use your data for</p>
                                     <ul className="mt-2 space-y-1.5">
-                                        {n.purposes.map((c) => (
-                                            <li key={c} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
+                                        {n.purposes.map((c, ki) => (
+                                            <li key={`${c}-${ki}`} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
                                                 <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
                                                 {purposeNames.get(c) ?? c}
                                             </li>
@@ -110,8 +110,8 @@ export default function PrivacyNotices() {
                 <div className={`${panel} px-5 py-12 text-center text-sm text-ink-3`}>No privacy notices have been published yet.</div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
-                    {state.rows.map((n) => (
-                        <article key={n.code} className={`${panel} flex flex-col overflow-hidden`}>
+                    {state.rows.map((n, ki) => (
+                        <article key={`${n.code}-${ki}`} className={`${panel} flex flex-col overflow-hidden`}>
                             <div className="h-1.5" style={{ background: n.primaryColor || "#2B59C3" }} />
                             <div className="flex flex-1 flex-col p-5">
                                 <div className="flex items-start justify-between gap-3">

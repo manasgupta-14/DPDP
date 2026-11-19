@@ -11,6 +11,7 @@ import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { formatDay, typeLabel } from "../../utils/campaign.js";
 import { band } from "../../utils/executive.js";
 import { dateText, typeLabel as requestTypeLabel } from "../../utils/privacyRequest.js";
+import { toDate } from "../../utils/audit.js";
 
 // User (customer ya employee) ka overview: pehle "aapka kaam", phir privacy health, phir haal ki gatividhi.
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
@@ -31,7 +32,6 @@ function Stat({ icon, tone, label, value, to, hint, i }) {
     );
 }
 
-const toDate = (v) => new Date(/(Z|[+-]\d{2}:?\d{2})$/i.test(String(v)) ? v : `${v}Z`);
 
 export default function UserDashboard() {
     const { profile } = useOutletContext();
@@ -212,7 +212,7 @@ export default function UserDashboard() {
                                     <li key={i} className="relative text-sm text-ink-2">
                                         <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full" style={{ background: C.brand }} />
                                         {a.action}
-                                        {a.date && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
+                                        {toDate(a.date) && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
                                     </li>
                                 ))}
                             </ol>

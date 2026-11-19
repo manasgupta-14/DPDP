@@ -68,10 +68,10 @@ function NoticeModal({ code, initialLang, purposeMap, onClose }) {
                                     <p className="text-sm text-ink-3">This notice does not list any purposes.</p>
                                 ) : (
                                     <ul className="space-y-2.5">
-                                        {notice.purposeCodes.map((c) => {
+                                        {notice.purposeCodes.map((c, ki) => {
                                             const p = purposeMap.get(c);
                                             return (
-                                                <li key={c} className="rounded-xl border border-line bg-soft p-4">
+                                                <li key={`${c}-${ki}`} className="rounded-xl border border-line bg-soft p-4">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <p className="font-semibold text-ink">{p?.name || c}</p>
                                                         {p?.mandatory && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand/25">Required</span>}
@@ -191,8 +191,8 @@ export default function MyNotices() {
                 </div>
             ) : (
                 <ul className="grid gap-4 sm:grid-cols-2">
-                    {shown.map((n) => (
-                        <li key={n.code} className={`${panel} flex flex-col overflow-hidden`}>
+                    {shown.map((n, ki) => (
+                        <li key={`${n.code}-${ki}`} className={`${panel} flex flex-col overflow-hidden`}>
                             <div className="h-1.5" style={{ background: n.color }} />
                             <div className="flex flex-1 flex-col gap-3 p-5">
                                 <div className="flex items-start gap-3">

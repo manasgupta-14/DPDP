@@ -74,7 +74,7 @@ export default function IncidentTable({ rows, total, filters, onFilters, onOpen,
             ) : (
                 <ul className="divide-y divide-line">
                     {rows.map((x, i) => {
-                        const reporter = nameOf(x.reportedBy, x.reportedById, "Unknown reporter");
+                        const reporter = nameOf(x.reportedBy, x.reportedById, "Reporter not recorded");
                         const discoveredEarlier = Math.abs(timeOf(x.discoveryDate) - timeOf(x.reportedAt)) > 5 * 60000;
                         return (
                             <li

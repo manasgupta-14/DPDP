@@ -135,8 +135,8 @@ function TipBody({ title, rows }) {
     return (
         <>
             {title && <p className="font-semibold text-ink">{title}</p>}
-            {rows.map((r) => (
-                <p key={r.name} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
                     <span className="inline-flex items-center gap-1.5">
                         <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
                         {r.name}
@@ -237,7 +237,7 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
                         const len = (Number(p.value) / total) * 100;
                         const seg = (
                             <circle
-                                key={p.label}
+                                key={`${p.label}-${i}`}
                                 cx={size / 2}
                                 cy={size / 2}
                                 r={r}
@@ -289,8 +289,8 @@ function Tip({ x, width, title, rows }) {
     return (
         <div className="kc-tip" style={{ left, top: 4 }}>
             <p className="font-semibold text-ink">{title}</p>
-            {rows.map((r) => (
-                <p key={r.name} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
                     <span className="inline-flex items-center gap-1.5">
                         <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
                         {r.name}
@@ -333,14 +333,14 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                 <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
                     <defs>
                         {series.map((s, si) => (
-                            <linearGradient key={s.name} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient key={`${s.name}-${si}`} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0.28" />
                                 <stop offset="1" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0" />
                             </linearGradient>
                         ))}
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 4"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {yFormat(t)}
@@ -360,7 +360,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                         const line = curve(pts);
                         const color = s.color || SERIES[si];
                         return (
-                            <g key={s.name}>
+                            <g key={`${s.name}-${si}`}>
                                 {area && si === 0 && pts.length > 1 && <path className="kc-area" d={`${line}L${X(n - 1)},${Y(0)}L${X(0)},${Y(0)}Z`} fill={`url(#${uid}-${si})`} />}
                                 <path
                                     className="kc-line"
@@ -451,8 +451,8 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                             <stop offset="100%" stopColor="#fff" stopOpacity="0" />
                         </linearGradient>
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid kc-grid-soft" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 5"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {fmtNum(t)}
@@ -548,7 +548,7 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
             {rows.map((r, i) => {
                 const pct = top > 0 ? (Number(r.value) / top) * 100 : 0;
                 return (
-                    <li key={r.label} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
+                    <li key={`${r.label}-${i}`} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
                         <div className="flex items-baseline justify-between gap-3 text-sm">
                             <span className="truncate font-medium text-ink-2" title={r.label}>
                                 {r.label}
@@ -623,8 +623,8 @@ export function Sparkline({ values, color = C.brand, width = 96, height = 32, la
 export function Legend({ items }) {
     return (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-3">
-            {items.map((it) => (
-                <span key={it.label} className="inline-flex items-center gap-1.5">
+            {items.map((it, ki) => (
+                <span key={`${it.label}-${ki}`} className="inline-flex items-center gap-1.5">
                     <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: it.color }} />
                     {it.label}
                     {it.value !== undefined && <b className="tabular-nums text-ink">{fmtNum(it.value)}</b>}

@@ -1249,3 +1249,15 @@ html[data-theme="dark"] .kv-side {
 /* Rules library card button ke andar user ka text hai: Title Case nahi (sirf category pill aur "View" waise hi) */
 .pg-dash main button.kv-rule-card, .pg-dash main button.kv-rule-card * { text-transform: none !important; }
 [role="dialog"] h2.kv-keep, .kv-rule-doc * { text-transform: none !important; }
+
+/* ---- v106: hover par kuch na hile ----
+   Pehle cards / tables / buttons mouse aane par 1-4px upar uthte the. Mouse kinaare par ho to element mouse ke neeche se
+   khisak jaata, hover hat jaata, wapas aata... aur card kaanpta (jitter) tha. Ab hover par sirf border, shadow aur chamak
+   badalti hai; jagah nahi badalti. Card ke andar ke chhote icons ka halka uthna theek hai (wo hover ki jagah nahi badalte). */
+.pg-dash main :where(div, section, article, li, form, aside, details).pg-surface:hover,
+.pg-dash main :where(div, section, article, li, form, aside, details)[class*="rounded"][class*="border"][class*="bg-surface"]:not([class*="bg-surface/"]):hover,
+.pg-card:hover, .kd-card:hover, .kd-tile-tint:hover { translate: none !important; }
+.kv-rule-card:hover, .kv-rule-doc:hover, .kv-cta-main:hover, .kv-cta-soft:hover,
+.kv-hub-card:hover, .kv-hub-card:focus-visible { transform: none !important; }
+/* Home hub: mouse card par ho to tairna ruk jaaye, warna tilt ke saath card mouse ke neeche se khisakta hai */
+.kv-hub-float:hover { animation-play-state: paused; }

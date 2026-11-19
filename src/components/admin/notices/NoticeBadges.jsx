@@ -37,8 +37,8 @@ export function LangChips({ translations }) {
     if (done.length === 0) return <span className="text-[11px] text-muted">None</span>;
     return (
         <div className="flex flex-wrap gap-1.5">
-            {done.map((l) => (
-                <span key={l.code} className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-info-ink ring-1 ring-info-ink/25">
+            {done.map((l, ki) => (
+                <span key={`${l.code}-${ki}`} className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-info-ink ring-1 ring-info-ink/25">
                     <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
                     {l.native}
                 </span>

@@ -36,8 +36,11 @@ export default function RolesPermissions() {
             if (list.ok) {
                 // "DataPrincipal" customer ka system role hai (staff ka nahi), isliye yahan list me nahi dikhate
                 const rank = (n) => (/admin/i.test(n) ? 0 : /^staff$/i.test(n) ? 1 : DPO_RE.test(n) ? 2 : /^data\s*principals?$/i.test(n.replace(/[_-]/g, " ")) ? 3 : 4);
+                // "Data Protection" ek khaali, bina user wala role hai (DPO ke liye "dpo" role hai), isliye list me nahi dikhate
+                const HIDDEN = /^data[\s_-]*protection$/i;
                 setRoles(
                     list.data
+                        .filter((r) => !HIDDEN.test(String(r.name || "").trim()))
                         .sort((a, b) => rank(String(a.name)) - rank(String(b.name))),
                 );
                 setError("");
@@ -152,8 +155,8 @@ export default function RolesPermissions() {
                                                         {totalPermissions > 0 && <span className="font-normal text-muted"> of {totalPermissions}</span>}
                                                     </p>
                                                     <div className="mt-1.5 flex flex-wrap gap-1.5">
-                                                        {r.modules.slice(0, VISIBLE_MODULES).map((m) => (
-                                                            <span key={m.name} className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">{m.name} · {m.count}</span>
+                                                        {r.modules.slice(0, VISIBLE_MODULES).map((m, ki) => (
+                                                            <span key={`${m.name}-${ki}`} className="rounded-full bg-brand-soft px-2 py-0.5 text-[11px] font-semibold text-brand-ink">{m.name} · {m.count}</span>
                                                         ))}
                                                         {r.modules.length > VISIBLE_MODULES && (
                                                             <span className="rounded-full bg-subtle px-2 py-0.5 text-[11px] font-semibold text-ink-3">+{r.modules.length - VISIBLE_MODULES} more</span>

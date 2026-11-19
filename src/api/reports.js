@@ -28,6 +28,17 @@ export const REPORT_OPTIONS = [
 export const REPORT_TYPES = Object.fromEntries(REPORT_OPTIONS.map((o) => [o.type, o.label]));
 export const reportTypeLabel = (t) => REPORT_TYPES[t] ?? (t ? String(t).replace(/([a-z])([A-Z])/g, "$1 $2") : "-");
 
+// Backend ReportJob.ParametersJson me campaignId ho to use "Generate again" ke liye nikaal lo
+function campaignIdOf(json) {
+    if (!json) return "";
+    try {
+        const o = typeof json === "string" ? JSON.parse(json) : json;
+        return String(o?.campaignId ?? o?.CampaignId ?? "");
+    } catch {
+        return "";
+    }
+}
+
 function normalizeJob(j) {
     return {
         id: String(pick(j, "jobId", "JobId") ?? ""),
@@ -38,6 +49,7 @@ function normalizeJob(j) {
         completedAt: pick(j, "completedAt", "CompletedAt"),
         error: String(pick(j, "errorMessage", "ErrorMessage") ?? ""),
         requestedBy: String(pick(j, "requestedBy", "RequestedBy") ?? ""),
+        campaignId: campaignIdOf(pick(j, "parametersJson", "ParametersJson")),
     };
 }
 
@@ -64,7 +76,19 @@ export async function generateCampaignReport(campaignId, format = "PDF") {
     return { ...res, data: { jobId: String(pick(res.data, "jobId", "JobId") ?? "") } };
 }
 
-export async function downloadReport(jobId) {
+const slug = (t) => String(t || "Report").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "Report";
+
+// Server ka naam "CampaignAudit_<orgId>_<time>.pdf" hota hai; user ko "Kavach_Campaign-report_2026-11-19_1554.pdf" do
+export function kavachFileName(job, serverName, isPdf) {
+    const ext = (/\.([a-z0-9]+)$/i.exec(serverName || "")?.[1] || (isPdf ? "pdf" : "csv")).toLowerCase();
+    const d = job?.createdAt ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(job.createdAt)) ? job.createdAt : `${job.createdAt}Z`) : new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const stamp = Number.isNaN(d.getTime()) ? "" : `_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    const extra = job?.label ? `_${slug(job.label)}` : "";
+    return `Kavach_${slug(reportTypeLabel(job?.type))}${extra}${stamp}.${ext}`;
+}
+
+export async function downloadReport(jobId, job = null) {
     const token = getToken();
     let res;
     try {
@@ -95,7 +119,8 @@ export async function downloadReport(jobId) {
     const disposition = res.headers.get("Content-Disposition") || "";
     const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
     const isPdf = /pdf/i.test(res.headers.get("Content-Type") || "") || /\.pdf$/i.test(match?.[1] || "");
-    const fileName = match ? decodeURIComponent(match[1]) : `report-${jobId}.${isPdf ? "pdf" : "csv"}`;
+    const serverName = match ? decodeURIComponent(match[1]) : `report-${jobId}.${isPdf ? "pdf" : "csv"}`;
+    const fileName = kavachFileName(job ?? { id: jobId }, serverName, isPdf);
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

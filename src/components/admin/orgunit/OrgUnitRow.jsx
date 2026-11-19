@@ -2,7 +2,7 @@ import { MAX_DEPTH, kindTone } from "../../../utils/orgUnit.js";
 import Icon from "../../shared/Icon.jsx";
 
 const rowBtn =
-    "rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 transition-all duration-200 hover:-translate-y-px hover:border-brand hover:text-brand-ink hover:shadow-[0_4px_12px_-4px_rgba(43,89,195,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50";
+    "rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-ink-2 transition-all duration-200 hover:border-brand hover:text-brand-ink hover:shadow-[0_4px_12px_-4px_rgba(43,89,195,0.3)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle, onAdd, onDeactivate, onEdit, onActivate, onDelete, busy }) {
     const hasChildren = unit.children.length > 0;
