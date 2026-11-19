@@ -9,6 +9,7 @@ import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 import StatTile from "../../components/shared/StatTile.jsx";
+import { toTime } from "../../utils/audit.js";
 
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
 const td = "px-3 py-3 text-sm text-ink-2";
@@ -131,8 +132,8 @@ function ConfirmDelete({ policy, onClose, onDeleted }) {
 
 
 function daysFromNow(value) {
-    const t = value ? new Date(value).getTime() : NaN;
-    if (Number.isNaN(t)) return null;
+    const t = toTime(value);
+    if (!t) return null;
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     return Math.round((t - startOfToday.getTime()) / 86400000);

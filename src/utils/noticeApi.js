@@ -1,3 +1,4 @@
+import { toDate } from "./audit.js";
 const pick = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 
 export const LANGUAGES = [
@@ -15,8 +16,8 @@ export const langLabel = (code) => LANGUAGES.find((l) => l.code === code)?.label
 export const isPublished = (status) => String(status || "").toLowerCase() === "published";
 
 export const formatDate = (value) => {
-    const d = value ? new Date(value) : null;
-    return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
+    const d = toDate(value);
+    return d ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 };
 
 export function parsePurposes(json) {

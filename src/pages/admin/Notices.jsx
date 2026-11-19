@@ -174,8 +174,8 @@ function EditorModal({ id, onClose, onChanged }) {
                                 <p className="mt-1 text-xs text-muted">No purposes found. Create consent purposes in Consent management first.</p>
                             ) : (
                                 <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-line p-3 sm:grid-cols-2">
-                                    {options.map((p) => (
-                                        <label key={p.code} className="flex items-center gap-2 text-sm text-ink-2">
+                                    {options.map((p, ki) => (
+                                        <label key={`${p.code}-${ki}`} className="flex items-center gap-2 text-sm text-ink-2">
                                             <input type="checkbox" checked={picked.includes(p.code)} disabled={locked || !!busy} onChange={() => toggle(p.code)} />
                                             {p.name}
                                         </label>

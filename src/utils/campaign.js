@@ -27,6 +27,16 @@ export const TARGET_AUDIENCE_OPTIONS = [
     { value: TARGET_AUDIENCE.specific, label: "Specific people (choose after creating)" },
 ];
 
+// Backend enum AudienceType number bhejta hai: Specific=1, AllDataPrincipals=2, AllInternalUsers=3, Everyone=4.
+// Kabhi naam aaye ("AllDataPrincipals") to bhi wahi number banao.
+const AUDIENCE_NAMES = { specific: 1, alldataprincipals: 2, allinternalusers: 3, everyone: 4 };
+function audienceNumber(v) {
+    if (v === null || v === undefined || v === "") return 0;
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+    return AUDIENCE_NAMES[String(v).replace(/[\s_-]/g, "").toLowerCase()] ?? 0;
+}
+
 export function targetAudienceLabel(value, role) {
     switch (Number(value)) {
         case TARGET_AUDIENCE.everyone:
@@ -67,7 +77,7 @@ export function normalizeCampaign(c) {
         description: pick(c, ["description"]) || "",
         type: pick(c, ["campaignType", "type"]),
         audience: pick(c, ["targetRole"]),
-        targetAudience: Number(pick(c, ["targetAudience"]) ?? 0),
+        targetAudience: audienceNumber(pick(c, ["targetAudience"])),
         status: pick(c, ["status"]),
         startDate: pick(c, ["startDate"]),
         endDate: pick(c, ["endDate"]),

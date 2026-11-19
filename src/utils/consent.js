@@ -22,7 +22,14 @@ export const STATUS_LABEL = {
     Declined: "Declined",
     Withdrawn: "Withdrawn",
     Expired: "Expired",
-    Unknown: "Unknown",
+    Unknown: "Not recorded",
+};
+
+// Backend purpose na mile to naam "Unknown" bhejta hai (ConsentPurpose?.ShortName ?? "Unknown")
+export const REMOVED_PURPOSE = "Removed purpose";
+const purposeName = (v) => {
+    const t = String(v ?? "").trim();
+    return !t || /^unknown$/i.test(t) ? REMOVED_PURPOSE : t;
 };
 
 export const PURPOSE_STATE = { allowed: "Allowed", denied: "Not allowed", withdrawn: "Withdrawn", expired: "Expired" };
@@ -119,41 +126,87 @@ function purposeState(decision, status, expiresAt, recordStatus) {
 }
 
 export function normalizeConsentArtifact(record, index = 0, purposes = [], principalId = "") {
-    const nameQueues = new Map();
-    const lastByName = new Map();
+    // Backend history me purpose ka ID nahi aata, sirf naam. Aur backend har record me org ke SAARE purposes
+    // (edit se pehle wale purane versions bhi) save karta hai, isliye ek naam ki kai entries ho sakti hain.
+    // Pehle hum inhe kram se jodte the; DB ka kram badalne par decisions aapas me badal jaate the
+    // (ek Allow dabao to baaki bhi badal jaate). Ab ek naam = ek entry, aur use ACTIVE purpose se jodte hain.
+    const key = (n) => String(n || "").trim().toLowerCase();
+    const byName = new Map();
     purposes.forEach((p) => {
-        const key = p.name.trim().toLowerCase();
-        if (!nameQueues.has(key)) nameQueues.set(key, []);
-        nameQueues.get(key).push(p);
-        lastByName.set(key, p);
+        const k = key(p.name);
+        const cur = byName.get(k);
+        // active purpose ko pehle, fir naya version
+        if (!cur || (p.active && !cur.active) || (p.active === cur.active && (p.version || 1) > (cur.version || 1))) byName.set(k, p);
     });
-    const takeByName = (key) => {
-        const queue = nameQueues.get(key);
-        return queue && queue.length ? queue.shift() : lastByName.get(key);
-    };
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
     const backendVersion = Number(pick(record, ["version"]) ?? 1);
     const rawStatus = pick(record, ["status"]) ?? "Unknown";
     const recordStatus = rawStatus === CONSENT_STATUS.withdrawn && backendVersion <= 1 ? CONSENT_STATUS.declined : rawStatus;
     const rawList = record?.purposes ?? record?.Purposes ?? record?.decisions ?? record?.Decisions;
     const list = Array.isArray(rawList) ? rawList : [];
-    const mapped = list.map((d, i) => {
-        const name = String(pick(d, ["shortName", "name", "purpose"]) ?? "Purpose");
-        const known = pick(d, ["consentPurposeId"]) ? purposes.find((p) => p.id === String(pick(d, ["consentPurposeId"]))) : takeByName(name.trim().toLowerCase());
-        const purposeId = String(pick(d, ["consentPurposeId"]) ?? known?.id ?? `${name}-${i}`);
-        const decision = String(pick(d, ["decision"]) ?? "No");
-        const expiresAt = pick(d, ["expiryDate", "expiresAt"]);
-        const state = purposeState(decision, pick(d, ["status"]), expiresAt, recordStatus);
+
+    // Ek naam ke saare versions (v1, v2, ...) purane se naye kram me
+    const versionsByName = new Map();
+    purposes.forEach((p) => {
+        const k = key(p.name);
+        if (!versionsByName.has(k)) versionsByName.set(k, []);
+        versionsByName.get(k).push(p);
+    });
+    versionsByName.forEach((arr) => arr.sort((a, b) => (a.version || 1) - (b.version || 1)));
+
+    const groups = new Map();
+    list.forEach((d, i) => {
+        const name = purposeName(pick(d, ["shortName", "name", "purpose"]));
+        const rawId = pick(d, ["consentPurposeId"]);
+        const known = rawId ? purposes.find((p) => p.id === String(rawId)) : byName.get(key(name));
+        const purposeId = String(rawId ?? known?.id ?? `${name}-${i}`);
+        const gk = rawId ? `id:${rawId}` : `name:${key(name)}`;
+        const decision = String(pick(d, ["decision"]) ?? "No").toLowerCase() === "yes" ? "Yes" : "No";
+        const item = { name, known, purposeId, decision, status: pick(d, ["status"]), expiresAt: pick(d, ["expiryDate", "expiresAt"]), code: pick(d, ["code"]), mandatory: pick(d, ["isMandatory"]) };
+        const prev = groups.get(gk);
+        if (!prev) {
+            groups.set(gk, { ...item, yes: decision === "Yes" ? 1 : 0, count: 1 });
+            return;
+        }
+        prev.count += 1;
+        if (decision === "Yes") prev.yes += 1;
+        if (!prev.expiresAt && item.expiresAt) prev.expiresAt = item.expiresAt;
+    });
+
+    // Backend har record me org ke SAARE purpose versions likhta hai: purane (inactive) version par "No",
+    // lekin agar purana version mandatory tha to us par hamesha "Yes". Pehle "Yes jeetegi" rule tha, isliye
+    // Payment Processing jaise purpose par purane mandatory version ka "Yes" user ke "No" ko daba deta tha
+    // -> "Stop allowing" kabhi "Allow" nahi banta tha aur poori history me wo "Allowed" dikhta tha.
+    // Ab: record me jitni entries hain utne versions us samay maujood the (v1..vN). Purane versions (v1..vN-1)
+    // ke forced "Yes" ginkar ghatao; jo bacha wahi user ka asli faisla hai (sabse naya version).
+    groups.forEach((g, gk) => {
+        if (g.count > 1 && gk.startsWith("name:")) {
+            const versions = versionsByName.get(key(g.name)) || [];
+            if (versions.length >= g.count) {
+                const older = versions.slice(0, g.count - 1);
+                const forcedYes = older.filter((p) => p.mandatory).length;
+                g.decision = g.yes - forcedYes > 0 ? "Yes" : "No";
+                // Har version par ek hi ID rahe (active wali), taaki history ke versions aapas me mil sakein
+                const canonical = byName.get(key(g.name))?.id;
+                if (canonical) g.purposeId = canonical;
+            } else {
+                g.decision = g.yes > 0 ? "Yes" : "No";
+            }
+        }
+    });
+
+    const mapped = [...groups.values()].map((g) => {
+        const state = purposeState(g.decision, g.status, g.expiresAt, recordStatus);
         return {
-            id: `${id}:${purposeId}`,
-            purposeId,
-            code: String(pick(d, ["code"]) ?? known?.code ?? ""),
-            name,
-            mandatory: !!(pick(d, ["isMandatory"]) ?? known?.mandatory),
-            decision: decision.toLowerCase() === "yes" ? "Yes" : "No",
+            id: `${id}:${g.purposeId}`,
+            purposeId: g.purposeId,
+            code: String(g.code ?? g.known?.code ?? ""),
+            name: g.name,
+            mandatory: !!(g.mandatory ?? g.known?.mandatory),
+            decision: g.decision,
             state,
             allowed: state === PURPOSE_STATE.allowed,
-            expiresAt,
+            expiresAt: g.expiresAt,
         };
     });
 
@@ -198,22 +251,24 @@ export function normalizeProcessor(p) {
     };
 }
 
-export function normalizeConsentRecord(record, index = 0) {
+export function normalizeConsentRecord(record, index = 0, knownPurposes = []) {
     const rawStatus = rawKey(record, "overallStatus") ?? rawKey(record, "status");
     const status = typeof rawStatus === "number" ? RECORD_STATUS_NAMES[rawStatus] ?? "Unknown" : rawStatus ?? "Unknown";
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
     const details = listOf(rawKey(record, "consentDetails") ?? rawKey(record, "purposes") ?? rawKey(record, "decisions"));
-    const purposes = details.map((d, i) => {
+    const all = details.map((d, i) => {
         const purpose = rawKey(d, "consentPurpose") ?? d;
-        const purposeId = String(pick(d, ["consentPurposeId"]) ?? pick(purpose, ["shortName", "name", "purpose"]) ?? `${id}-${i}`);
+        const purposeId = String(pick(d, ["consentPurposeId"]) ?? pick(purpose, ["consentPurposeId"]) ?? purposeName(pick(purpose, ["shortName", "name", "purpose"])) ?? `${id}-${i}`);
         const decision = String(pick(d, ["decision"]) ?? "No").toLowerCase() === "yes" ? "Yes" : "No";
         const expiresAt = pick(d, ["expiryDate"]);
-        const state = purposeState(decision, pick(d, ["status"]), expiresAt, status);
+        const detailStatus = pick(d, ["status"]);
+        const state = purposeState(decision, detailStatus, expiresAt, status);
         return {
             id: `${id}:${purposeId}`,
+            detailStatus,
             purposeId,
             code: String(pick(purpose, ["code"]) ?? ""),
-            name: String(pick(purpose, ["shortName", "name", "purpose"]) ?? "Purpose"),
+            name: purposeName(pick(purpose, ["shortName", "name", "purpose"])),
             mandatory: !!pick(purpose, ["isMandatory"]),
             lapses: !!pick(purpose, ["doesConsentLapse"]),
             decision,
@@ -221,6 +276,30 @@ export function normalizeConsentRecord(record, index = 0) {
             allowed: state === PURPOSE_STATE.allowed,
             expiresAt,
         };
+    });
+    // Backend har record me org ke saare purposes (edit se pehle wale purane versions bhi) rakhta hai, aur ID nahi bhejta.
+    // Ek naam ki kai entries aati thi -> React me "same key" warning aur list me dohra naam. Ab ek ID/naam = ek entry,
+    // aur "Yes" wali jeetegi (purane inactive versions par backend hamesha "No" rakhta hai).
+    const seen = new Map();
+    all.forEach((p) => {
+        const k = p.purposeId.trim().toLowerCase();
+        const prev = seen.get(k);
+        if (!prev) seen.set(k, { ...p, yes: p.decision === "Yes" ? 1 : 0, count: 1 });
+        else {
+            prev.count += 1;
+            if (p.decision === "Yes") prev.yes += 1;
+        }
+    });
+    // Purane mandatory versions ka forced "Yes" user ke faisle ko na dabaye (normalizeConsentArtifact wala hi niyam)
+    const nameKey = (n) => String(n || "").trim().toLowerCase();
+    const purposes = [...seen.values()].map(({ yes, count, ...p }) => {
+        if (count <= 1 || !Array.isArray(knownPurposes)) return p;
+        const versions = knownPurposes.filter((x) => nameKey(x.name) === nameKey(p.name)).sort((a, b) => (a.version || 1) - (b.version || 1));
+        const decision = versions.length >= count
+            ? (yes - versions.slice(0, count - 1).filter((x) => x.mandatory).length > 0 ? "Yes" : "No")
+            : (yes > 0 ? "Yes" : "No");
+        const state = purposeState(decision, p.detailStatus, p.expiresAt, status);
+        return { ...p, decision, state, allowed: state === PURPOSE_STATE.allowed };
     });
     const lapsing = purposes.filter((p) => p.lapses && p.expiresAt).map((p) => toDate(p.expiresAt)?.getTime()).filter(Boolean);
     const apiExpires = pick(record, ["expiresAt", "expires"]);

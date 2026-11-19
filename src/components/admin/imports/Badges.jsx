@@ -7,13 +7,13 @@ export function BatchBadge({ status }) {
     return (
         <span className={`${base} ${BATCH_TONE[status] ?? fallback}`}>
             {status === BATCH_STATUS.EXECUTING && <span aria-hidden className="mr-1.5 h-1.5 w-1.5 animate-pulse rounded-full bg-info-ink" />}
-            {status ? batchStatusLabel(status) : "Unknown"}
+            {status ? batchStatusLabel(status) : "Not recorded"}
         </span>
     );
 }
 
 export function RowBadge({ status }) {
-    return <span className={`${base} ${ROW_TONE[status] ?? fallback}`}>{ROW_STATUS_LABEL[status] ?? (status || "Unknown")}</span>;
+    return <span className={`${base} ${ROW_TONE[status] ?? fallback}`}>{ROW_STATUS_LABEL[status] ?? (status || "Not recorded")}</span>;
 }
 
 export function GuardianBadge() {

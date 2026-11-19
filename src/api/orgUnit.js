@@ -63,9 +63,6 @@ export async function getOrgHierarchy() {
     const res = await apiFetch("/api/OrgUnit/hierarchy");
     if (!res.ok) return res;
     const tree = toTree(res.data);
-    if (!tree.length && import.meta.env.DEV) {
-        console.warn("[OrgUnit] /hierarchy returned 0 units. Raw response:", res.data);
-    }
     return { ...res, data: tree };
 }
 

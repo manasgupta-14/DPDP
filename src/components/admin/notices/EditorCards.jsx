@@ -126,7 +126,7 @@ export function PurposesCard({ form, toggle, options, optionsError, errors, read
                 <p className="text-xs text-ink-3">{readOnly ? "No purposes in this notice." : "No purposes yet. Add them on the Purposes page first."}</p>
             ) : (
                 <ul className="space-y-3">
-                    {shown.map((p) => {
+                    {shown.map((p, ki) => {
                         const on = form.purposes.includes(p.code);
                         const body = (
                             <>
@@ -141,9 +141,9 @@ export function PurposesCard({ form, toggle, options, optionsError, errors, read
                             </>
                         );
                         return readOnly ? (
-                            <li key={p.code} className="rounded-xl border border-line bg-soft p-4">{body}</li>
+                            <li key={`${p.code}-${ki}`} className="rounded-xl border border-line bg-soft p-4">{body}</li>
                         ) : (
-                            <li key={p.code}>
+                            <li key={`${p.code}-${ki}`}>
                                 <label className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${on ? "border-brand/50 bg-brand/5" : "border-line bg-surface hover:border-brand/40"}`}>
                                     <input type="checkbox" checked={on} onChange={() => toggle(p.code)} disabled={busy} className="mt-0.5 h-4 w-4 shrink-0 accent-brand" />
                                     <span className="min-w-0">{body}</span>
@@ -162,11 +162,11 @@ export function TranslationsCard({ form, setTr, readOnly, busy }) {
     return (
         <Card title="Translations" subtitle="Sec 5(3): offer the notice in English and other Indian languages (Eighth Schedule).">
             <div className="space-y-4">
-                {LANGS.map((l) => {
+                {LANGS.map((l, ki) => {
                     const tr = form.translations?.[l.code] ?? { title: "", summary: "" };
                     const state = translationState(tr);
                     return (
-                        <div key={l.code} className="rounded-xl border border-line bg-soft p-4">
+                        <div key={`${l.code}-${ki}`} className="rounded-xl border border-line bg-soft p-4">
                             <div className="flex items-center justify-between gap-3">
                                 <h3 className="text-sm font-semibold text-ink">{l.label}{l.native !== l.label && <span className="ml-1.5">· {l.native}</span>}</h3>
                                 <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 ${state === "Translated" ? "bg-ok/10 text-ok-ink ring-ok/25" : "bg-warn/10 text-warn-ink ring-warn/25"}`}>

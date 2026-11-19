@@ -181,7 +181,7 @@ export default function DashboardShell({
                                     </p>
                                 )}
                                 <div className="max-h-80 overflow-y-auto">
-                                    {bell.items.map((n) => {
+                                    {bell.items.map((n, ki) => {
                                         const inner = (
                                             <>
                                                 <p className="truncate text-sm font-semibold text-ink">{n.title}</p>
@@ -189,11 +189,11 @@ export default function DashboardShell({
                                             </>
                                         );
                                         return n.to ? (
-                                            <Link key={n.key || n.title} to={n.to} onClick={() => setBellOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-subtle">
+                                            <Link key={`${n.key || n.title}-${ki}`} to={n.to} onClick={() => setBellOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-subtle">
                                                 {inner}
                                             </Link>
                                         ) : (
-                                            <div key={n.key || n.title} className="rounded-lg px-3 py-2">
+                                            <div key={`${n.key || n.title}-${ki}`} className="rounded-lg px-3 py-2">
                                                 {inner}
                                             </div>
                                         );

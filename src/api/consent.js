@@ -1,10 +1,11 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
 import { normalizeCategory, normalizeConsentArtifact, normalizeConsentRecord, normalizeProcessor, normalizePurpose } from "../utils/consent.js";
+import { toTime } from "../utils/audit.js";
 
 const CHANNEL_WEB = 0;
 
-const byNewest = (a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime();
+const byNewest = (a, b) => toTime(b.submittedAt) - toTime(a.submittedAt);
 
 export async function getPurposes({ includeInactive = false } = {}) {
     const res = await apiFetch("/api/Consent/purposes");
@@ -91,8 +92,9 @@ export async function getConsentRecords(filters = {}) {
     set("fromDate", filters.from);
     set("toDate", filters.to);
     const query = params.toString();
-    const res = await apiFetch(`/api/Consent/records${query ? `?${query}` : ""}`);
-    return res.ok ? { ...res, data: asArray(res.data).map(normalizeConsentRecord) } : res;
+    const [res, list] = await Promise.all([apiFetch(`/api/Consent/records${query ? `?${query}` : ""}`), getPurposes({ includeInactive: true })]);
+    const known = list.ok ? list.data : [];
+    return res.ok ? { ...res, data: asArray(res.data).map((r, i) => normalizeConsentRecord(r, i, known)) } : res;
 }
 
 export async function getCategories() {
@@ -119,7 +121,7 @@ export async function addProcessor({ code, legalName, relationship, country, dat
 }
 
 export async function getConsentRecord(id) {
-    const res = await apiFetch(`/api/Consent/record/${encodeURIComponent(id)}`);
+    const [res, list] = await Promise.all([apiFetch(`/api/Consent/record/${encodeURIComponent(id)}`), getPurposes({ includeInactive: true })]);
     if (!res.ok && res.status === 404) return { ...res, error: "Consent record not found." };
-    return res.ok ? { ...res, data: normalizeConsentRecord(res.data) } : res;
+    return res.ok ? { ...res, data: normalizeConsentRecord(res.data, 0, list.ok ? list.data : []) } : res;
 }

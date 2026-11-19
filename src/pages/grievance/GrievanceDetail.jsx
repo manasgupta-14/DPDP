@@ -226,8 +226,8 @@ export default function GrievanceDetail() {
                         <h2 className="text-base font-semibold text-ink">Timeline</h2>
                         <p className="text-xs text-muted">Every action taken on this grievance.</p>
                         <ol className="mt-4 space-y-4">
-                            {timeline.map((ev) => (
-                                <li key={ev.key} className="flex gap-3">
+                            {timeline.map((ev, ki) => (
+                                <li key={`${ev.key}-${ki}`} className="flex gap-3">
                                     <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: ev.color }} />
                                     <div>
                                         <p className="text-sm font-semibold text-ink">{ev.label}</p>
