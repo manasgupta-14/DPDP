@@ -6,7 +6,10 @@ import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModa
 import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
 import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/consent/styles.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, STATUS_LABEL, withVersions } from "../../utils/consent.js";
+import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, REMOVED_PURPOSE, STATUS_LABEL, withVersions } from "../../utils/consent.js";
+
+// Detail API kabhi purpose ka naam nahi bhejti (sab "Removed purpose" ban jaate hain); tab list wale sahi purposes use karo
+const usablePurposes = (list) => Array.isArray(list) && list.length > 0 && !list.every((p) => p.name === REMOVED_PURPOSE);
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS = { reference: "", status: "", purpose: "", channel: "", from: "", to: "" };
@@ -91,7 +94,7 @@ export default function ConsentManagement() {
     const listed = records.find((r) => r.id === openId) || null;
     const fetched = detail.id === openId ? detail : null;
     const selected = listed && fetched?.record
-        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: fetched.record.purposes.length ? fetched.record.purposes : listed.purposes }
+        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: usablePurposes(fetched.record.purposes) ? fetched.record.purposes : listed.purposes }
         : listed;
     const hasFilters = Object.values(draft).some(Boolean);
 
