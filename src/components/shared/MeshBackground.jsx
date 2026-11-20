@@ -207,8 +207,28 @@ function compile(gl, type, src) {
     return s;
 }
 
+// Mobile / kamzor device / Save-Data: animation nahi chalate, sirf ek static frame (GPU aur battery bachti hai)
+function isLowPower() {
+    if (typeof window === "undefined") return false;
+    const mq = (q) => window.matchMedia?.(q).matches;
+    const saveData = navigator.connection?.saveData === true;
+    const weak = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4;
+    return saveData || weak || mq("(max-width: 1023px)") || mq("(pointer: coarse)");
+}
+
 export default function MeshBackground({ scale = 0.5, calm = false }) {
     const canvasRef = useRef(null);
+    // Shader compile bhaari hota hai: pehle page paint ho, phir (idle me) background shuru ho. LCP/TBT sahi rehta hai.
+    const [ready, setReady] = useState(false);
+    useEffect(() => {
+        const go = () => setReady(true);
+        if (typeof window.requestIdleCallback === "function") {
+            const id = window.requestIdleCallback(go, { timeout: 1500 });
+            return () => window.cancelIdleCallback?.(id);
+        }
+        const t = setTimeout(go, 400);
+        return () => clearTimeout(t);
+    }, []);
     // GPU reset (context lost) ke baad naya canvas banane ke liye
     const [gen, setGen] = useState(0);
     // Dashboard/login par "calm": dheemi chaal aur kam resolution (kaam me dhyan na bhatke, GPU kam lage)
@@ -220,7 +240,7 @@ export default function MeshBackground({ scale = 0.5, calm = false }) {
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return undefined;
+        if (!canvas || !ready) return undefined;
         delete canvas.dataset.fallback;
         delete canvas.dataset.ready;
         const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power", preserveDrawingBuffer: false });
@@ -257,7 +277,9 @@ export default function MeshBackground({ scale = 0.5, calm = false }) {
         let darkNow = getTheme() === "dark" ? 1 : 0;
         const uC = [u("uC0"), u("uC1"), u("uC2"), u("uC3"), u("uC4")];
 
-        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        const lowPower = isLowPower();
+        // still = ek hi frame (reduced-motion ya low-power): loop nahi chalta
+        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || lowPower;
         let current = PALETTES.trust.map(hexToRgb);
         let target = current;
         let scrollNow = 0;
@@ -271,7 +293,7 @@ export default function MeshBackground({ scale = 0.5, calm = false }) {
         const resize = () => {
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             // Calm (dashboard) me bhi resolution nahi ghatate: kam resolution par stretch hokar dhabbe dikhte the
-            const s = scale * quality;
+            const s = (lowPower ? Math.min(scale, 0.35) : scale) * quality;
             const w = Math.max(1, Math.round(window.innerWidth * dpr * s));
             const h = Math.max(1, Math.round(window.innerHeight * dpr * s));
             if (canvas.width !== w || canvas.height !== h) {
@@ -346,7 +368,7 @@ export default function MeshBackground({ scale = 0.5, calm = false }) {
 
         const onScroll = () => {
             pickPalette();
-            if (reduced) requestAnimationFrame(draw);
+            if (reduced && !lowPower) requestAnimationFrame(draw);
         };
         const onResize = () => {
             resize();
@@ -395,7 +417,7 @@ export default function MeshBackground({ scale = 0.5, calm = false }) {
             gl.deleteBuffer(buf);
             gl.deleteProgram(prog);
         };
-    }, [scale, gen]);
+    }, [scale, gen, ready]);
 
     return <canvas key={gen} ref={canvasRef} aria-hidden className="lp-fluid" />;
 }

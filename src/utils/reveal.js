@@ -79,6 +79,8 @@ export function installReveal() {
     window.__pgReveal = true;
     if (!("IntersectionObserver" in window)) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    // Chhoti screen / touch device par reveal band: content seedha dikhta hai (performance)
+    if (window.matchMedia?.("(max-width: 1023px), (pointer: coarse)").matches) return;
 
     document.documentElement.classList.add("pg-reveal-on");
     io = new IntersectionObserver(onIntersect, { rootMargin: "0px 0px -6% 0px", threshold: 0 });

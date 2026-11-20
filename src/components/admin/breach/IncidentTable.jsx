@@ -1,5 +1,7 @@
 import { SEVERITIES, formatDate, severityColor, timeAgo, timeOf } from "../../../utils/breach.js";
 import { SeverityBadge, StatusBadge } from "../../shared/Badge.jsx";
+import NewTag from "../../shared/NewTag.jsx";
+import { useNewItems } from "../../../utils/newItems.js";
 import { field, ghostBtn, panel } from "../../shared/ui.js";
 
 const control = field.replace("mt-1.5 ", "");
@@ -30,6 +32,7 @@ function Assignee({ name }) {
 
 export default function IncidentTable({ rows, total, filters, onFilters, onOpen, nameOf }) {
     const { search, status, severity, sort } = filters;
+    const { isNew } = useNewItems();
     const dirty = search || status !== "All" || severity !== "All" || sort !== "newest";
     const set = (key) => (e) => onFilters({ ...filters, [key]: e.target.value });
 
@@ -89,7 +92,10 @@ export default function IncidentTable({ rows, total, filters, onFilters, onOpen,
                                 />
 
                                 <div className="min-w-0">
-                                    <p className="truncate font-semibold text-ink" title={x.title}>{x.title}</p>
+                                    <p className="flex min-w-0 items-center gap-2 font-semibold text-ink">
+                                        <NewTag show={isNew("breach", x.id)} className="shrink-0" />
+                                        <span className="truncate" title={x.title}>{x.title}</span>
+                                    </p>
                                     {x.description && <p className="mt-0.5 truncate text-sm text-ink-3" title={x.description}>{x.description}</p>}
                                     <p className="mt-1.5 text-xs text-muted">
                                         <span>Reported by {reporter}, </span>

@@ -41,7 +41,11 @@ function Sidebar({ sections, footer, subtitle, onNavigate }) {
                                     </span>
                                 )}
                                 <span className="truncate">{item.label}</span>
-                                {item.badge > 0 && <span className="ml-auto rounded-full bg-bad px-1.5 text-[10px] font-bold text-white">{item.badge}</span>}
+                                {item.badge > 0 && (
+                                    <span className="kv-side-badge" aria-label={`${item.badge} new`} title={`${item.badge} new`}>
+                                        {item.badge > 99 ? "99+" : item.badge}
+                                    </span>
+                                )}
                             </NavLink>
                         ))}
                     </div>

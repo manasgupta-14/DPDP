@@ -8,6 +8,7 @@ import SummaryCards from "../../components/admin/breach/SummaryCards.jsx";
 import TriageDrawer from "../../components/admin/breach/TriageDrawer.jsx";
 import { ghostBtn } from "../../components/shared/ui.js";
 import { isFinished, sameText, severityRank, statusList, timeOf } from "../../utils/breach.js";
+import { markSeen } from "../../utils/newItems.js";
 
 const DEFAULT_FILTERS = { search: "", status: "All", severity: "All", sort: "newest" };
 
@@ -22,6 +23,11 @@ export default function BreachManagement() {
     // Bell notification "?incident=<id>" se seedha us incident ka drawer khulta hai.
     const linkedId = params.get("incident");
     const selectedId = pickedId ?? linkedId;
+
+    // Incident (card) khulte hi "seen": New tag hatega aur sidebar count 1 kam hoga
+    useEffect(() => {
+        if (selectedId) markSeen("breach", selectedId);
+    }, [selectedId]);
     const closeDrawer = () => {
         setSelectedId(null);
         if (linkedId) setParams((p) => { p.delete("incident"); return p; }, { replace: true });
