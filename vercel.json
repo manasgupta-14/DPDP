@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/api/:path*",
+      "destination": "https://wvd93v7m-7139.inc1.devtunnels.ms/api/:path*"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
