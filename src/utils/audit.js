@@ -3,13 +3,21 @@ const pick = (o, ...keys) => {
     return null;
 };
 
+// Poore app ki ek hi tareekh-padhne wali function.
+// Backend khaali tareekh ko C# default "0001-01-01" (ya SQL ki 1753/1900) bhejta hai: use "tareekh nahi hai" maano,
+// warna screen par "Jan 1, 1" ya "20776 days" jaisa galat data dikhta hai.
+const MIN_REAL_YEAR = 1971;
 export function toDate(value) {
-    if (!value) return null;
-    const text = String(value);
+    if (value === null || value === undefined || value === "") return null;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) || value.getFullYear() < MIN_REAL_YEAR ? null : value;
+    const text = String(value).trim();
+    if (!text || /^0{1,4}1-01-01/.test(text)) return null;
     const zoned = /(Z|[+-]\d{2}:?\d{2})$/i.test(text);
     const d = new Date(text.includes("T") && !zoned ? `${text}Z` : text);
-    return Number.isNaN(d.getTime()) ? null : d;
+    if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < MIN_REAL_YEAR) return null;
+    return d;
 }
+export const toTime = (value) => toDate(value)?.getTime() ?? 0;
 
 function splitEntity(entity) {
     const text = String(entity ?? "").trim();

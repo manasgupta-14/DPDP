@@ -25,8 +25,8 @@ function Preview({ form, purposeName }) {
                     <p className="text-xs text-muted">Select purposes to show them here.</p>
                 ) : (
                     <ul className="space-y-1.5">
-                        {form.purposes.map((code) => (
-                            <li key={code} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-xs">
+                        {form.purposes.map((code, ki) => (
+                            <li key={`${code}-${ki}`} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-xs">
                                 <span>
                                     {purposeName(code)}
                                     {form.layout === "Detailed" && <span className="ml-1 font-mono text-[10px] text-muted">({code})</span>}
@@ -95,8 +95,8 @@ function TemplateForm({ template, purposes, onClose, onSaved }) {
                         <p className="mt-1 text-[11px] text-muted">No purposes yet. Create consent purposes in Consent management first.</p>
                     ) : (
                         <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-line p-2.5 sm:grid-cols-2">
-                            {options.map((p) => (
-                                <label key={p.code} className="flex items-center gap-2 text-xs text-ink-2">
+                            {options.map((p, ki) => (
+                                <label key={`${p.code}-${ki}`} className="flex items-center gap-2 text-xs text-ink-2">
                                     <input type="checkbox" checked={form.purposes.includes(p.code)} disabled={busy} onChange={() => toggle(p.code)} />
                                     {p.name}
                                 </label>
@@ -237,7 +237,7 @@ export default function NoticeBuilder() {
                             </div>
                             {t.description && <p className="mt-2 line-clamp-3 text-xs text-ink-3">{t.description}</p>}
                             <ul className="mt-3 flex flex-wrap gap-1.5">
-                                {t.purposes.length === 0 ? <li className="text-[11px] text-muted">No purposes</li> : t.purposes.map((c) => <li key={c} className="rounded-md bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-ink">{nameOf(c)}</li>)}
+                                {t.purposes.length === 0 ? <li className="text-[11px] text-muted">No purposes</li> : t.purposes.map((c, ki) => <li key={`${c}-${ki}`} className="rounded-md bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-ink">{nameOf(c)}</li>)}
                             </ul>
                             <div className="mt-auto flex items-center justify-between gap-2 pt-4 text-xs">
                                 <span className="text-muted">Created {formatDate(t.createdAt)}</span>

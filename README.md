@@ -1,6 +1,6 @@
 # Kavach
 
-Kavach is the web frontend for managing compliance with India's Digital Personal Data Protection (DPDP) Act, 2023. It covers consent, privacy notices, rights requests, grievances, data breaches, DPIA reviews, data retention and audit evidence. All data comes from the PrivacyGuard backend API.
+Kavach is the web frontend for managing compliance with India's Digital Personal Data Protection (DPDP) Act, 2023. It covers consent, privacy notices, rights requests, grievances, data breaches, DPIA reviews, data retention and audit evidence. All data comes from the Kavach backend API.
 
 Built with React 19, Vite and Tailwind CSS v4.
 
@@ -29,7 +29,7 @@ npm run build     # production build in dist/
 npm run lint
 ```
 
-The PrivacyGuard backend must be running (by default at `https://localhost:7139`).
+The Kavach backend (API) must be running (by default at `https://localhost:7139`).
 
 ## Configuration
 
@@ -128,6 +128,37 @@ All figures come from the backend. Penalty limits (DPDP Schedule) and the commen
 | Staff/customer overview | `GET /api/Dashboard/user-summary`, `GET /api/Campaign/my-pending` |
 
 If the signed-in user does not have permission for an API, the related card shows "No access" instead of a number.
+
+## API response format
+
+The backend is moving to a standard wrapper: `{ "success": true, "message": "...", "data": ... }`.
+`apiFetch` in `src/api/client.js` unwraps it in one place, so every page gets the inner `data` directly.
+Endpoints that still return a plain array or object keep working unchanged.
+A `200` reply with `success: false` is treated as an error, and its `message` is shown to the user.
+
+## Data inventory (DPDP fields)
+
+Each data point also records:
+
+- **Lawful basis** (`lawfulBasis`): `Consent` or `Certain Legitimate Uses` (Section 7).
+- **Whose data** (`dataPrincipalCategory`): `Customer`, `Employee` or `Minor` (Section 9). Children's data is flagged in the list, the details view and the form.
+- **Shared with processors** (`sharedWithProcessors`): vendors who receive the data, entered as tags and sent as one comma-separated text, e.g. `"Mailchimp, AWS"` (Section 8).
+
+Records created before these fields existed show "Not set". They must be filled in when the record is next edited. The dashboard counts a data point as documented only when these two fields are set as well.
+
+## Rules & Acts
+
+Library of laws, rules and internal policies, at `/dashboard/rules` (admin) and `/dpo/rules` (DPO).
+Backend: `RulesAndActsController`, route `api/v1/RulesAndActs` (note the `v1`).
+
+| Method | Path | Used for |
+|---|---|---|
+| GET | `/api/v1/RulesAndActs/organization/{orgId}` | List (org ID comes from the signed-in token) |
+| GET | `/api/v1/RulesAndActs/{id}` | Detail popup |
+| POST | `/api/v1/RulesAndActs` | Add (`organizationId, title, category, description, documentUrl`) |
+| DELETE | `/api/v1/RulesAndActs/{id}` | Remove (backend does a soft delete) |
+
+Categories sent: `DPDP_Act`, `DPDP_Rules`, `Internal_Policy`, `Sector_Regulation`, `Other`. There is no edit API yet, so entries can only be added or removed.
 
 ## Permissions
 

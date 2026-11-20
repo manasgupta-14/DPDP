@@ -2,6 +2,7 @@
 // Har score ek "indicator" hai jo aapke live data se nikla hai; yeh kanooni raay nahi hai.
 import { isFinished, sameText } from "./breach.js";
 import { STATUS as DPIA_STATUS, displayStatus } from "./dpia.js";
+import { toDate } from "./audit.js";
 
 const DAY = 86400000;
 // "3 incidents" / "1 incident" ("incident(s)" jaisa robotic text nahi)
@@ -14,10 +15,8 @@ const avg = (xs) => {
     return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
 };
 const clampScore = (v) => Math.max(0, Math.min(100, Math.round(v)));
-const toTime = (d) => {
-    const t = d ? new Date(d).getTime() : NaN;
-    return Number.isNaN(t) ? null : t;
-};
+// 0001-01-01 jaisi default tareekh ko "nahi hai" maano
+const toTime = (d) => toDate(d)?.getTime() ?? null;
 const pick = (o, ...keys) => {
     for (const k of keys) {
         const v = o?.[k] ?? o?.[k[0].toUpperCase() + k.slice(1)];
@@ -175,7 +174,7 @@ export function buildExecutive(data, now = new Date()) {
     /* ---------- inventory (RoPA style) */
     let inv = null;
     if (inventory) {
-        const documented = inventory.filter((i) => i.purpose && num(i.retentionDays) > 0 && i.storage);
+        const documented = inventory.filter((i) => i.purpose && num(i.retentionDays) > 0 && i.storage && i.lawfulBasis && i.principalCategory);
         const missing = inventory.filter((i) => !documented.includes(i));
         inv = { total: inventory.length, documented: documented.length, coverage: inventory.length ? pct(documented.length, inventory.length) : 0, missing };
     }

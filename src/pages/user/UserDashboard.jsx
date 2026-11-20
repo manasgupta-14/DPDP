@@ -11,6 +11,7 @@ import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { formatDay, typeLabel } from "../../utils/campaign.js";
 import { band } from "../../utils/executive.js";
 import { dateText, typeLabel as requestTypeLabel } from "../../utils/privacyRequest.js";
+import { toDate } from "../../utils/audit.js";
 
 // User (customer ya employee) ka overview: pehle "aapka kaam", phir privacy health, phir haal ki gatividhi.
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
@@ -31,7 +32,6 @@ function Stat({ icon, tone, label, value, to, hint, i }) {
     );
 }
 
-const toDate = (v) => new Date(/(Z|[+-]\d{2}:?\d{2})$/i.test(String(v)) ? v : `${v}Z`);
 
 export default function UserDashboard() {
     const { profile } = useOutletContext();
@@ -70,13 +70,6 @@ export default function UserDashboard() {
                 greeting="Welcome"
                 name={firstName}
                 sub={customer ? "See and control how your data is used." : "Answer requests and report anything unusual."}
-                status={
-                    tasks.loading || tasks.error
-                        ? null
-                        : tasks.items.length
-                          ? { tone: "warn", label: `${tasks.items.length} task${tasks.items.length === 1 ? "" : "s"} waiting` }
-                          : { tone: "ok", label: "All done" }
-                }
                 actions={
                     <>
                     {customer ? (
@@ -116,7 +109,7 @@ export default function UserDashboard() {
                     <h2 className="kd-title">Privacy health</h2>
                     <p className="kd-sub">Goes down while tasks are waiting</p>
                     <div className="mt-4 flex items-center gap-5">
-                        <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`}>
+                        <Ring value={score ?? 0} size={124} stroke={12} color={b.color} label={`Privacy health ${score ?? "no data"}`} tip={{ title: "Privacy health", rows: [{ name: b.label || "Score", value: score, display: score === null ? "No data" : `${score}%`, color: b.color }] }}>
                             <div>
                                 <p className="kd-big text-[28px]">{score === null ? "—" : <CountUp value={score} suffix="%" />}</p>
                                 <p className="text-[11px] text-muted">health</p>
@@ -219,7 +212,7 @@ export default function UserDashboard() {
                                     <li key={i} className="relative text-sm text-ink-2">
                                         <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full" style={{ background: C.brand }} />
                                         {a.action}
-                                        {a.date && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
+                                        {toDate(a.date) && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
                                     </li>
                                 ))}
                             </ol>

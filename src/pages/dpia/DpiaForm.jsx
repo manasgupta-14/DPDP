@@ -182,8 +182,8 @@ function Wizard({ initial, draftId: initialDraftId, feedback }) {
                             </div>
                             {form.purposes.length > 0 && (
                                 <ul className="mt-3 space-y-2">
-                                    {form.purposes.map((p) => (
-                                        <li key={p} className="flex items-center justify-between gap-3 rounded-xl bg-soft px-3.5 py-2 text-sm ring-1 ring-line">
+                                    {form.purposes.map((p, ki) => (
+                                        <li key={`${p}-${ki}`} className="flex items-center justify-between gap-3 rounded-xl bg-soft px-3.5 py-2 text-sm ring-1 ring-line">
                                             <span className="min-w-0 break-words">{p}</span>
                                             <button type="button" onClick={() => update({ purposes: form.purposes.filter((x) => x !== p) })} aria-label={`Remove purpose ${p}`} className="shrink-0 rounded-md px-2 text-lg leading-none text-muted hover:bg-line hover:text-ink">&times;</button>
                                         </li>

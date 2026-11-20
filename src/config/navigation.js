@@ -21,16 +21,17 @@ const ALL_ADMIN_SECTIONS = [
     },
     {
         label: "Rights Requests",
-        items: [{ to: "/dashboard/rights-requests", label: "Rights Requests", icon: "inbox", tone: "blue" }],
+        items: [{ to: "/dashboard/rights-requests", label: "Rights Requests", icon: "inbox", tone: "blue", alert: "rights" }],
     },
     {
         label: "Governance",
         items: [
-            { to: "/dashboard/grievances", label: "Grievances", icon: "chat", tone: "amber" },
-            { to: "/dashboard/breach", label: "Breach management", icon: "shieldAlert", tone: "red" },
-            { to: "/dashboard/dpia", label: "DPIA", icon: "fileSearch", tone: "violet" },
+            { to: "/dashboard/grievances", label: "Grievances", icon: "chat", tone: "amber", alert: "grievance" },
+            { to: "/dashboard/breach", label: "Breach management", icon: "shieldAlert", tone: "red", alert: "breach" },
+            { to: "/dashboard/dpia", label: "DPIA", icon: "fileSearch", tone: "violet", alert: "dpia" },
             { to: "/dashboard/retention", label: "Retention & erasure", icon: "archive", tone: "orange" },
             { to: "/dashboard/checklist", label: "Compliance checklist", icon: "checklist", tone: "green" },
+            { to: "/dashboard/rules", label: "Rules & Acts", icon: "book", tone: "indigo" },
             { to: "/dashboard/audit", label: "Audit trail", icon: "history", tone: "teal" },
         ],
     },
@@ -84,7 +85,10 @@ export const DPO_SECTIONS = [
     },
     {
         label: "Reviews",
-        items: [{ to: "/dpo/dpia", label: "DPIA reviews", icon: "fileSearch", tone: "violet" }],
+        items: [
+            { to: "/dpo/dpia", label: "DPIA reviews", icon: "fileSearch", tone: "violet" },
+            { to: "/dpo/rules", label: "Rules & Acts", icon: "book", tone: "indigo" },
+        ],
     },
     {
         label: "Account",

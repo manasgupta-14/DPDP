@@ -40,7 +40,7 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                                 <td className="max-w-[300px] px-4 py-3">
                                     {t.purposes.length === 0 ? <span className="text-[11px] text-muted">None</span> : (
                                         <div className="flex flex-wrap gap-1">
-                                            {t.purposes.map((c) => <span key={c} className="inline-flex max-w-[180px] items-center truncate rounded-md bg-brand-soft px-1.5 py-0.5 text-[11px] font-medium text-info-ink ring-1 ring-info-ink/25">{nameOf(c)}</span>)}
+                                            {t.purposes.map((c, ki) => <span key={`${c}-${ki}`} className="inline-flex max-w-[180px] items-center truncate rounded-md bg-brand-soft px-1.5 py-0.5 text-[11px] font-medium text-info-ink ring-1 ring-info-ink/25">{nameOf(c)}</span>)}
                                         </div>
                                     )}
                                 </td>

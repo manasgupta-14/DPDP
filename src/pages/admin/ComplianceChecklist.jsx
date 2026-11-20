@@ -149,7 +149,7 @@ export default function ComplianceChecklist() {
                 <>
                     <section aria-label="Checklist summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div className="kd-card flex items-center gap-4 p-5" style={rise(1)}>
-                            <Ring value={d.progress} size={96} stroke={10} color={ringColor} label={`${d.progress}% of tracked items complete`}>
+                            <Ring value={d.progress} size={96} stroke={10} color={ringColor} label={`${d.progress}% of tracked items complete`} tip={{ title: "Checklist progress", rows: [{ name: "Complete", value: d.progress, display: `${d.progress}%`, color: ringColor }] }}>
                                 <span className="kd-big text-[22px]" style={{ color: ringColor }}>
                                     <CountUp value={d.progress} suffix="%" />
                                 </span>

@@ -5,12 +5,12 @@ import { PRINCIPAL_CLASSES } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { ghostBtn, panel } from "../../shared/ui.js";
 import { NotInApi } from "../purposes/NotInApi.jsx";
+import { toDate } from "../../../utils/audit.js";
 
 const th = "px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-ink-3";
 const classLabel = (v) => PRINCIPAL_CLASSES.find((c) => c.value === v)?.label || v || "-";
 const day = (v) => {
-    const d = v ? new Date(v) : null;
-    return d && !Number.isNaN(d.getTime()) && d.getFullYear() > 1 ? formatWhen(v) : "-";
+    return toDate(v) ? formatWhen(v) : "-";
 };
 
 function Block({ title, note, children }) {

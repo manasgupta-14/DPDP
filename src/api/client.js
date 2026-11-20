@@ -1,8 +1,26 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { permissionMessage } from "./permissionMap.js";
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+// Backend ka base URL: .env / Vercel ke VITE_API_BASE_URL se (aakhri "/" hata diya jata hai).
+// Khaali ho to relative "/api/..." jata hai (dev me Vite proxy, ya Vercel rewrite).
+export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
 const TIMEOUT_MS = 15000;
+
+// Backend ka naya standard wrapper: { success, message, data }.
+// Sabhi API calls yahin se guzarti hain, isliye unwrap ek hi jagah hota hai (axios interceptor jaisa).
+// Purane endpoints jo seedha array/object bhejte hain, waise hi chalte rahenge.
+const ENVELOPE_KEYS = new Set(["success", "message", "data", "errors", "statuscode", "timestamp", "traceid"]);
+
+export function readEnvelope(body) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+    const keys = Object.keys(body);
+    const lower = keys.map((k) => k.toLowerCase());
+    if (!lower.includes("success") || !lower.includes("data")) return null;
+    if (!lower.every((k) => ENVELOPE_KEYS.has(k))) return null;
+    const get = (name) => body[keys[lower.indexOf(name)]];
+    if (typeof get("success") !== "boolean") return null;
+    return { success: get("success"), message: typeof get("message") === "string" ? get("message") : "", data: get("data") ?? null, errors: lower.includes("errors") ? get("errors") : undefined };
+}
 
 function extractError(data, status, method, path) {
     if (status === 403) return permissionMessage(method, path);
@@ -54,6 +72,13 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
             data = text ? JSON.parse(text) : null;
         } catch {
             data = null;
+        }
+
+        const env = readEnvelope(data);
+        if (env) {
+            // 200 aaya par success:false — ise error hi maano
+            if (res.ok && !env.success) return { ok: false, status: res.status, data: env.data, message: env.message, error: env.message || extractError(env.errors ? { errors: env.errors } : null, res.status, method, path) };
+            if (res.ok) return { ok: true, status: res.status, data: env.data, message: env.message, error: null };
         }
 
         if (res.ok) return { ok: true, status: res.status, data, error: null };

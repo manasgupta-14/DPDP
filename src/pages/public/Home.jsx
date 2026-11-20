@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getSession, homePath, isAdmin, roleInfo } from "../../auth/authStore.js";
 import { CountUp, useInView } from "../../components/charts/kit.jsx";
@@ -65,9 +65,79 @@ function hubLink(item) {
     return s && isAdmin(s) ? item.to : "/#features";
 }
 
-function HubCard() {
+// Naam: pehle "Kavach", fir hindi me "कवच" — akshar ek-ek karke aate hain, aur yeh chakkar chalta rehta hai.
+const HUB_NAMES = [
+    { text: "Kavach", lang: "en" },
+    { text: "कवच", lang: "hi" },
+];
+
+function HubName() {
+    const [i, setI] = useState(0);
+    useEffect(() => {
+        if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+        const id = setInterval(() => setI((n) => (n + 1) % HUB_NAMES.length), 3200);
+        return () => clearInterval(id);
+    }, []);
+    const cur = HUB_NAMES[i];
     return (
-        <div className="kv-hub">
+        <span className="kv-hub-name kv-hub-name-anim block" aria-label="Kavach">
+            <span key={i} lang={cur.lang} aria-hidden="true" className="kv-name-word">
+                {Array.from(cur.text).map((ch, k) => (
+                    <span key={k} className="kv-name-ch" style={{ "--k": k }}>
+                        {ch}
+                    </span>
+                ))}
+            </span>
+        </span>
+    );
+}
+
+// Card tairta hai, aur mouse ke saath halka sa jhukta (tilt) hai. Touch / reduced-motion par tilt band.
+function useTilt(max = 7) {
+    const ref = useRef(null);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return undefined;
+        const fine = window.matchMedia?.("(hover: hover) and (pointer: fine)").matches;
+        const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        if (!fine || calm) return undefined;
+        let raf = 0;
+        const move = (e) => {
+            const r = el.getBoundingClientRect();
+            const px = (e.clientX - r.left) / r.width - 0.5;
+            const py = (e.clientY - r.top) / r.height - 0.5;
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => {
+                el.style.setProperty("--ry", `${(px * max * 2).toFixed(2)}deg`);
+                el.style.setProperty("--rx", `${(-py * max * 2).toFixed(2)}deg`);
+                el.style.setProperty("--gx", `${((px + 0.5) * 100).toFixed(1)}%`);
+                el.style.setProperty("--gy", `${((py + 0.5) * 100).toFixed(1)}%`);
+                el.dataset.tilt = "on";
+            });
+        };
+        const leave = () => {
+            cancelAnimationFrame(raf);
+            el.style.setProperty("--ry", "0deg");
+            el.style.setProperty("--rx", "0deg");
+            delete el.dataset.tilt;
+        };
+        el.addEventListener("mousemove", move);
+        el.addEventListener("mouseleave", leave);
+        return () => {
+            cancelAnimationFrame(raf);
+            el.removeEventListener("mousemove", move);
+            el.removeEventListener("mouseleave", leave);
+        };
+    }, [max]);
+    return ref;
+}
+
+function HubCard() {
+    const tiltRef = useTilt();
+    return (
+        <div className="kv-hub-float">
+        <div ref={tiltRef} className="kv-hub kv-hub-tilt">
+            <span className="kv-hub-glare" aria-hidden="true" />
             <div className="kv-hub-head">
                 <span className="flex min-w-0 items-center gap-3">
                     <span className="kv-hub-mark" aria-hidden="true">
@@ -77,7 +147,7 @@ function HubCard() {
                         </svg>
                     </span>
                     <span className="min-w-0">
-                        <span className="kv-hub-name block">Kavach</span>
+                        <HubName />
                         <span className="kv-hub-tag block">All your privacy work in one place.</span>
                     </span>
                 </span>
@@ -105,6 +175,7 @@ function HubCard() {
                     </li>
                 ))}
             </ul>
+        </div>
         </div>
     );
 }

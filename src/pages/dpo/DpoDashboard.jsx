@@ -9,13 +9,14 @@ import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
 import { DPIA_CHANGED } from "../../config/dpia.js";
 import { RISKS, STATUS, displayStatus } from "../../utils/dpia.js";
 import { PHASES } from "../../utils/executive.js";
+import { toDate, toTime } from "../../utils/audit.js";
 
 // DPO ka dashboard: review ka kaam pehle (kitni DPIA intezaar me hain), phir risk aur trend.
 const DAY = 86400000;
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
 const dateText = (d) => {
-    const t = d ? new Date(d) : null;
-    return t && !Number.isNaN(t.getTime()) ? t.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+    const t = toDate(d);
+    return t ? t.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
 };
 
 function Kpi({ label, value, icon, tone, note, i }) {
@@ -62,7 +63,7 @@ export default function DpoDashboard() {
     const m = useMemo(() => {
         const items = state.items;
         const by = (s) => items.filter((d) => displayStatus(d.status) === s);
-        const pending = by(STATUS.PENDING).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        const pending = by(STATUS.PENDING).sort((a, b) => toTime(a.createdAt) - toTime(b.createdAt));
         const now = Date.now();
         const months = [];
         for (let i = 5; i >= 0; i--) {
@@ -70,8 +71,8 @@ export default function DpoDashboard() {
             months.push({ label: d.toLocaleDateString("en-IN", { month: "short" }), start: d.getTime(), submitted: 0, decided: 0 });
         }
         items.forEach((d) => {
-            const t = new Date(d.createdAt).getTime();
-            const r = new Date(d.reviewedAt).getTime();
+            const t = toTime(d.createdAt) || NaN;
+            const r = toTime(d.reviewedAt) || NaN;
             for (let i = months.length - 1; i >= 0; i--) {
                 if (t >= months[i].start) {
                     months[i].submitted += 1;
@@ -87,8 +88,9 @@ export default function DpoDashboard() {
                 }
         });
         const risk = RISKS.map((r) => ({ label: `${r} risk`, value: items.filter((d) => String(d.residualRisk).toLowerCase() === r.toLowerCase()).length }));
-        const waitingDays = pending.map((d) => Math.max(0, Math.floor((now - new Date(d.createdAt).getTime()) / DAY))).filter((n) => Number.isFinite(n));
-        const reviewDue = items.filter((d) => d.nextReviewDate && new Date(d.nextReviewDate).getTime() - now < 30 * DAY);
+        // Jinki tareekh nahi pata, unhe "0 din" mat gino
+        const waitingDays = pending.map((d) => toTime(d.createdAt)).filter(Boolean).map((t) => Math.max(0, Math.floor((now - t) / DAY)));
+        const reviewDue = items.filter((d) => toTime(d.nextReviewDate) && toTime(d.nextReviewDate) - now < 30 * DAY);
         return {
             total: items.length,
             pending,
@@ -97,7 +99,7 @@ export default function DpoDashboard() {
             draft: by(STATUS.DRAFT).length,
             months,
             risk,
-            oldest: waitingDays.length ? Math.max(...waitingDays) : 0,
+            oldest: waitingDays.length ? Math.max(...waitingDays) : null,
             reviewDue,
         };
     }, [state.items]);
@@ -112,13 +114,6 @@ export default function DpoDashboard() {
                 greeting="Welcome"
                 name={first}
                 sub="Review risky data use before it starts."
-                status={
-                    state.loading || state.error
-                        ? null
-                        : m.pending.length
-                            ? { tone: "warn", label: `${m.pending.length} review${m.pending.length === 1 ? "" : "s"} waiting` }
-                            : { tone: "ok", label: "No reviews waiting" }
-                }
                 actions={
                     <>
                         <button
@@ -155,7 +150,7 @@ export default function DpoDashboard() {
                         <div className="pg-alert flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-warn/30 bg-warn-soft px-4 py-3 text-sm">
                             <span className="flex items-center gap-2.5 text-ink">
                                 <Icon name="alert" className="h-4 w-4 text-warn-ink" />
-                                {m.pending.length} DPIA{m.pending.length === 1 ? " is" : "s are"} waiting for your review. The oldest has waited {m.oldest} day{m.oldest === 1 ? "" : "s"}.
+                                {m.pending.length} DPIA{m.pending.length === 1 ? " is" : "s are"} waiting for your review.{m.oldest !== null ? ` The oldest has waited ${m.oldest} day${m.oldest === 1 ? "" : "s"}.` : ""}
                             </span>
                             <Link to={`/dpo/dpia/${encodeURIComponent(m.pending[0].id)}`} className="kd-btn py-1.5 text-xs">
                                 Review oldest <Icon name="arrowRight" className="h-3.5 w-3.5" />
@@ -164,7 +159,7 @@ export default function DpoDashboard() {
                     )}
 
                     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Key numbers">
-                        <Kpi i={1} label="Waiting for review" value={m.pending.length} icon="clock" tone="warn" note={m.pending.length ? `Oldest: ${m.oldest} days` : "Queue is clear"} />
+                        <Kpi i={1} label="Waiting for review" value={m.pending.length} icon="clock" tone="warn" note={m.pending.length ? (m.oldest !== null ? `Oldest: ${m.oldest} day${m.oldest === 1 ? "" : "s"}` : "Waiting for review") : "Queue is clear"} />
                         <Kpi i={2} label="Approved" value={m.approved} icon="check" tone="ok" note="Processing can start" />
                         <Kpi i={3} label="Needs changes" value={m.changes} icon="refresh" tone="info" note="Sent back to the team" />
                         <Kpi i={4} label="Due for re-review" value={m.reviewDue.length} icon="calendar" tone="bad" note={`${fmtNum(m.total)} DPIAs in total`} />
@@ -176,6 +171,7 @@ export default function DpoDashboard() {
                             <p className="kd-sub">All DPIAs by current status</p>
                             <div className="mt-4 flex flex-col items-center gap-5 sm:flex-row lg:flex-col xl:flex-row">
                                 <Donut
+                                    name="DPIA reviews"
                                     parts={[
                                         { label: "Approved", value: m.approved, color: C.ok },
                                         { label: "Waiting", value: m.pending.length, color: C.amber },
@@ -228,7 +224,8 @@ export default function DpoDashboard() {
                             {m.pending.length ? (
                                 <ul className="mt-4 space-y-2">
                                     {m.pending.slice(0, 6).map((d) => {
-                                        const days = Math.max(0, Math.floor((Date.now() - new Date(d.createdAt).getTime()) / DAY));
+                                        const created = toTime(d.createdAt);
+                                        const days = created ? Math.max(0, Math.floor((Date.now() - created) / DAY)) : null;
                                         return (
                                             <li key={d.id}>
                                                 <Link to={`/dpo/dpia/${encodeURIComponent(d.id)}`} className="flex items-center gap-3 rounded-xl border border-line p-3 hover:border-line-strong hover:bg-soft">
@@ -241,7 +238,7 @@ export default function DpoDashboard() {
                                                             {d.referenceId} · {d.residualRisk || "Risk not set"} · submitted {dateText(d.createdAt)}
                                                         </span>
                                                     </span>
-                                                    <span className={`kd-pill ${days > 14 ? "is-bad" : days > 7 ? "is-warn" : "is-muted"}`}>{days}d</span>
+                                                    {days !== null && <span className={`kd-pill ${days > 14 ? "is-bad" : days > 7 ? "is-warn" : "is-muted"}`}>{days}d</span>}
                                                 </Link>
                                             </li>
                                         );

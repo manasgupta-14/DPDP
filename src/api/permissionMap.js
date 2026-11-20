@@ -1,4 +1,4 @@
-// Backend ke [HasPermission] attributes ka map (PrivacyGuard backend se generate kiya).
+// Backend ke [HasPermission] attributes ka map (Kavach backend se generate kiya).
 // 403 aane par user ko saaf batate hain ki kaunsi permission chahiye.
 // Backend me permission badle to ye list bhi update karni hogi.
 

@@ -41,7 +41,11 @@ function Sidebar({ sections, footer, subtitle, onNavigate }) {
                                     </span>
                                 )}
                                 <span className="truncate">{item.label}</span>
-                                {item.badge > 0 && <span className="ml-auto rounded-full bg-bad px-1.5 text-[10px] font-bold text-white">{item.badge}</span>}
+                                {item.badge > 0 && (
+                                    <span className="kv-side-badge" aria-label={`${item.badge} new`} title={`${item.badge} new`}>
+                                        {item.badge > 99 ? "99+" : item.badge}
+                                    </span>
+                                )}
                             </NavLink>
                         ))}
                     </div>
@@ -181,7 +185,7 @@ export default function DashboardShell({
                                     </p>
                                 )}
                                 <div className="max-h-80 overflow-y-auto">
-                                    {bell.items.map((n) => {
+                                    {bell.items.map((n, ki) => {
                                         const inner = (
                                             <>
                                                 <p className="truncate text-sm font-semibold text-ink">{n.title}</p>
@@ -189,11 +193,11 @@ export default function DashboardShell({
                                             </>
                                         );
                                         return n.to ? (
-                                            <Link key={n.key || n.title} to={n.to} onClick={() => setBellOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-subtle">
+                                            <Link key={`${n.key || n.title}-${ki}`} to={n.to} onClick={() => setBellOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-subtle">
                                                 {inner}
                                             </Link>
                                         ) : (
-                                            <div key={n.key || n.title} className="rounded-lg px-3 py-2">
+                                            <div key={`${n.key || n.title}-${ki}`} className="rounded-lg px-3 py-2">
                                                 {inner}
                                             </div>
                                         );

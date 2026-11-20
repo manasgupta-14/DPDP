@@ -17,7 +17,7 @@ const byLabel = (a, b) => a.label.localeCompare(b.label);
 
 function ActionBadge({ action }) {
     const kind = actionKind(action);
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{humanizeAction(action) || "Unknown"}</span>;
+    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{humanizeAction(action) || "Not recorded"}</span>;
 }
 
 function OutcomeBadge({ outcome }) {

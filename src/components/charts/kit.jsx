@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 // Kavach chart kit: bina library ke SVG charts.
 // - Har chart screen par aate hi chalta hai (scroll) aur page refresh / "Refresh" button par dobara.
@@ -127,13 +128,57 @@ function curve(pts) {
     return d;
 }
 
+/* ------------------------------------------------------------------ Floating tooltip (cursor ke saath)
+   Ring, Donut, Gauge, HBars, Progress aur Sparkline ke liye. Wahi kc-tip style jo Area/Column chart me hai.
+   Portal se body me banta hai, isliye card ka overflow use kaat nahi sakta. */
+function TipBody({ title, rows }) {
+    return (
+        <>
+            {title && <p className="font-semibold text-ink">{title}</p>}
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+                    <span className="inline-flex items-center gap-1.5">
+                        <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
+                        {r.name}
+                    </span>
+                    <b className="tabular-nums text-ink">{r.display ?? fmtNum(r.value)}</b>
+                </p>
+            ))}
+        </>
+    );
+}
+
+export function useFloatTip() {
+    const [pos, setPos] = useState(null);
+    const bind = {
+        onMouseMove: (e) => setPos({ x: e.clientX, y: e.clientY }),
+        onMouseLeave: () => setPos(null),
+    };
+    const render = (content) => {
+        if (!pos || !content || typeof document === "undefined") return null;
+        const vw = window.innerWidth;
+        const left = pos.x + 190 > vw ? pos.x - 178 : pos.x + 14;
+        const top = Math.max(8, pos.y - 12);
+        return createPortal(
+            <div className="kc-tip kc-tip-float" style={{ position: "fixed", left, top, transform: "translateY(-100%)" }} role="tooltip">
+                <TipBody {...content} />
+            </div>,
+            document.body
+        );
+    };
+    return [bind, render];
+}
+
 /* ------------------------------------------------------------------ Ring (percentage) */
-export function Ring({ value, size = 132, stroke = 12, color = C.brand, children, label }) {
+export function Ring({ value, size = 132, stroke = 12, color = C.brand, children, label, name, tip, unit = "" }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
     const v = clamp(value);
     const r = (size - stroke) / 2;
+    const raw = value === null || value === undefined ? null : Number(value);
+    const content = tip || { title: name || label, rows: [{ name: "Score", value: raw, display: raw === null || Number.isNaN(raw) ? "No data" : `${fmtNum(raw)}${unit}`, color }] };
     return (
-        <div ref={ref} data-in={inView} className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label || `${v}%`}>
+        <div ref={ref} data-in={inView} className="kc-hov relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label || `${v}%`} {...bind}>
             <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full -rotate-90">
                 <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: C.track }} strokeWidth={stroke} />
                 <circle
@@ -151,19 +196,40 @@ export function Ring({ value, size = 132, stroke = 12, color = C.brand, children
                 />
             </svg>
             <div className="absolute inset-0 grid place-items-center text-center">{children}</div>
+            {renderTip(content)}
         </div>
     );
 }
 
 /* ------------------------------------------------------------------ Donut (kai hisse) */
-export function Donut({ parts, size = 168, stroke = 22, children, label }) {
+export function Donut({ parts, size = 168, stroke = 22, children, label, name }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
+    const [active, setActive] = useState(null);
     const total = parts.reduce((s, p) => s + (Number(p.value) || 0), 0);
+    const share = (v) => (total > 0 ? Math.round(((Number(v) || 0) / total) * 100) : 0);
+    const rowOf = (p) => ({ name: `${p.label} · ${share(p.value)}%`, value: p.value, color: p.color });
+    const content =
+        active !== null && parts[active]
+            ? { title: parts[active].label, rows: [{ name: `Share · ${share(parts[active].value)}%`, value: parts[active].value, color: parts[active].color }] }
+            : { title: name || (total > 0 ? `Total ${fmtNum(total)}` : "No records yet"), rows: parts.map(rowOf) };
     const r = (size - stroke) / 2;
     const gap = parts.filter((p) => p.value > 0).length > 1 ? 0.8 : 0;
     let start = 0;
     return (
-        <div ref={ref} data-in={inView} className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={label || parts.map((p) => `${p.label} ${p.value}`).join(", ")}>
+        <div
+            ref={ref}
+            data-in={inView}
+            className="kc-hov relative shrink-0"
+            style={{ width: size, height: size }}
+            role="img"
+            aria-label={label || parts.map((p) => `${p.label} ${p.value}`).join(", ")}
+            onMouseMove={bind.onMouseMove}
+            onMouseLeave={(e) => {
+                setActive(null);
+                bind.onMouseLeave(e);
+            }}
+        >
             <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full -rotate-90">
                 <circle cx={size / 2} cy={size / 2} r={r} fill="none" style={{ stroke: C.track }} strokeWidth={stroke} />
                 {total > 0 &&
@@ -171,7 +237,7 @@ export function Donut({ parts, size = 168, stroke = 22, children, label }) {
                         const len = (Number(p.value) / total) * 100;
                         const seg = (
                             <circle
-                                key={p.label}
+                                key={`${p.label}-${i}`}
                                 cx={size / 2}
                                 cy={size / 2}
                                 r={r}
@@ -180,35 +246,39 @@ export function Donut({ parts, size = 168, stroke = 22, children, label }) {
                                 pathLength="100"
                                 strokeDasharray={`${inView ? Math.max(len - gap, 0) : 0} 100`}
                                 strokeDashoffset={-start}
-                                style={{ stroke: p.color, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms` }}
-                            >
-                                <title>{`${p.label}: ${fmtNum(p.value)}`}</title>
-                            </circle>
+                                onMouseEnter={() => setActive(i)}
+                                onMouseLeave={() => setActive(null)}
+                                className="kc-seg"
+                                style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease` }}
+                            />
                         );
                         start += len;
                         return seg;
                     })}
             </svg>
-            <div className="absolute inset-0 grid place-items-center text-center">{children}</div>
+            <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">{children}</div>
+            {renderTip(content)}
         </div>
     );
 }
 
 /* ------------------------------------------------------------------ Semi gauge */
-export function Gauge({ value, size = 220, color = C.brand, children, label }) {
+export function Gauge({ value, size = 220, color = C.brand, children, label, name }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
     const v = clamp(value);
     const w = size;
     const h = size * 0.58;
     const r = w / 2 - 14;
     const d = `M14 ${h - 6} A${r} ${r} 0 0 1 ${w - 14} ${h - 6}`;
     return (
-        <div ref={ref} data-in={inView} className="relative" style={{ width: w, height: h }} role="img" aria-label={label || `${v} out of 100`}>
+        <div ref={ref} data-in={inView} className="kc-hov relative" style={{ width: w, height: h }} role="img" aria-label={label || `${v} out of 100`} {...bind}>
             <svg viewBox={`0 0 ${w} ${h}`} className="h-full w-full">
                 <path d={d} fill="none" style={{ stroke: C.track }} strokeWidth="16" strokeLinecap="round" />
                 <path className="kc-arc" d={d} fill="none" style={{ stroke: color }} strokeWidth="16" strokeLinecap="round" pathLength="100" strokeDasharray="100" strokeDashoffset={inView ? 100 - v : 100} />
             </svg>
             <div className="absolute inset-x-0 bottom-0 text-center">{children}</div>
+            {renderTip({ title: name || label || "Score", rows: [{ name: "Score", value: v, display: `${fmtNum(v)} / 100`, color }] })}
         </div>
     );
 }
@@ -219,13 +289,13 @@ function Tip({ x, width, title, rows }) {
     return (
         <div className="kc-tip" style={{ left, top: 4 }}>
             <p className="font-semibold text-ink">{title}</p>
-            {rows.map((r) => (
-                <p key={r.name} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
                     <span className="inline-flex items-center gap-1.5">
                         <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
                         {r.name}
                     </span>
-                    <b className="tabular-nums text-ink">{fmtNum(r.value)}</b>
+                    <b className="tabular-nums text-ink">{r.display ?? fmtNum(r.value)}</b>
                 </p>
             ))}
         </div>
@@ -263,14 +333,14 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                 <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
                     <defs>
                         {series.map((s, si) => (
-                            <linearGradient key={s.name} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient key={`${s.name}-${si}`} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0.28" />
                                 <stop offset="1" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0" />
                             </linearGradient>
                         ))}
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 4"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {yFormat(t)}
@@ -290,7 +360,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                         const line = curve(pts);
                         const color = s.color || SERIES[si];
                         return (
-                            <g key={s.name}>
+                            <g key={`${s.name}-${si}`}>
                                 {area && si === 0 && pts.length > 1 && <path className="kc-area" d={`${line}L${X(n - 1)},${Y(0)}L${X(0)},${Y(0)}Z`} fill={`url(#${uid}-${si})`} />}
                                 <path
                                     className="kc-line"
@@ -381,8 +451,8 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                             <stop offset="100%" stopColor="#fff" stopOpacity="0" />
                         </linearGradient>
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid kc-grid-soft" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 5"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {fmtNum(t)}
@@ -452,13 +522,33 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
 /* ------------------------------------------------------------------ Horizontal bars (list) */
 export function HBars({ rows, suffix = "", max, showValue = true }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
+    const [active, setActive] = useState(null);
     const top = max ?? Math.max(1, ...rows.map((r) => Number(r.value) || 0));
+    const sum = rows.reduce((s, r) => s + (Number(r.value) || 0), 0);
+    const ar = active !== null ? rows[active] : null;
+    const tipContent = ar && {
+        title: ar.label,
+        rows: [
+            { name: suffix === "%" || String(ar.display || "").endsWith("%") ? "Rate" : "Count", value: ar.value, display: ar.display ?? `${fmtNum(ar.value)}${suffix}`, color: ar.color || SERIES[active % SERIES.length] },
+            ...(ar.note ? [{ name: ar.note, value: 0, display: "", color: "transparent" }] : !suffix && sum > 0 && !ar.display ? [{ name: "Share of total", value: 0, display: `${Math.round(((Number(ar.value) || 0) / sum) * 100)}%`, color: "var(--k-faint)" }] : []),
+        ],
+    };
     return (
-        <ul ref={ref} data-in={inView} className="space-y-3.5">
+        <ul
+            ref={ref}
+            data-in={inView}
+            className="space-y-3.5"
+            onMouseMove={bind.onMouseMove}
+            onMouseLeave={(e) => {
+                setActive(null);
+                bind.onMouseLeave(e);
+            }}
+        >
             {rows.map((r, i) => {
                 const pct = top > 0 ? (Number(r.value) / top) * 100 : 0;
                 return (
-                    <li key={r.label}>
+                    <li key={`${r.label}-${i}`} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
                         <div className="flex items-baseline justify-between gap-3 text-sm">
                             <span className="truncate font-medium text-ink-2" title={r.label}>
                                 {r.label}
@@ -476,30 +566,55 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
                     </li>
                 );
             })}
+            {renderTip(tipContent)}
         </ul>
     );
 }
 
 /* ------------------------------------------------------------------ Single progress bar */
-export function Progress({ value, color = C.brand, height = 10, delay = 0 }) {
+export function Progress({ value, color = C.brand, height = 10, delay = 0, name, valueName = "Done" }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
     const v = clamp(value);
     return (
-        <div ref={ref} data-in={inView} className="w-full overflow-hidden rounded-full" style={{ height, background: C.track }} role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100}>
+        <div ref={ref} data-in={inView} className="kc-hov w-full overflow-hidden rounded-full" style={{ height, background: C.track }} role="progressbar" aria-valuenow={Math.round(v)} aria-valuemin={0} aria-valuemax={100} aria-label={name} {...bind}>
             <div className="kc-hbar h-full rounded-full" style={{ width: `${v}%`, background: color, "--d": `${delay}ms` }} />
+            {renderTip({ title: name, rows: [{ name: valueName, value: v, display: `${fmtNum(v)}%`, color }] })}
         </div>
     );
 }
 
 /* ------------------------------------------------------------------ Sparkline */
-export function Sparkline({ values, color = C.brand, width = 96, height = 32 }) {
+export function Sparkline({ values, color = C.brand, width = 96, height = 32, labels, name = "Value" }) {
     const [ref, inView] = useInView();
+    const [bind, renderTip] = useFloatTip();
+    const [idx, setIdx] = useState(null);
     if (!values || values.length < 2) return null;
     const max = Math.max(1, ...values);
     const pts = values.map((v, i) => ({ x: 2 + (i / (values.length - 1)) * (width - 4), y: height - 3 - (v / max) * (height - 6) }));
+    const onMove = (e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        const i = Math.round(((e.clientX - box.left) / box.width) * (values.length - 1));
+        setIdx(Math.max(0, Math.min(values.length - 1, i)));
+        bind.onMouseMove(e);
+    };
     return (
-        <svg ref={ref} data-in={inView} width={width} height={height} aria-hidden="true">
+        <svg
+            ref={ref}
+            data-in={inView}
+            width={width}
+            height={height}
+            aria-hidden="true"
+            className="kc-hov"
+            onMouseMove={onMove}
+            onMouseLeave={(e) => {
+                setIdx(null);
+                bind.onMouseLeave(e);
+            }}
+        >
             <path className="kc-line" d={curve(pts)} fill="none" style={{ stroke: color }} strokeWidth="2" strokeLinecap="round" pathLength="1" strokeDasharray="1" strokeDashoffset={inView ? 0 : 1} />
+            {idx !== null && <circle cx={pts[idx].x} cy={pts[idx].y} r="3" style={{ fill: "var(--k-surface)", stroke: color }} strokeWidth="2" />}
+            {idx !== null && renderTip({ title: labels?.[idx], rows: [{ name, value: values[idx], color }] })}
         </svg>
     );
 }
@@ -508,8 +623,8 @@ export function Sparkline({ values, color = C.brand, width = 96, height = 32 }) 
 export function Legend({ items }) {
     return (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-3">
-            {items.map((it) => (
-                <span key={it.label} className="inline-flex items-center gap-1.5">
+            {items.map((it, ki) => (
+                <span key={`${it.label}-${ki}`} className="inline-flex items-center gap-1.5">
                     <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: it.color }} />
                     {it.label}
                     {it.value !== undefined && <b className="tabular-nums text-ink">{fmtNum(it.value)}</b>}

@@ -6,11 +6,11 @@ const arr = (v) => (Array.isArray(v) ? v : Array.isArray(v?.$values) ? v.$values
 const pick = (o, key) => o?.[key] ?? o?.[key[0].toUpperCase() + key.slice(1)];
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-// Backend ka text "3 record(s)" / "policy/policies" / "PrivacyGuard" jaisa hai; dikhane se pehle saaf karte hain
+// Backend ka text "3 record(s)" / "policy/policies" / purana product naam jaisa hai; dikhane se pehle saaf karte hain
 // (sirf shabd sahi hote hain, ginti wahi rehti hai jo backend ne bheji).
 export function tidy(text) {
     return String(text || "")
-        .replace(/\bPrivacyGuard\b/g, "Kavach")
+        .replace(/\b(?:Privacy\s?Guard|PrivyGuard)\b/gi, "Kavach")
         .replace(/(\d+)([^\d;.,]*?)\bpolicy\/policies\b/g, (_, n, mid) => `${n}${mid}${Number(n) === 1 ? "policy" : "policies"}`)
         .replace(/(\d+)([^\d;.,]*?)\b([A-Za-z]+)\(s\)/g, (_, n, mid, w) => `${n}${mid}${w}${Number(n) === 1 ? "" : "s"}`);
 }
@@ -34,7 +34,7 @@ export function checklistStatus(raw) {
     if (s === "complete") return { key: "complete", label: "Complete", tone: "ok" };
     if (s === "needsattention") return { key: "attention", label: "Needs attention", tone: "warn" };
     if (s === "nottracked") return { key: "untracked", label: "Tracked outside Kavach", tone: "muted" };
-    return { key: "other", label: String(raw || "Unknown"), tone: "muted" };
+    return { key: "other", label: String(raw || "Not recorded"), tone: "muted" };
 }
 
 export function normalizeChecklist(raw) {

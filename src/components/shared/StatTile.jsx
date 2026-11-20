@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CountUp, useInView } from "../charts/kit.jsx";
+import { CountUp, fmtNum, useFloatTip, useInView } from "../charts/kit.jsx";
 import Icon from "./Icon.jsx";
 
 // Ek number wala card (har page ke summary me): bada number, chhota icon, halka rang aur
@@ -20,6 +20,10 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
     const [ref, inView] = useInView();
     const isNum = typeof value === "number" && Number.isFinite(value);
     const share = isNum && total > 0 ? Math.min(100, (value / total) * 100) : null;
+    const [bind, renderTip] = useFloatTip();
+    // Popup poore card par aata hai (sirf patli bar par nahi). Jab value hi total ho (jaise "9 of 9"), popup kuch naya nahi batata, isliye nahi dikhate.
+    const showTip = share !== null && value !== total;
+    const hover = showTip ? bind : {};
 
     const body = (
         <>
@@ -37,6 +41,7 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
                     <div className="kc-hbar h-full rounded-full" style={{ width: `${Math.max(share, value > 0 ? 3 : 0)}%`, background: t.bar }} />
                 </div>
             )}
+            {showTip && renderTip({ title: label, rows: [{ name: `${fmtNum(value)} of ${fmtNum(total)}`, value: share, display: `${Math.round(share)}%`, color: t.bar }] })}
             {hint && <p className="mt-2 text-xs text-muted">{hint}</p>}
         </>
     );
@@ -44,15 +49,19 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
     const cls = `kd-card kd-tile ${t.tint} block p-5 text-left ${pressed ? "is-pressed" : ""} ${className}`;
     if (to)
         return (
-            <Link to={to} className={cls}>
+            <Link to={to} className={cls} {...hover}>
                 {body}
             </Link>
         );
     if (onClick)
         return (
-            <button type="button" onClick={onClick} aria-pressed={pressed} className={`${cls} focus:outline-none focus-visible:ring-2 focus-visible:ring-focus`}>
+            <button type="button" onClick={onClick} aria-pressed={pressed} className={`${cls} focus:outline-none focus-visible:ring-2 focus-visible:ring-focus`} {...hover}>
                 {body}
             </button>
         );
-    return <div className={cls}>{body}</div>;
+    return (
+        <div className={cls} {...hover}>
+            {body}
+        </div>
+    );
 }

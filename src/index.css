@@ -1166,3 +1166,140 @@ html[data-theme="dark"] .kv-mark.is-no { color: #FCA5A5; background: rgba(239, 6
 /* Chhota text thoda bada (padhne layak) */
 .kv-public .text-xs { font-size: 0.8125rem; line-height: 1.15rem; }
 .kv-hub-text { font-size: 13px; }
+
+/* ---- v103: chart hover popups (sab charts me ek jaisa) ---- */
+.kc-tip { animation: kc-tip-in .16s ease-out; }
+.kc-tip-float { z-index: 9999; min-width: 150px; max-width: 240px; white-space: normal; }
+.kc-tip p { line-height: 1.35; }
+@keyframes kc-tip-in { from { opacity: 0; } to { opacity: 1; } }
+.kc-hov { cursor: default; }
+.kc-seg { cursor: pointer; }
+.kc-hrow { border-radius: 10px; margin-inline: -6px; padding: 4px 6px; transition: background-color .18s ease; }
+.kc-hrow[data-active] { background: var(--k-subtle); }
+
+/* ---- v103: home hub — tairta card, mouse par tilt, naam animation ---- */
+.kv-hub-float { perspective: 1200px; animation: kv-hub-float 6.5s ease-in-out infinite; will-change: transform; }
+@keyframes kv-hub-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.kv-hub-tilt { --rx: 0deg; --ry: 0deg; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform .6s cubic-bezier(.22,1,.36,1), box-shadow .4s ease; }
+.kv-hub-tilt[data-tilt] { transition: transform .12s ease-out, box-shadow .4s ease; box-shadow: 0 1px 2px rgba(15,23,42,.05), 0 14px 30px -10px rgba(15,23,42,.14), 0 44px 80px -30px rgba(76,61,200,.45); }
+.kv-hub-glare { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .4s ease;
+  background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 0%), rgba(255,255,255,.55), transparent 55%); mix-blend-mode: soft-light; z-index: 1; }
+.kv-hub-tilt[data-tilt] .kv-hub-glare { opacity: 1; }
+html[data-theme="dark"] .kv-hub-glare { background: radial-gradient(420px circle at var(--gx, 50%) var(--gy, 0%), rgba(140,160,255,.16), transparent 55%); mix-blend-mode: normal; }
+html[data-theme="dark"] .kv-hub-tilt[data-tilt] { box-shadow: 0 40px 80px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.08); }
+
+.kv-hub-name-anim { min-height: 1.35em; white-space: nowrap; }
+.kv-name-word { display: inline-flex; }
+.kv-name-word[lang="hi"] { font-size: 1.12em; line-height: 1.1; font-family: "Noto Sans Devanagari", "Mangal", "Nirmala UI", var(--font-display), sans-serif; letter-spacing: 0; }
+.kv-name-ch { display: inline-block; opacity: 0; transform: translateY(.45em); filter: blur(4px);
+  background: linear-gradient(100deg, #3B6BF5, #7C5CFC 55%, #EC4899); -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: kv-name-in .55s cubic-bezier(.22,1,.36,1) calc(var(--k) * 70ms) forwards; }
+@keyframes kv-name-in { to { opacity: 1; transform: none; filter: blur(0); } }
+html[data-theme="dark"] .kv-name-ch { background-image: linear-gradient(100deg, #7DD3FC, #A78BFA 55%, #F9A8D4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .kv-hub-float { animation: none; }
+  .kv-name-ch { opacity: 1; transform: none; filter: none; animation: none; }
+}
+
+/* ---- v104: inventory processor tags — andar wala input saada rahe (bahar ka box hi field hai) ---- */
+.kv-tag-input, html[data-theme="dark"] .kv-tag-input { background: transparent !important; border: 0 !important; box-shadow: none !important; padding: 0 !important; min-height: 1.6rem; outline: none !important; border-radius: 0 !important; }
+.kv-tag-box:focus-within { border-color: var(--k-brand) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-brand) 18%, transparent) !important; }
+
+/* ---- v105: Rules & Acts library ---- */
+.kv-rule-cat { display: inline-flex; align-items: center; border-radius: 999px; padding: .2rem .6rem; font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  --c: #4F5BD5; color: color-mix(in srgb, var(--c) 82%, var(--k-ink)); background: color-mix(in srgb, var(--c) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 22%, transparent); }
+[data-tone="indigo"] { --c: #4F5BD5; } [data-tone="violet"] { --c: #8B5CF6; } [data-tone="teal"] { --c: #0D9488; }
+[data-tone="amber"] { --c: #D97706; } [data-tone="slate"] { --c: #64748B; }
+.kv-rule-card { --c: #4F5BD5; position: relative; display: flex; height: 100%; min-height: 176px; width: 100%; flex-direction: column; text-align: left; border-radius: 18px; padding: 1.1rem 1.15rem 1rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 7%, var(--k-surface)) 0%, var(--k-surface) 55%);
+  border: 1px solid color-mix(in srgb, var(--c) 18%, var(--k-line)); box-shadow: var(--k-shadow-sm);
+  transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, border-color .25s ease; overflow: hidden; }
+.kv-rule-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: linear-gradient(180deg, var(--c), color-mix(in srgb, var(--c) 30%, transparent)); }
+.kv-rule-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--c) 40%, var(--k-line)); box-shadow: 0 18px 36px -18px color-mix(in srgb, var(--c) 45%, transparent); }
+.kv-rule-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--k-brand) 40%, transparent); outline-offset: 2px; }
+.kv-rule-linkdot { display: grid; place-items: center; height: 26px; width: 26px; border-radius: 9px; color: var(--k-ok-ink); background: var(--k-ok-soft); }
+.kv-rule-chip { --c: var(--k-brand); display: inline-flex; align-items: center; gap: .4rem; border-radius: 999px; padding: .35rem .8rem; font-size: 13px; font-weight: 600; color: var(--k-ink-2);
+  border: 1px solid var(--k-line); background: var(--k-surface); transition: all .18s ease; }
+.kv-rule-chip span { font-size: 11px; font-weight: 700; color: var(--k-muted); }
+.kv-rule-chip:hover { border-color: color-mix(in srgb, var(--c) 40%, var(--k-line)); }
+.kv-rule-chip[aria-pressed="true"] { color: color-mix(in srgb, var(--c) 85%, var(--k-ink)); background: color-mix(in srgb, var(--c) 12%, var(--k-surface)); border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+.kv-rule-chip[aria-pressed="true"] span { color: inherit; }
+.kv-rule-doc { display: flex; align-items: center; gap: .85rem; border-radius: 14px; padding: .8rem 1rem; border: 1px solid var(--k-line); background: var(--k-soft); transition: border-color .2s ease, transform .2s ease; }
+.kv-rule-doc:hover { border-color: var(--k-brand); transform: translateY(-1px); }
+html[data-theme="dark"] .kv-rule-card { background: linear-gradient(160deg, color-mix(in srgb, var(--c) 16%, #12121C) 0%, #12121C 60%); border-color: color-mix(in srgb, var(--c) 28%, rgba(255,255,255,.08)); }
+html[data-theme="dark"] .kv-rule-cat { color: color-mix(in srgb, var(--c) 55%, #fff); background: color-mix(in srgb, var(--c) 22%, transparent); }
+
+/* ---- v105: sidebar ka apna gradient (dashboard cards se alag: upar halka indigo, beech lavender, neeche mint) ---- */
+html:not([data-theme="dark"]) .kv-side {
+  background:
+    radial-gradient(120% 40% at 0% 0%, rgba(99, 102, 241, 0.16), transparent 60%),
+    radial-gradient(90% 35% at 100% 55%, rgba(236, 72, 153, 0.08), transparent 65%),
+    radial-gradient(110% 40% at 20% 100%, rgba(16, 185, 129, 0.13), transparent 60%),
+    linear-gradient(180deg, rgba(240, 242, 255, 0.94) 0%, rgba(248, 245, 255, 0.92) 50%, rgba(240, 253, 248, 0.92) 100%);
+  border-color: rgba(255, 255, 255, 0.95);
+}
+html:not([data-theme="dark"]) .kv-side .kv-side-link.is-active { background: rgba(255, 255, 255, 0.92); }
+html[data-theme="dark"] .kv-side {
+  background:
+    radial-gradient(120% 40% at 0% 0%, rgba(99, 102, 241, 0.26), transparent 60%),
+    radial-gradient(110% 40% at 20% 100%, rgba(20, 184, 166, 0.16), transparent 60%),
+    linear-gradient(180deg, rgba(22, 22, 40, 0.92) 0%, rgba(14, 14, 24, 0.92) 55%, rgba(12, 20, 22, 0.92) 100%);
+}
+/* Rules library card button ke andar user ka text hai: Title Case nahi (sirf category pill aur "View" waise hi) */
+.pg-dash main button.kv-rule-card, .pg-dash main button.kv-rule-card * { text-transform: none !important; }
+[role="dialog"] h2.kv-keep, .kv-rule-doc * { text-transform: none !important; }
+
+/* ---- v106: hover par kuch na hile ----
+   Pehle cards / tables / buttons mouse aane par 1-4px upar uthte the. Mouse kinaare par ho to element mouse ke neeche se
+   khisak jaata, hover hat jaata, wapas aata... aur card kaanpta (jitter) tha. Ab hover par sirf border, shadow aur chamak
+   badalti hai; jagah nahi badalti. Card ke andar ke chhote icons ka halka uthna theek hai (wo hover ki jagah nahi badalte). */
+.pg-dash main :where(div, section, article, li, form, aside, details).pg-surface:hover,
+.pg-dash main :where(div, section, article, li, form, aside, details)[class*="rounded"][class*="border"][class*="bg-surface"]:not([class*="bg-surface/"]):hover,
+.pg-card:hover, .kd-card:hover, .kd-tile-tint:hover { translate: none !important; }
+.kv-rule-card:hover, .kv-rule-doc:hover, .kv-cta-main:hover, .kv-cta-soft:hover,
+.kv-hub-card:hover, .kv-hub-card:focus-visible { transform: none !important; }
+/* Home hub: mouse card par ho to tairna ruk jaaye, warna tilt ke saath card mouse ke neeche se khisakta hai */
+.kv-hub-float:hover { animation-play-state: paused; }
+
+/* ---- Performance (Lighthouse) ----
+   Glass cards ka bg pehle se ~95% opaque hai, isliye backdrop-filter blur dikhta bhi nahi par har card ke liye GPU ka bhaari kaam hai.
+   App (dashboard) me blur hata diya: look wahi, scroll aur paint halka. Modal ka blur waise hi rehta hai. */
+html[data-area="app"] .pg-dash main *,
+html[data-area="app"] .kd-card,
+html[data-area="app"] .kv-hero {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Chhoti screen / touch: sidebar, topbar bhi bina blur; floating orbs band (chalti animation ka kharch) */
+@media (max-width: 1023px), (pointer: coarse) {
+  .kv-side, .kv-topbar, .kd-card, .kv-hero, .pg-dash main * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .kv-orbs { display: none; }
+  .pg-dash main > * { animation: none; }
+}
+/* Sidebar notification badge (naye items ka count) */
+.kv-side-badge {
+  margin-left: auto; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1; color: #fff;
+  background: var(--k-bad); box-shadow: 0 4px 10px -4px var(--k-bad);
+  animation: pg-badge-pop 0.4s ease-out both; font-variant-numeric: tabular-nums;
+}
+.kv-side-badge::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--k-bad); opacity: 0.5;
+  animation: kv-badge-ping 2s ease-out infinite; z-index: -1;
+}
+.kv-side-badge { position: relative; isolation: isolate; }
+@keyframes kv-badge-ping { 0% { transform: scale(1); opacity: 0.5; } 70%, 100% { transform: scale(1.7); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .kv-side-badge, .kv-side-badge::after { animation: none; } }
+/* "New" tag: naye (abhi tak na khole gaye) card/row par */
+.kv-new-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.4; color: #fff;
+  background: linear-gradient(135deg, var(--k-brand), var(--k-bad)); box-shadow: 0 2px 8px -3px var(--k-bad);
+  animation: pg-badge-pop 0.4s ease-out both;
+}
+.kv-new-tag::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+@media (prefers-reduced-motion: reduce) { .kv-new-tag { animation: none; } }

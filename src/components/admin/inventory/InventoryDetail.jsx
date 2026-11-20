@@ -3,7 +3,7 @@ import { deleteDataInventory, getDataInventoryItem, updateDataInventory } from "
 import Alert from "../../shared/Alert.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { formatDate } from "../../../utils/breach.js";
-import { retentionText } from "../../../utils/inventory.js";
+import { basisLabel, isMinor, principalLabel, retentionText } from "../../../utils/inventory.js";
 import InventoryForm from "./InventoryForm.jsx";
 
 function Row({ label, children, wide }) {
@@ -86,6 +86,8 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
             </div>
 
             {notice && <Alert tone="success">{notice}</Alert>}
+            {isMinor(item.principalCategory) && <Alert tone="warning">This is children's data. Get verifiable consent from a parent or guardian, and do not use it for tracking or targeted ads (Section 9).</Alert>}
+            {!loading && (!item.lawfulBasis || !item.principalCategory) && <Alert tone="info">Lawful basis or whose data is not recorded yet. Use Edit to add them.</Alert>}
             {loadError && (
                 <Alert tone="info" action={<button type="button" onClick={() => { setLoading(true); fetchFresh(); }} className="shrink-0 font-semibold underline">Retry</button>}>
                     Could not load the latest copy ({loadError}) Showing the data from the list.
@@ -97,6 +99,19 @@ export default function InventoryDetail({ listItem, startEditing = false, onClos
                 <Row label="Source">{item.source}</Row>
                 <Row label="Storage">{item.storage}</Row>
                 <Row label="Retention">{item.retentionDays ? retentionText(item.retentionDays) : ""}</Row>
+                <Row label="Lawful basis">{basisLabel(item.lawfulBasis)}</Row>
+                <Row label="Whose data">{principalLabel(item.principalCategory)}</Row>
+                <Row label="Shared with processors" wide>
+                    {item.processors?.length ? (
+                        <span className="flex flex-wrap gap-1.5">
+                            {item.processors.map((p) => (
+                                <span key={p} className="inline-flex rounded-lg bg-brand-soft px-2 py-0.5 text-xs font-semibold text-brand-ink ring-1 ring-brand/20">{p}</span>
+                            ))}
+                        </span>
+                    ) : (
+                        <span className="text-faint">Not shared with any vendor</span>
+                    )}
+                </Row>
                 <Row label="Added">{item.createdAt ? formatDate(item.createdAt) : ""}</Row>
                 {item.updatedAt && <Row label="Last updated">{formatDate(item.updatedAt)}</Row>}
             </dl>
