@@ -1,7 +1,9 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { permissionMessage } from "./permissionMap.js";
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+// Backend ka base URL: .env / Vercel ke VITE_API_BASE_URL se (aakhri "/" hata diya jata hai).
+// Khaali ho to relative "/api/..." jata hai (dev me Vite proxy, ya Vercel rewrite).
+export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
 const TIMEOUT_MS = 15000;
 
 // Backend ka naya standard wrapper: { success, message, data }.

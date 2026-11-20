@@ -3,8 +3,10 @@ import { Link, useOutletContext } from "react-router-dom";
 import { getPrivacyRequests } from "../../api/privacyRequest.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
+import NewTag from "../../components/shared/NewTag.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
+import { useNewItems } from "../../utils/newItems.js";
 import { REQUEST_TYPES, STATUSES, dateText, dueInfo, shortId, statusLabel } from "../../utils/privacyRequest.js";
 
 const PAGE_SIZE = 10;
@@ -26,6 +28,7 @@ function Deadline({ r }) {
 }
 
 export default function PrivacyRequests() {
+    const { isNew } = useNewItems();
     const { query } = useOutletContext() || { query: "" };
     const [search, setSearch] = useState("");
     const [status, setStatus] = useState("");
@@ -158,7 +161,7 @@ export default function PrivacyRequests() {
                                     <td className="px-4 py-3.5">
                                         <Link to={`/dashboard/rights-requests/${encodeURIComponent(r.id)}`} className="font-mono text-xs font-semibold text-brand-ink hover:underline" title={r.id}>{r.referenceId || shortId(r.id)}</Link>
                                     </td>
-                                    <td className="px-4 py-3.5 font-medium text-ink">{r.type || "-"}</td>
+                                    <td className="px-4 py-3.5 font-medium text-ink"><NewTag show={isNew("rights", r.id)} className="mr-2 align-middle" />{r.type || "-"}</td>
                                     <td className="px-4 py-3.5">
                                         <span className="font-medium text-ink" title="Name is masked">{r.principalName || shortId(r.principalId)}</span>
                                     </td>

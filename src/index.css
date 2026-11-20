@@ -1261,3 +1261,45 @@ html[data-theme="dark"] .kv-side {
 .kv-hub-card:hover, .kv-hub-card:focus-visible { transform: none !important; }
 /* Home hub: mouse card par ho to tairna ruk jaaye, warna tilt ke saath card mouse ke neeche se khisakta hai */
 .kv-hub-float:hover { animation-play-state: paused; }
+
+/* ---- Performance (Lighthouse) ----
+   Glass cards ka bg pehle se ~95% opaque hai, isliye backdrop-filter blur dikhta bhi nahi par har card ke liye GPU ka bhaari kaam hai.
+   App (dashboard) me blur hata diya: look wahi, scroll aur paint halka. Modal ka blur waise hi rehta hai. */
+html[data-area="app"] .pg-dash main *,
+html[data-area="app"] .kd-card,
+html[data-area="app"] .kv-hero {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+/* Chhoti screen / touch: sidebar, topbar bhi bina blur; floating orbs band (chalti animation ka kharch) */
+@media (max-width: 1023px), (pointer: coarse) {
+  .kv-side, .kv-topbar, .kd-card, .kv-hero, .pg-dash main * {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .kv-orbs { display: none; }
+  .pg-dash main > * { animation: none; }
+}
+/* Sidebar notification badge (naye items ka count) */
+.kv-side-badge {
+  margin-left: auto; display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 999px; font-size: 10.5px; font-weight: 700; line-height: 1; color: #fff;
+  background: var(--k-bad); box-shadow: 0 4px 10px -4px var(--k-bad);
+  animation: pg-badge-pop 0.4s ease-out both; font-variant-numeric: tabular-nums;
+}
+.kv-side-badge::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--k-bad); opacity: 0.5;
+  animation: kv-badge-ping 2s ease-out infinite; z-index: -1;
+}
+.kv-side-badge { position: relative; isolation: isolate; }
+@keyframes kv-badge-ping { 0% { transform: scale(1); opacity: 0.5; } 70%, 100% { transform: scale(1.7); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .kv-side-badge, .kv-side-badge::after { animation: none; } }
+/* "New" tag: naye (abhi tak na khole gaye) card/row par */
+.kv-new-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.4; color: #fff;
+  background: linear-gradient(135deg, var(--k-brand), var(--k-bad)); box-shadow: 0 2px 8px -3px var(--k-bad);
+  animation: pg-badge-pop 0.4s ease-out both;
+}
+.kv-new-tag::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: #fff; }
+@media (prefers-reduced-motion: reduce) { .kv-new-tag { animation: none; } }

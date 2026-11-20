@@ -1,9 +1,8 @@
-import { apiFetch } from "./client.js";
+import { BASE_URL, apiFetch } from "./client.js";
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { asArray } from "../utils/breach.js";
 
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const pick = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
     return null;
@@ -96,7 +95,7 @@ export async function downloadReport(jobId, job = null) {
             headers: { Authorization: token ? `Bearer ${token}` : "", Accept: "application/pdf, text/csv, application/json" },
         });
     } catch {
-        return { ok: false, error: "Cannot reach the server. Make sure the backend is running on https://localhost:7139." };
+        return { ok: false, error: "Cannot reach the server. Make sure the backend is running and VITE_API_BASE_URL points to it." };
     }
 
     if (!res.ok) {

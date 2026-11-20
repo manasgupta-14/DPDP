@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAllGrievances } from "../../api/grievance.js";
 import Alert from "../../components/shared/Alert.jsx";
+import NewTag from "../../components/shared/NewTag.jsx";
+import { useNewItems } from "../../utils/newItems.js";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
 import { formatDate, severityTone, timeOf } from "../../utils/breach.js";
 import { SEVERITIES, STATUSES, grievanceStatusToneLight } from "../../utils/grievance.js";
@@ -11,6 +13,7 @@ const PAGE_SIZE = 10;
 const pill = "inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ring-1";
 
 export default function GrievanceList() {
+    const { isNew } = useNewItems();
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -126,7 +129,7 @@ export default function GrievanceList() {
                                             {r.id ? <Link to={`/dashboard/grievances/${r.id}`} className="font-semibold text-brand-ink hover:underline">{r.referenceId}</Link> : r.referenceId}
                                         </td>
                                         <td className="max-w-[300px] px-3 py-3">
-                                            <p className="font-medium text-ink">{r.subject}</p>
+                                            <p className="font-medium text-ink"><NewTag show={isNew("grievance", r.id)} className="mr-2 align-middle" />{r.subject}</p>
                                             <p className="text-xs text-muted">{r.category}</p>
                                         </td>
                                         <td className="whitespace-nowrap px-3 py-3 font-mono text-xs text-ink-2">{r.raisedBy || "-"}</td>
