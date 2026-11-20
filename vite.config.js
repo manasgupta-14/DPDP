@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
@@ -7,18 +8,45 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+
   build: {
     target: "es2020",
     cssCodeSplit: true,
-    // React + router alag chunk me: browser cache me rehte hain, har release par dobara download nahi hote
+
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ["react", "react-dom", "react-router-dom"],
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            // React and React DOM
+            if (
+              id.includes("/react/") ||
+              id.includes("/react-dom/") ||
+              id.includes("/scheduler/")
+            ) {
+              return "react-vendor";
+            }
+
+            // React Router
+            if (
+              id.includes("react-router") ||
+              id.includes("@remix-run")
+            ) {
+              return "router-vendor";
+            }
+
+            // Lucide Icons
+            if (id.includes("lucide-react")) {
+              return "icons";
+            }
+
+            // Remaining dependencies
+            return "vendor";
+          }
         },
       },
     },
   },
+
   server: {
     proxy: {
       "/api": {
