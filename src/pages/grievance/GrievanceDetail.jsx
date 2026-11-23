@@ -180,7 +180,7 @@ export default function GrievanceDetail() {
                                         <li key={i} className={`rounded-xl border p-3 text-sm ${tone}`}>
                                             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                                                 <span className="flex items-center gap-2">
-                                                    <span className="font-semibold text-ink-2">{fromUser ? "Data Principal" : "Support team"}</span>
+                                                    <span className="font-semibold text-ink-2">{fromUser ? (ticket.raisedBy ? `Data Principal (${ticket.raisedBy})` : "Data Principal") : canManage ? "You" : "Support team"}</span>
                                                     {m.isInternal && <span className="rounded bg-warn/20 px-1.5 py-0.5 text-[10px] font-semibold text-ink">Internal note</span>}
                                                 </span>
                                                 <span>{formatDate(m.createdAt)}</span>

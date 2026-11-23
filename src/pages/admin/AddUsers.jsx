@@ -3,7 +3,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { getRoleOptions } from "../../api/roles.js";
-import { ADMIN_REGISTER_ENABLED } from "../../auth/authStore.js";
 import { usePermissions } from "../../auth/usePermissions.js";
 import EditUserModal from "../../components/admin/users/EditUserModal.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -139,11 +138,6 @@ export default function AddUsers() {
                     <p className="mt-1.5 text-[15px] text-ink-3">Add employees to your organisation&apos;s Kavach workspace and manage their access.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                    {ADMIN_REGISTER_ENABLED && (
-                        <Link to="/admin/register" className="inline-flex items-center gap-2 rounded-xl border border-brand/30 bg-surface px-4 py-2.5 text-sm font-semibold text-brand-ink transition hover:bg-brand-soft">
-                            <Icon name="adduser" className="h-4 w-4" /> Register new admin
-                        </Link>
-                    )}
                     <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         <Icon name="adduser" className="h-4 w-4" /> Add user
                     </button>

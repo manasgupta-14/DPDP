@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { getSession, homePath, isAdmin, roleInfo } from "../../auth/authStore.js";
+import { ADMIN_REGISTER_ENABLED, getSession, homePath, isAdmin, roleInfo } from "../../auth/authStore.js";
 import { CountUp, useInView } from "../../components/charts/kit.jsx";
 import { Logo } from "../../components/shared/Brand.jsx";
 import { CAPABILITIES, COMPARE_ROWS, ECOSYSTEM, FAQ, FEATURES, ICONS, MILESTONES, ROTATING_WORDS, STATS, STEPS } from "../../components/public/home/data.js";
@@ -204,6 +204,12 @@ function Hero() {
                             {c.label}
                             <Glyph name="arrow" className="h-4 w-4" />
                         </Link>
+                        {ADMIN_REGISTER_ENABLED && (
+                            <Link to="/admin/register" className="kv-cta-soft inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold">
+                                Get started
+                                <Glyph name="arrow" className="h-4 w-4" />
+                            </Link>
+                        )}
                         <a href="/#how" className="kv-cta-soft inline-flex items-center gap-2.5 rounded-full py-2.5 pl-2.5 pr-5 text-sm font-semibold">
                             <span className="play" aria-hidden="true">
                                 <svg viewBox="0 0 24 24" className="h-3 w-3" fill="currentColor">

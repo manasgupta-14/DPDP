@@ -10,7 +10,9 @@ export function installSpotlight() {
     let queued = false;
     const apply = () => {
         queued = false;
-        const el = ev?.target?.closest?.(SEL);
+        // Light mode: cursor ke saath koi rang nahi (sirf dark mode me glow)
+        const dark = document.documentElement.dataset.theme === "dark";
+        const el = dark ? ev?.target?.closest?.(SEL) : null;
         if (last && last !== el) {
             last.style.removeProperty("--mx");
             last.style.removeProperty("--my");

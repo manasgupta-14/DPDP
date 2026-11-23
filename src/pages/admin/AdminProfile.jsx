@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import { ADMIN_REGISTER_ENABLED, logout, roleInfo } from "../../auth/authStore.js";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { logout, roleInfo } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
+import { ghostBtn, panel } from "../../components/shared/ui.js";
 
 // Profile page: Admin, DPO aur User teeno ke liye ek hi page. Title aur label login ke role se aate hain.
 const fmt = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
@@ -81,12 +81,6 @@ export default function AdminProfile() {
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {ADMIN_REGISTER_ENABLED && info.key === "admin" && (
-                            <Link to="/admin/register" className={primaryBtn}>
-                                <Icon name="plus" className="h-4 w-4" />
-                                Register new admin
-                            </Link>
-                        )}
                         <button type="button" onClick={onLogout} className={`${ghostBtn} hover:border-bad/50 hover:text-bad-ink`}>
                             <Icon name="logout" className="h-4 w-4" />
                             Logout

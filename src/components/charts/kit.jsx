@@ -3,22 +3,22 @@ import { createPortal } from "react-dom";
 
 // Kavach chart kit: bina library ke SVG charts.
 // - Har chart screen par aate hi chalta hai (scroll) aur page refresh / "Refresh" button par dobara.
-// - Rang CSS variables (index.css) se, isliye light aur dark dono me saaf dikhte hain.
+// - Rang CSS variables (styles/pro.css --kc-*) se: halke, saaf rang, light aur dark dono me.
 
 export const C = {
-    brand: "var(--k-c1)",
-    teal: "var(--k-c2)",
-    amber: "var(--k-c3)",
-    red: "var(--k-c4)",
-    violet: "var(--k-c5)",
-    sky: "var(--k-c6)",
-    pink: "var(--k-c7)",
-    lime: "var(--k-c8)",
-    indigo: "var(--k-c9)",
-    orange: "var(--k-c10)",
-    ok: "var(--k-ok)",
-    warn: "var(--k-warn)",
-    bad: "var(--k-bad)",
+    brand: "var(--kc-1)",
+    teal: "var(--kc-2)",
+    amber: "var(--kc-3)",
+    red: "var(--kc-4)",
+    violet: "var(--kc-5)",
+    sky: "var(--kc-6)",
+    pink: "var(--kc-7)",
+    lime: "var(--kc-8)",
+    indigo: "var(--kc-9)",
+    orange: "var(--kc-10)",
+    ok: "var(--kc-ok)",
+    warn: "var(--kc-warn)",
+    bad: "var(--kc-bad)",
     track: "var(--k-track)",
     muted: "var(--k-faint)",
 };
@@ -242,14 +242,14 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
                                 cy={size / 2}
                                 r={r}
                                 fill="none"
-                                strokeWidth={stroke}
+                                strokeWidth={active === i ? stroke + 4 : stroke}
                                 pathLength="100"
                                 strokeDasharray={`${inView ? Math.max(len - gap, 0) : 0} 100`}
                                 strokeDashoffset={-start}
                                 onMouseEnter={() => setActive(i)}
                                 onMouseLeave={() => setActive(null)}
                                 className="kc-seg"
-                                style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease` }}
+                                style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease, stroke-width .2s ease` }}
                             />
                         );
                         start += len;
@@ -329,7 +329,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
 
     return (
         <div ref={wrapRef} className="relative w-full">
-            <div ref={ref} data-in={inView}>
+            <div ref={ref} data-in={inView} className="kc-stage">
                 <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
                     <defs>
                         {series.map((s, si) => (
@@ -376,6 +376,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                                 {pts.map((p, i) => (
                                     <circle key={i} className="kc-dot" cx={p.x} cy={p.y} r={hover === i ? 5 : 3} style={{ fill: "var(--k-surface)", stroke: color, "--d": `${700 + i * 40}ms` }} strokeWidth="2" />
                                 ))}
+                                {pts.length > 1 && <circle className="kc-pulse" cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="5" style={{ stroke: color }} />}
                             </g>
                         );
                     })}
@@ -388,17 +389,17 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
 }
 
 /* ------------------------------------------------------------------ Column (bar) chart */
-/** Premium 3D gradient bar palette: blue, violet, teal, amber, green (ek-series chart me har bar alag rang) */
+/** Bar palette (ek-series chart me har bar alag rang) */
 export const BAR3D = [C.brand, C.violet, C.teal, C.amber, C.pink, C.lime, C.orange, C.sky];
 
-// Premium 3D gradient vertical bars: gol upar ke kone, halki chamak + saaya, upar % label,
-// bahut halki grid, hover par tooltip, aur neeche se smooth animated growth.
+// Saaf 2D vertical bars: gol upar ke kone, ek hi rang ka halka gradient, peeche halka track, upar % label,
+// hover par baaki bars dheemi + tooltip, aur neeche se smooth animated growth.
 // barColors: ek-series chart me har bar ka apna rang. percent: "series" (us series ke total ka %) ya "group" (us column ke total ka %).
 export function ColumnChart({ labels, series, height = 230, stacked = false, ariaLabel, barColors, percent }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
     const [hover, setHover] = useState(null);
-    const uid = useRef(`b3${Math.random().toString(36).slice(2, 8)}`).current;
+    const uid = useRef(`bf${Math.random().toString(36).slice(2, 8)}`).current;
     const m = { t: 26, r: 8, b: 30, l: 40 };
     const w = width - m.l - m.r;
     const h = height - m.t - m.b;
@@ -425,31 +426,20 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
 
     return (
         <div ref={wrapRef} className="relative w-full">
-            <div ref={ref} data-in={inView}>
-                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)} className="kc-3d">
+            <div ref={ref} data-in={inView} className="kc-stage">
+                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)} className="kc-flat">
                     <defs>
                         {labels.map((_, i) =>
                             series.map((s, si) => {
                                 const c = colorOf(si, i);
                                 return (
                                     <linearGradient key={`${i}-${si}`} id={`${uid}-g${i}-${si}`} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={`color-mix(in srgb, ${c} 55%, white)`} style={{ stopColor: `color-mix(in srgb, ${c} 55%, white)` }} />
-                                        <stop offset="55%" stopColor={c} style={{ stopColor: c }} />
-                                        <stop offset="100%" stopColor={`color-mix(in srgb, ${c} 82%, black)`} style={{ stopColor: `color-mix(in srgb, ${c} 82%, black)` }} />
+                                        <stop offset="0%" style={{ stopColor: c }} />
+                                        <stop offset="100%" style={{ stopColor: `color-mix(in srgb, ${c} 68%, var(--k-surface))` }} />
                                     </linearGradient>
                                 );
                             })
                         )}
-                        <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#fff" stopOpacity=".45" />
-                            <stop offset="30%" stopColor="#fff" stopOpacity=".1" />
-                            <stop offset="58%" stopColor="#fff" stopOpacity="0" />
-                            <stop offset="100%" stopColor="#000" stopOpacity=".2" />
-                        </linearGradient>
-                        <linearGradient id={`${uid}-shine`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#fff" stopOpacity=".75" />
-                            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-                        </linearGradient>
                     </defs>
                     {ticks.map((t, ki) => (
                         <g key={`${t}-${ki}`}>
@@ -478,10 +468,11 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                                     const delay = `${i * 80 + si * 60}ms`;
                                     return (
                                         <g key={s.name + si}>
-                                            <g className="kc-bar" style={{ "--d": delay, transformBox: "fill-box", filter: hover === i ? "brightness(1.06) saturate(1.08)" : "none" }}>
-                                                <path d={d} fill={`url(#${uid}-g${i}-${si})`} />
-                                                <path d={d} fill={`url(#${uid}-side)`} />
-                                                {bh > 14 && bw > 10 && <rect x={x + bw * 0.16} y={y + 3} width={bw * 0.68} height={Math.min(10, bh / 3)} rx={Math.min(5, bw / 4)} fill={`url(#${uid}-shine)`} />}
+                                            {!stacked && <rect className="kc-ghost" x={x} y={m.t} width={bw} height={h} rx={Math.min(12, bw / 2)} />}
+                                            <g className="kc-barwrap" style={{ opacity: hover === null || hover === i ? 1 : 0.45 }}>
+                                                <g className="kc-bar" style={{ "--d": delay, transformBox: "fill-box" }}>
+                                                    <path d={d} fill={`url(#${uid}-g${i}-${si})`} />
+                                                </g>
                                             </g>
                                             {showPct && v > 0 && (
                                                 <text className="kc-pct" x={x + bw / 2} y={y - 7} textAnchor="middle" style={{ fill: `color-mix(in srgb, ${c} 75%, var(--k-ink))`, fontSize: pctSize, "--d": `${500 + i * 80 + si * 60}ms` }}>

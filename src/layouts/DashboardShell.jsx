@@ -1,13 +1,17 @@
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getProfile, logout } from "../auth/authStore.js";
 import { Logo } from "../components/shared/Brand.jsx";
 import Icon from "../components/shared/Icon.jsx";
 import PageLoader from "../components/shared/PageLoader.jsx";
+import CommandPalette from "../components/shared/CommandPalette.jsx";
 import ThemeToggle from "../components/shared/ThemeToggle.jsx";
 
 // Admin, DPO aur User teeno panels ka ek hi frame: bayen sidebar, upar header, beech me page.
-// Design: saaf aur seedha (simple). Rang theme tokens se, isliye dark mode me bhi sab padhne layak.
+// Design: web-app jaisa. Sidebar screen se chipka (dock), collapse hokar sirf icons ban sakta hai (yaad rehta hai),
+// active page par chamakta indicator slide karta hai, Ctrl+K se command palette, upar scroll-progress line.
+// Rang theme tokens se, isliye light aur dark dono me sab padhne layak.
+const SIDE_KEY = "pg_side";
 
 function useClickAway(ref, onAway) {
     useEffect(() => {
@@ -22,25 +26,61 @@ function useClickAway(ref, onAway) {
     }, [ref, onAway]);
 }
 
-function Sidebar({ sections, footer, subtitle, onNavigate }) {
+function Sidebar({ sections, footer, subtitle, onNavigate, collapsed = false, onToggle }) {
+    const navRef = useRef(null);
+    const barRef = useRef(null);
+    const { pathname } = useLocation();
+
+    // Active link ke peeche ek hi "pill" hai jo page badalne par slide karta hai
+    useLayoutEffect(() => {
+        const nav = navRef.current;
+        const bar = barRef.current;
+        if (!nav || !bar) return undefined;
+        const place = () => {
+            const el = nav.querySelector(".kv-side-link.is-active");
+            if (!el) {
+                bar.style.opacity = "0";
+                return;
+            }
+            bar.style.opacity = "1";
+            bar.style.height = `${el.offsetHeight}px`;
+            bar.style.transform = `translateY(${el.offsetTop}px)`;
+        };
+        place();
+        const raf = requestAnimationFrame(place);
+        window.addEventListener("resize", place);
+        return () => {
+            cancelAnimationFrame(raf);
+            window.removeEventListener("resize", place);
+        };
+    }, [pathname, sections, collapsed]);
+
     return (
         <div className="kv-side">
-            <Link to="/" onClick={onNavigate} className="flex h-16 shrink-0 items-center border-b border-white/50 px-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                <Logo sub={subtitle} className="min-w-0" />
-            </Link>
+            <div className="flex h-16 shrink-0 items-center gap-1 border-b border-line px-4">
+                <Link to="/" onClick={onNavigate} className="min-w-0 flex-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus" title="Back to website">
+                    <Logo sub={subtitle} className="min-w-0" />
+                </Link>
+                {onToggle && (
+                    <button type="button" onClick={onToggle} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} aria-pressed={collapsed} title={collapsed ? "Expand sidebar" : "Collapse sidebar"} className="kx-collapse hidden lg:grid">
+                        <Icon name="chevron" className="h-4 w-4 rotate-90" />
+                    </button>
+                )}
+            </div>
 
-            <nav aria-label="Primary" className="pg-scroll flex-1 overflow-y-auto py-4">
+            <nav ref={navRef} aria-label="Primary" className="kx-nav pg-scroll relative flex-1 overflow-y-auto py-4">
+                <span ref={barRef} className="kx-nav-pill" aria-hidden="true" />
                 {sections.map((section) => (
                     <div key={section.label} className="mb-5 last:mb-0">
                         <p className="kv-side-section">{section.label}</p>
                         {section.items.map((item) => (
-                            <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} className={({ isActive }) => `kv-side-link ${isActive ? "is-active" : ""}`}>
+                            <NavLink key={item.to} to={item.to} end={item.end} onClick={onNavigate} title={collapsed ? item.label : undefined} className={({ isActive }) => `kv-side-link ${isActive ? "is-active" : ""}`}>
                                 {item.icon && (
                                     <span className="kv-side-ico" data-tone={item.tone || "indigo"}>
                                         <Icon name={item.icon} className="h-[18px] w-[18px]" />
                                     </span>
                                 )}
-                                <span className="truncate">{item.label}</span>
+                                <span className="kx-label truncate">{item.label}</span>
                                 {item.badge > 0 && (
                                     <span className="kv-side-badge" aria-label={`${item.badge} new`} title={`${item.badge} new`}>
                                         {item.badge > 99 ? "99+" : item.badge}
@@ -52,12 +92,12 @@ function Sidebar({ sections, footer, subtitle, onNavigate }) {
                 ))}
             </nav>
 
-            <div className="kv-side-note m-3 rounded-xl border p-3 text-[11.5px] leading-relaxed text-muted">
+            <div className="kv-side-note kx-note m-3 rounded-xl border p-3 text-[11.5px] leading-relaxed text-muted">
                 <p className="flex items-center gap-1.5 font-semibold text-ink-2">
                     <Icon name="shield" className="h-3.5 w-3.5 text-brand-ink" />
-                    DPDP Act, 2023
+                    <span className="kx-label">DPDP Act, 2023</span>
                 </p>
-                <p className="mt-1">{footer}</p>
+                <p className="kx-label mt-1">{footer}</p>
             </div>
         </div>
     );
@@ -82,6 +122,15 @@ export default function DashboardShell({
     const [menu, setMenu] = useState(false);
     const [bellOpen, setBellOpen] = useState(false);
     const [showTop, setShowTop] = useState(false);
+    const [palette, setPalette] = useState(false);
+    const [collapsed, setCollapsed] = useState(() => {
+        try {
+            return localStorage.getItem(SIDE_KEY) === "1";
+        } catch {
+            return false;
+        }
+    });
+    const progressRef = useRef(null);
     const menuRef = useRef(null);
     const bellRef = useRef(null);
     const searchRef = useRef(null);
@@ -98,14 +147,42 @@ export default function DashboardShell({
     }, [location.pathname]);
 
     useEffect(() => {
-        const onScroll = () => setShowTop(window.scrollY > 600);
+        let raf = 0;
+        const onScroll = () => {
+            if (raf) return;
+            raf = requestAnimationFrame(() => {
+                raf = 0;
+                setShowTop(window.scrollY > 600);
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                progressRef.current?.style.setProperty("--p", max > 0 ? String(Math.min(1, window.scrollY / max)) : "0");
+            });
+        };
+        onScroll();
         window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+            cancelAnimationFrame(raf);
+        };
+    }, [location.pathname]);
+
+    const toggleSide = useCallback(() => {
+        setCollapsed((v) => {
+            const next = !v;
+            try {
+                localStorage.setItem(SIDE_KEY, next ? "1" : "0");
+            } catch {
+                // private mode
+            }
+            return next;
+        });
     }, []);
 
     useEffect(() => {
         const onKey = (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && searchRef.current) {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                setPalette((v) => !v);
+            } else if (e.key === "/" && searchRef.current && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "") && !document.activeElement?.isContentEditable) {
                 e.preventDefault();
                 searchRef.current.focus();
             }
@@ -120,22 +197,23 @@ export default function DashboardShell({
     };
 
     return (
-        <div className="pg-app min-h-screen text-ink">
-            <aside className="kv-sidebar fixed inset-y-3 left-3 z-30 hidden w-64 lg:block">
-                <Sidebar sections={sections} footer={footer} subtitle={subtitle} />
+        <div className="pg-app kx-app min-h-screen text-ink" data-collapsed={collapsed ? "true" : "false"}>
+            <div ref={progressRef} className="kx-progress" aria-hidden="true" />
+            <aside className="kv-sidebar kx-side">
+                <Sidebar sections={sections} footer={footer} subtitle={subtitle} collapsed={collapsed} onToggle={toggleSide} />
             </aside>
 
             {drawer && (
                 <div className="fixed inset-0 z-40 lg:hidden">
                     <button type="button" aria-label="Close menu" onClick={() => setDrawer(false)} className="pg-modal-backdrop absolute inset-0" />
-                    <aside className="pg-pop absolute inset-y-2 left-2 w-72 max-w-[85%]">
+                    <aside className="pg-pop kx-drawer absolute inset-y-0 left-0 w-72 max-w-[85%]">
                         <Sidebar sections={sections} footer={footer} subtitle={subtitle} onNavigate={() => setDrawer(false)} />
                     </aside>
                 </div>
             )}
 
-            <div className="pg-dash lg:pl-[17.25rem]">
-                <header className="kv-topbar sticky top-3 z-20 mx-3 mt-3 flex h-16 items-center gap-2 rounded-[20px] px-3 sm:mx-5 sm:gap-3 sm:px-4 lg:ml-0">
+            <div className="pg-dash kx-main">
+                <header className="kv-topbar kx-top sticky top-0 z-20 flex h-16 items-center gap-2 px-3 sm:gap-3 sm:px-5">
                     <button type="button" onClick={() => setDrawer(true)} aria-label="Open menu" className="kv-icon-btn lg:hidden">
                         <Icon name="menu" className="h-5 w-5" />
                     </button>
@@ -150,19 +228,25 @@ export default function DashboardShell({
 
                     {search && (
                         <label className="relative min-w-0 flex-1 sm:w-56 sm:flex-none xl:w-72">
-                            <span className="sr-only">Search records</span>
+                            <span className="sr-only">Filter records on this page</span>
                             <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                             <input
                                 ref={searchRef}
                                 type="search"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder={typeof window !== "undefined" && window.innerWidth < 640 ? "Search" : "Search records"}
+                                placeholder={typeof window !== "undefined" && window.innerWidth < 640 ? "Search" : "Filter records"}
                                 className="h-10 w-full min-w-0 rounded-[10px] border border-line bg-soft pl-9 pr-3 text-sm text-ink placeholder:text-faint focus:border-brand focus:bg-surface focus:outline-none sm:pr-14"
                             />
-                            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted sm:block">Ctrl K</kbd>
+                            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-muted sm:block">/</kbd>
                         </label>
                     )}
+
+                    <button type="button" onClick={() => setPalette(true)} aria-label="Open command palette (Ctrl K)" title="Jump to... (Ctrl K)" className="kx-cmd-btn">
+                        <Icon name="zap" className="h-4 w-4 text-brand-ink" />
+                        <span className="hidden md:inline">Jump to</span>
+                        <kbd className="kx-kbd hidden md:inline-block">Ctrl K</kbd>
+                    </button>
 
                     <ThemeToggle />
 
@@ -251,11 +335,15 @@ export default function DashboardShell({
                 </header>
 
                 <main className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-6 sm:px-6 lg:px-8">
-                    <Suspense fallback={<PageLoader />}>
-                        <Outlet context={{ query: query.trim().toLowerCase(), profile }} />
-                    </Suspense>
+                    <div key={location.pathname} className="kx-page">
+                        <Suspense fallback={<PageLoader />}>
+                            <Outlet context={{ query: query.trim().toLowerCase(), profile }} />
+                        </Suspense>
+                    </div>
                 </main>
             </div>
+
+            <CommandPalette open={palette} onClose={() => setPalette(false)} sections={sections} onLogout={onLogout} />
 
             {showTop && (
                 <button type="button" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="Back to top" className="ap-fab">
