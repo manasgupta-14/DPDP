@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { assignGrievance, escalateGrievance, getGrievance, replyGrievance, resolveGrievance } from "../../api/grievance.js";
+import { assignGrievance, escalateGrievance, replyGrievance, resolveGrievance } from "../../api/grievance.js";
 import { usePermissions } from "../../auth/usePermissions.js";
+import ChatThread, { LiveBadge } from "../../components/grievance/ChatThread.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
+import useLiveGrievance from "../../hooks/useLiveGrievance.js";
 import { formatDate, severityTone } from "../../utils/breach.js";
 import { ESC_SEVERITIES, PERM, buildTimeline, grievanceStatusToneLight, isClosedStatus } from "../../utils/grievance.js";
 
@@ -64,30 +66,14 @@ function EscalateDialog({ ticket, onClose, onDone }) {
 export default function GrievanceDetail() {
     const { id } = useParams();
     const { can } = usePermissions();
-    const [ticket, setTicket] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { ticket, loading, loadError, offline, reload } = useLiveGrievance(id);
     const [error, setError] = useState("");
     const [flash, setFlash] = useState("");
     const [reply, setReply] = useState("");
     const [internal, setInternal] = useState(false);
     const [busy, setBusy] = useState(false);
     const [escalating, setEscalating] = useState(false);
-
-    const load = useCallback(async () => {
-        const res = await getGrievance(id);
-        if (res.ok) { setTicket(res.data); setError(""); } else setError(res.error);
-        setLoading(false);
-    }, [id]);
-
-    useEffect(() => {
-        let active = true;
-        getGrievance(id).then((res) => {
-            if (!active) return;
-            if (res.ok) setTicket(res.data); else setError(res.error);
-            setLoading(false);
-        });
-        return () => { active = false; };
-    }, [id]);
+    const [pending, setPending] = useState([]);
 
     const timeline = useMemo(() => (ticket ? buildTimeline(ticket) : []), [ticket]);
     const canManage = can(PERM.manage);
@@ -96,25 +82,31 @@ export default function GrievanceDetail() {
     const act = async (fn, okMessage) => {
         setBusy(true); setError(""); setFlash("");
         const res = await fn();
-        setBusy(false);
-        if (!res.ok) return setError(res.error);
+        if (!res.ok) { setBusy(false); setError(res.error); return res; }
         setFlash(okMessage);
-        load();
+        await reload();
+        setBusy(false);
+        return res;
     };
 
     const send = async (e) => {
         e.preventDefault();
-        if (!reply.trim()) return setError("Write a message first.");
+        const text = reply.trim();
+        if (!text || busy) return;
         const wasInternal = internal;
-        await act(() => replyGrievance(id, { messageText: reply, isInternal: internal }), wasInternal ? "Internal note added." : "Reply sent.");
+        // Optimistic: message turant chat mein dikhe, server confirm hone pe asli message aa jata hai.
+        setPending([{ tempId: `tmp-${Date.now()}`, text, senderType: "Staff", isInternal: wasInternal, createdAt: new Date().toISOString() }]);
         setReply(""); setInternal(false);
+        const res = await act(() => replyGrievance(id, { messageText: text, isInternal: wasInternal }), wasInternal ? "Internal note added." : "Reply sent.");
+        setPending([]);
+        if (!res.ok) { setReply(text); setInternal(wasInternal); }
     };
 
     if (loading) return <p className="text-sm text-ink-3">Loading grievance...</p>;
     if (!ticket) {
         return (
             <div className="mx-auto max-w-3xl space-y-4">
-                <Alert>{error || "Grievance not found."}</Alert>
+                <Alert>{error || loadError || "Grievance not found."}</Alert>
                 <Link to="/dashboard/grievances" className={ghostBtn}>Back to grievances</Link>
             </div>
         );
@@ -167,34 +159,16 @@ export default function GrievanceDetail() {
                     </section>
 
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold text-ink">Conversation</h2>
+                        <div className="flex items-center justify-between gap-2">
+                            <h2 className="text-base font-semibold text-ink">Conversation</h2>
+                            <LiveBadge offline={offline} />
+                        </div>
                         {canManage && <p className="text-xs text-muted">Messages marked internal are never shown to the Data Principal.</p>}
-                        {ticket.messages.length === 0 ? (
-                            <p className="mt-4 text-sm text-ink-3">No messages yet.</p>
-                        ) : (
-                            <ul className="mt-4 space-y-3">
-                                {ticket.messages.map((m, i) => {
-                                    const fromUser = m.senderType === "User";
-                                    const tone = m.isInternal ? "border-warn/40 bg-warn/10" : fromUser ? "border-line bg-soft" : "border-brand/30 bg-brand-soft/40";
-                                    return (
-                                        <li key={i} className={`rounded-xl border p-3 text-sm ${tone}`}>
-                                            <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                                                <span className="flex items-center gap-2">
-                                                    <span className="font-semibold text-ink-2">{fromUser ? (ticket.raisedBy ? `Data Principal (${ticket.raisedBy})` : "Data Principal") : canManage ? "You" : "Support team"}</span>
-                                                    {m.isInternal && <span className="rounded bg-warn/20 px-1.5 py-0.5 text-[10px] font-semibold text-ink">Internal note</span>}
-                                                </span>
-                                                <span>{formatDate(m.createdAt)}</span>
-                                            </div>
-                                            <p className="mt-1.5 whitespace-pre-wrap break-words text-ink">{m.text}</p>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
+                        <ChatThread perspective="staff" messages={ticket.messages} pending={pending} raisedBy={ticket.raisedBy} emptyText="No messages yet." />
 
                         <form onSubmit={send} className="mt-5 space-y-3 border-t border-line pt-4">
                             <label className="block text-sm font-medium">{canManage ? "Reply to the Data Principal" : "Your reply"}
-                                <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write your message..." />
+                                <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) send(e); }} placeholder="Write your message... (Ctrl+Enter to send)" />
                             </label>
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 {canManage ? (
@@ -242,7 +216,7 @@ export default function GrievanceDetail() {
 
             {escalating && (
                 <Modal title="Escalate to breach" onClose={() => setEscalating(false)}>
-                    <EscalateDialog ticket={ticket} onClose={() => setEscalating(false)} onDone={(m) => { setFlash(m); load(); }} />
+                    <EscalateDialog ticket={ticket} onClose={() => setEscalating(false)} onDone={(m) => { setFlash(m); reload(); }} />
                 </Modal>
             )}
         </div>
