@@ -7,7 +7,8 @@ import App from "./App.jsx";
 import { installModernSelect } from "./utils/modernSelect.js";
 import { installReveal } from "./utils/reveal.js";
 import { installScrollBorder } from "./utils/scrollBorder.js";
-import { installSpotlight } from "./utils/spotlight.js";
+import { installRipple } from "./utils/ripple.js";
+import "./styles/pro.css";
 
 // Reveal pehle paint se pehle (warna content jhatke se chhupta), baaki listeners idle me (main thread free rehta hai)
 installReveal();
@@ -15,7 +16,7 @@ const later = (fn) => (typeof requestIdleCallback === "function" ? requestIdleCa
 later(() => {
     installModernSelect();
     installScrollBorder();
-    installSpotlight();
+    installRipple();
 });
 
 createRoot(document.getElementById("root")).render(

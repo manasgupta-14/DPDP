@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import GlassOrbs from "../components/shared/GlassOrbs.jsx";
-import MeshBackground from "../components/shared/MeshBackground.jsx";
+import TechBackdrop from "../components/shared/TechBackdrop.jsx";
 import PageLoader from "../components/shared/PageLoader.jsx";
 import { ADMIN_REGISTER_ENABLED } from "../auth/authStore.js";
 import adminRoutes from "./AdminRoutes.jsx";
@@ -16,9 +15,8 @@ export default function AppRoutes() {
     if (typeof document !== "undefined") document.documentElement.dataset.area = area;
     return (
         <>
-        {/* Halka "silk" mesh background poore app ke peeche (ek hi canvas). Dashboard par dheemi chaal. */}
-        <MeshBackground calm={pathname !== "/"} />
-        <GlassOrbs />
+        {/* Tech grid + aurora + neural-network canvas: poore app ke peeche, ek hi baar */}
+        <TechBackdrop />
         <Suspense fallback={<PageLoader />}>
         <Routes>
             <Route element={<PublicLayout />}>
