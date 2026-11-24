@@ -29,7 +29,7 @@ npm run build     # production build in dist/
 npm run lint
 ```
 
-The Kavach backend (API) must be running (by default at `https://vmxzrz2w-7139.inc1.devtunnels.ms`).
+The Kavach backend (API) must be running (by default at `https://bprmnnz1-7139.inc1.devtunnels.ms`).
 
 ## Configuration
 
