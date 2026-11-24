@@ -236,6 +236,7 @@ export default function Dashboard() {
     const healthTiles = m ? m.health.filter((h) => can(permissionForPath(h.to))) : [];
     const moduleTiles = m ? m.modules.filter((x) => can(permissionForPath(x.to))) : [];
     const updated = m?.loadedAt ? m.loadedAt.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+    const metaNote = updated ? `· Last updated ${updated}` : "· Loading latest data…";
 
     return (
         <div className="space-y-5">
@@ -257,7 +258,7 @@ export default function Dashboard() {
                         <span className="inline-flex items-center gap-1.5">
                             <span className="kv-live-dot" /> Live
                         </span>
-                        {updated && <span>· Last updated {updated}</span>}
+                        <span>{metaNote}</span>
                     </>
                 }
                 actions={

@@ -211,7 +211,10 @@ function ErasureQueue({ query }) {
                                             title="View details of this record"
                                             onClick={() => r.id && setOpenId(r.id)}
                                             onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && r.id) { e.preventDefault(); setOpenId(r.id); } }}
+
                                             className="group cursor-pointer transition hover:bg-brand-soft/40 focus-visible:bg-brand-soft/40 focus-visible:outline-none [&>td:first-child]:border-l-[3px] [&>td:first-child]:border-transparent hover:[&>td:first-child]:border-brand"
+
+
                                         >
                                             <td className={`${td} pl-5`}>
                                                 <span className="inline-flex items-center gap-1.5 font-mono text-[13px] font-semibold text-brand-ink underline decoration-brand/30 underline-offset-4 transition group-hover:decoration-brand">
