@@ -6,6 +6,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { formatDate } from "../../utils/breach.js";
+import { canNow } from "../../auth/access.js";
 
 const LAYOUTS = ["Standard", "Compact", "Detailed"];
 const EMPTY = { code: "", name: "", description: "", purposes: [], logoUrl: "", primaryColor: "#2B59C3", layout: "Standard" };
@@ -208,9 +209,9 @@ export default function NoticeBuilder() {
                     <button type="button" onClick={load} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                     </button>
-                    <button type="button" onClick={() => setModal({ kind: "form", item: null })} className={primary}>
-                        <span aria-hidden className="text-base leading-none">+</span> New notice
-                    </button>
+                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "form", item: null })} className={primary}>
+                        <span aria-hidden className="text-base leading-none">+</span> New notice template
+                    </button>}
                 </div>
             </div>
 
@@ -222,7 +223,7 @@ export default function NoticeBuilder() {
             ) : rows.length === 0 ? (
                 <div className={`${dkCard} px-5 py-12 text-center`}>
                     <p className="text-sm font-semibold">{templates.length ? "No notices match your search" : "No notices yet"}</p>
-                    <p className="mt-1 text-xs text-ink-3">{templates.length ? "Try a different search." : 'Use "New notice" to create your first privacy notice.'}</p>
+                    <p className="mt-1 text-xs text-ink-3">{templates.length ? "Try a different search." : 'Use "New notice template" to create your first privacy notice.'}</p>
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -242,8 +243,8 @@ export default function NoticeBuilder() {
                             <div className="mt-auto flex items-center justify-between gap-2 pt-4 text-xs">
                                 <span className="text-muted">Created {formatDate(t.createdAt)}</span>
                                 <span className="flex gap-3">
-                                    <button type="button" onClick={() => setModal({ kind: "form", item: t })} className="font-semibold text-brand-ink hover:underline">Edit</button>
-                                    <button type="button" onClick={() => setModal({ kind: "delete", item: t })} className="font-semibold text-bad-ink hover:underline">Delete</button>
+                                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "form", item: t })} className="font-semibold text-brand-ink hover:underline">Edit</button>}
+                                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "delete", item: t })} className="font-semibold text-bad-ink hover:underline">Delete</button>}
                                 </span>
                             </div>
                         </article>

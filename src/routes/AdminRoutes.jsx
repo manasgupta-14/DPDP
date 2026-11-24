@@ -1,5 +1,6 @@
 import { Navigate, Route } from "react-router-dom";
 import ProtectedRoute from "../auth/ProtectedRoute.jsx";
+import RouteGuard from "../auth/RouteGuard.jsx";
 import { AddUsers, AdminLayout, AdminProfile, AdminTasks, BulkImport, Campaigns, Dashboard, DataPrincipals, DpiaDetail, DpiaForm, DpiaList, GrievanceDetail, GrievanceList, ModulePage, NoticeEditor, Notices, OrgUnits, PrivacyRequestDetail, Purposes, Reports, Retention, RoleEditor, RolesPermissions, Staff } from "./lazyPages.js";
 
 const MODULE_SLUGS = ["timeline", "consent", "notice", "rights-requests", "inventory", "breach", "checklist", "rules", "audit"];
@@ -14,6 +15,7 @@ export default function adminRoutes() {
                 </ProtectedRoute>
             }
         >
+            <Route element={<RouteGuard />}>
             <Route index element={<Dashboard />} />
             <Route path="add-users" element={<AddUsers />} />
             <Route path="staff" element={<Staff />} />
@@ -45,6 +47,7 @@ export default function adminRoutes() {
             <Route path="dsar" element={<Navigate to="/dashboard/rights-requests" replace />} />
             <Route path="rights" element={<Navigate to="/dashboard/rights-requests" replace />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Route>
         </Route>
     );
 }

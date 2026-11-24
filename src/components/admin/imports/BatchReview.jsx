@@ -7,6 +7,7 @@ import { ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { BatchBadge, GuardianBadge, RowBadge } from "./Badges.jsx";
 import ExecuteDialog from "./ExecuteDialog.jsx";
 import StatTile from "../../shared/StatTile.jsx";
+import { canNow } from "../../../auth/access.js";
 
 
 export default function BatchReview({ batchId, onBack }) {
@@ -120,7 +121,7 @@ export default function BatchReview({ batchId, onBack }) {
                     <button type="button" disabled={batch.failed === 0 || exporting} onClick={downloadErrors} className={ghostBtn}>
                         <Icon name="download" className="h-4 w-4" /> {exporting ? "Preparing..." : "Download Error Log (CSV)"}
                     </button>
-                    {staged && (
+                    {staged && canNow(["Import.Manage"]) && (
                         <button type="button" disabled={batch.processed === 0} title={batch.processed === 0 ? "No valid rows to import" : undefined} onClick={() => { setExecError(""); setConfirming(true); }} className={primaryBtn}>
                             <Icon name="check" className="h-4 w-4" /> Execute Batch
                         </button>

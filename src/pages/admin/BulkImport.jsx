@@ -10,6 +10,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { ghostBtn, primaryBtn } from "../../components/shared/ui.js";
 import { IMPORT_KINDS, IMPORT_STATUSES } from "../../utils/bulkImport.js";
+import { canNow } from "../../auth/access.js";
 
 export default function BulkImport() {
     const { query = "" } = useOutletContext() || {};
@@ -71,9 +72,9 @@ export default function BulkImport() {
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                         {refreshing ? "Refreshing..." : "Refresh"}
                     </button>
-                    <button type="button" onClick={() => setAddingUser(true)} className={primaryBtn}>
+                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => setAddingUser(true)} className={primaryBtn}>
                         <span aria-hidden className="text-base leading-none">+</span> Add new user
-                    </button>
+                    </button>}
                 </div>
             </header>
 
@@ -95,8 +96,8 @@ export default function BulkImport() {
 
             {addingUser && <AddDataPrincipalModal onClose={() => setAddingUser(false)} onAdded={(d) => setNotice({ id: "", text: `User added${d.referenceId ? ` (${d.referenceId})` : ""}. It is now a data principal.` })} />}
 
-            <QuickImportCard onImported={(n) => setNotice({ id: "", text: `${n} data principal${n === 1 ? "" : "s"} imported. They are now in Consent → Data principals.` })} />
-            <UploadCard kinds={IMPORT_KINDS} onStaged={staged} />
+            {canNow(["DataPrincipal.Manage"]) && <QuickImportCard onImported={(n) => setNotice({ id: "", text: `${n} data principal${n === 1 ? "" : "s"} imported. They are now in Consent → Data principals.` })} />}
+            {canNow(["Import.Manage"]) && <UploadCard kinds={IMPORT_KINDS} onStaged={staged} />}
             <BatchList batches={batches} kinds={IMPORT_KINDS} statuses={IMPORT_STATUSES} loading={loading} query={query} onOpen={(id) => { setActiveId(id); setNotice(null); }} />
         </div>
     );

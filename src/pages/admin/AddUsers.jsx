@@ -8,12 +8,13 @@ import EditUserModal from "../../components/admin/users/EditUserModal.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { toDate } from "../../utils/audit.js";
+import { canNow } from "../../auth/access.js";
 
 const EMPTY = { name: "", email: "", phone: "", password: "", roleId: "" };
 const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40";
 
 export default function AddUsers() {
-    const { query } = useOutletContext();
+    const { query } = useOutletContext() || { query: "" };
     const { can } = usePermissions();
     const canEdit = can("Users.Edit");
     const [editing, setEditing] = useState(null);
@@ -138,9 +139,9 @@ export default function AddUsers() {
                     <p className="mt-1.5 text-[15px] text-ink-3">Add employees to your organisation&apos;s Kavach workspace and manage their access.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2.5">
-                    <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                    {canNow(["Users.Create"]) && <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         <Icon name="adduser" className="h-4 w-4" /> Add user
-                    </button>
+                    </button>}
                 </div>
             </header>
 

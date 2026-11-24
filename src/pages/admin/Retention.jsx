@@ -9,7 +9,9 @@ import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 import StatTile from "../../components/shared/StatTile.jsx";
+import DataPrincipal360Modal from "../../components/admin/principals/DataPrincipal360Modal.jsx";
 import { toTime } from "../../utils/audit.js";
+import { canNow } from "../../auth/access.js";
 
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
 const td = "px-3 py-3 text-sm text-ink-2";
@@ -142,6 +144,7 @@ function daysFromNow(value) {
 function ErasureQueue({ query }) {
     const [state, setState] = useState({ loading: true, rows: [], error: "" });
     const [filter, setFilter] = useState("all");
+    const [openId, setOpenId] = useState(null);
 
     const load = useCallback(async () => {
         setState((s) => ({ ...s, loading: true }));
@@ -180,6 +183,7 @@ function ErasureQueue({ query }) {
                             </button>
                         ))}
                     </div>
+                    <p className="order-last w-full text-xs text-ink-3 sm:order-none sm:w-auto"><Icon name="eye" className="mr-1 inline h-3.5 w-3.5 align-[-2px] text-brand-ink" />Click a record to open its 360° view.</p>
                     <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
                 </div>
                 {state.loading ? (
@@ -200,9 +204,20 @@ function ErasureQueue({ query }) {
                                     const d = daysFromNow(r.dueDate);
                                     const late = r.status === "Overdue";
                                     return (
-                                        <tr key={r.id}>
+                                        <tr
+                                            key={r.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="View details of this record"
+                                            onClick={() => r.id && setOpenId(r.id)}
+                                            onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && r.id) { e.preventDefault(); setOpenId(r.id); } }}
+                                            className="group cursor-pointer transition hover:bg-brand-soft/40 focus-visible:bg-brand-soft/40 focus-visible:outline-none [&>td:first-child]:border-l-[3px] [&>td:first-child]:border-transparent hover:[&>td:first-child]:border-brand"
+                                        >
                                             <td className={`${td} pl-5`}>
-                                                <p className="font-mono text-[13px] font-medium text-ink">{r.reference || r.id.slice(0, 8)}</p>
+                                                <span className="inline-flex items-center gap-1.5 font-mono text-[13px] font-semibold text-brand-ink underline decoration-brand/30 underline-offset-4 transition group-hover:decoration-brand">
+                                                    {r.reference || r.id.slice(0, 8)}
+                                                    <Icon name="arrowRight" className="h-3.5 w-3.5 opacity-60 transition group-hover:translate-x-0.5 group-hover:opacity-100" />
+                                                </span>
                                             </td>
                                             <td className={td}>{r.policy || "-"}</td>
                                             <td className={td}>
@@ -225,6 +240,7 @@ function ErasureQueue({ query }) {
                     </div>
                 )}
             </div>
+            {openId && <DataPrincipal360Modal id={openId} onClose={() => setOpenId(null)} />}
         </>
     );
 }
@@ -295,7 +311,7 @@ export default function Retention() {
                 {tab === "policies" && (
                     <div className="flex gap-2">
                         <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
-                        <button type="button" onClick={() => { setFlash(""); setModal({ kind: "form", item: null }); }} className={primaryBtn}>+ New policy</button>
+                        {canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => { setFlash(""); setModal({ kind: "form", item: null }); }} className={primaryBtn}>+ New policy</button>}
                     </div>
                 )}
             </div>
@@ -350,8 +366,8 @@ export default function Retention() {
                                                 </td>
                                                 <td className={td}>{formatDate(p.createdAt)}</td>
                                                 <td className={`${td} whitespace-nowrap pr-5 text-right`}>
-                                                    <button type="button" onClick={() => openEdit(p)} disabled={opening === p.id} className="font-semibold text-brand-ink hover:underline disabled:opacity-50">{opening === p.id ? "Opening..." : "Edit"}</button>
-                                                    <button type="button" onClick={() => { setFlash(""); setModal({ kind: "delete", item: p }); }} className="ml-4 font-semibold text-bad-ink hover:underline">Delete</button>
+                                                    {canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => openEdit(p)} disabled={opening === p.id} className="font-semibold text-brand-ink hover:underline disabled:opacity-50">{opening === p.id ? "Opening..." : "Edit"}</button>}
+                                                    {canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => { setFlash(""); setModal({ kind: "delete", item: p }); }} className="ml-4 font-semibold text-bad-ink hover:underline">Delete</button>}
                                                 </td>
                                             </tr>
                                         ))}

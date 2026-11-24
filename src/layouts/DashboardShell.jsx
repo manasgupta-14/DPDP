@@ -247,7 +247,7 @@ export default function DashboardShell({
                         <button type="button" onClick={() => setBellOpen((v) => !v)} aria-label={bell.title} aria-expanded={bellOpen} className="kv-icon-btn">
                             <Icon name="bell" className="h-5 w-5" />
                             {bell.count > 0 && (
-                                <span className="absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full bg-[#C0172F] px-1 text-[10px] font-bold text-white ring-2 ring-surface">
+                                <span className="kv-count-badge absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full px-1 text-[10px] font-bold ring-2 ring-surface">
                                     {bell.count > 99 ? "99+" : bell.count}
                                 </span>
                             )}

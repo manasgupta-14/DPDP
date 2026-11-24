@@ -7,6 +7,7 @@ import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.j
 import { formatDate } from "../../utils/breach.js";
 import { sha256Hex } from "../../utils/notices.js";
 import { toDate } from "../../utils/audit.js";
+import { canNow } from "../../auth/access.js";
 
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
 const td = "px-3 py-3 text-sm text-ink-2";
@@ -212,7 +213,7 @@ export default function Reports() {
 
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
 
-            <GenerateCard campaigns={campaigns} onGenerated={(msg) => { setFlash(msg); load(); }} />
+            {canNow(["Audit.Manage"]) && <GenerateCard campaigns={campaigns} onGenerated={(msg) => { setFlash(msg); load(); }} />}
 
             <section className={`${panel} overflow-hidden`} aria-label="Report history">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4">
@@ -265,7 +266,7 @@ export default function Reports() {
                                                         <Icon name="download" className="h-4 w-4" />
                                                         {downloading === job.id ? "Downloading..." : `Download ${job.format.toUpperCase() === "PDF" ? "PDF" : "CSV"}`}
                                                     </button>
-                                                ) : expired || job.status.toLowerCase() === "failed" ? (
+                                                ) : (expired || job.status.toLowerCase() === "failed") && canNow(["Audit.Manage"]) ? (
                                                     pickFor === job.id ? (
                                                         <div className="ml-auto flex max-w-[280px] flex-col items-end gap-2">
                                                             <select

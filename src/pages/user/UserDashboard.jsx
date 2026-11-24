@@ -3,7 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { getMyReports } from "../../api/breach.js";
 import { getMyPendingCampaigns } from "../../api/campaign.js";
 import { getUserSummary } from "../../api/dashboard.js";
-import { isDataPrincipal, roleInfo } from "../../auth/authStore.js";
+import { getProfile, isDataPrincipal, roleInfo } from "../../auth/authStore.js";
 import { C, CountUp, Ring } from "../../components/charts/kit.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
@@ -33,7 +33,8 @@ function Stat({ icon, tone, label, value, to, hint, i }) {
 
 
 export default function UserDashboard() {
-    const { profile } = useOutletContext();
+    const { profile: shellProfile } = useOutletContext() || {};
+    const profile = shellProfile || getProfile();
     const [tasks, setTasks] = useState({ loading: true, items: [], error: "" });
     const [reports, setReports] = useState({ loading: true, items: [] });
     const [summary, setSummary] = useState({ loading: true, data: null, error: "" });
