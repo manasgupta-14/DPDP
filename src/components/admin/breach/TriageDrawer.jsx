@@ -5,6 +5,7 @@ import { BASE_STATUSES, SEVERITIES, formatDate, isFinished, sameText, severityCo
 import Alert from "../../shared/Alert.jsx";
 import { SeverityBadge, StatusBadge } from "../../shared/Badge.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
+import { canNow } from "../../../auth/access.js";
 
 function validate(form, original) {
     const errors = {};
@@ -154,9 +155,9 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                                 <div><dt className="font-semibold">Discovered</dt><dd className="mt-0.5 text-ink">{formatDate(incident.discoveryDate)}</dd></div>
                                 <div><dt className="font-semibold">Reported</dt><dd className="mt-0.5 text-ink">{formatDate(incident.reportedAt)}</dd></div>
                             </dl>
-                            <button type="button" onClick={onAssign} disabled={busy} className={`${ghostBtn} mt-4 w-full py-2 text-xs`}>
+                            {canNow(["Breaches.Manage"]) && <button type="button" onClick={onAssign} disabled={busy} className={`${ghostBtn} mt-4 w-full py-2 text-xs`}>
                                 {assigning ? "Assigning..." : "Assign this incident to me"}
-                            </button>
+                            </button>}
                         </section>
 
                         <fieldset>
@@ -215,9 +216,9 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
 
                     <div className="flex gap-3 border-t border-line p-5">
                         <button type="button" onClick={onClose} className={`${ghostBtn} flex-1`}>Cancel</button>
-                        <button type="submit" disabled={busy} className={`${primaryBtn} flex-1`}>
+                        {canNow(["Breaches.Manage"]) && <button type="submit" disabled={busy} className={`${primaryBtn} flex-1`}>
                             {saving ? "Saving..." : confirming ? "Confirm and save" : "Save changes"}
-                        </button>
+                        </button>}
                     </div>
                 </form>
             </aside>

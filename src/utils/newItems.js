@@ -1,9 +1,9 @@
 import { useMemo, useSyncExternalStore } from "react";
 
 
-const KINDS = ["breach", "grievance", "rights", "dpia"];
-const PREFIX = { breach: "b", grievance: "g", rights: "r", dpia: "d" };
-const MAX_SEEN = 500;
+const KINDS = ["breach", "grievance", "rights", "dpia", "consent"];
+const PREFIX = { breach: "b", grievance: "g", rights: "r", dpia: "d", consent: "c" };
+const MAX_SEEN = 2000;
 
 const empty = () => Object.fromEntries(KINDS.map((k) => [k, new Set()]));
 const keyOf = (kind, id) => `${PREFIX[kind]}-${id}`;
@@ -78,6 +78,10 @@ const isNewItem = (kind, id) => {
     const key = keyOf(kind, id);
     return open[kind].has(key) && !seen[kind].has(key);
 };
+const isUnseenItem = (kind, id) => {
+    if (!PREFIX[kind] || id === undefined || id === null || id === "") return false;
+    return !seen[kind].has(keyOf(kind, id));
+};
 const newCount = (kind) => {
     let n = 0;
     for (const key of open[kind] || []) if (!seen[kind].has(key)) n += 1;
@@ -92,5 +96,5 @@ const snapshot = () => version;
 
 export function useNewItems() {
     const v = useSyncExternalStore(subscribe, snapshot, snapshot);
-    return useMemo(() => ({ isNew: (kind, id) => isNewItem(kind, id), count: (kind) => newCount(kind), version: v }), [v]);
+    return useMemo(() => ({ isNew: (kind, id) => isNewItem(kind, id), isUnseen: (kind, id) => isUnseenItem(kind, id), count: (kind) => newCount(kind), version: v }), [v]);
 }

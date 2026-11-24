@@ -106,8 +106,16 @@ export function normalizeLog(r, index = 0) {
     };
 }
 
+export function actionVerb(action) {
+    const raw = String(action ?? "").trim();
+    if (!raw) return "";
+    const last = raw.split(".").pop() || raw;
+    const text = /[A-Z]/.test(last) ? humanizeEntity(last).toLowerCase() : last.replace(/[_-]+/g, " ");
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function actionKind(action) {
-    const a = String(action).toLowerCase();
+    const a = (String(action ?? "").split(".").pop() || "").toLowerCase();
     if (/creat|add|insert/.test(a)) return "create";
     if (/updat|modif|edit|chang/.test(a)) return "update";
     if (/delet|remov/.test(a)) return "delete";
@@ -119,6 +127,13 @@ export const ACTION_TONE = {
     update: "bg-warn/10 text-warn-ink ring-warn/25",
     delete: "bg-bad/10 text-bad-ink ring-bad/25",
     other: "bg-subtle text-ink-2 ring-line-strong",
+};
+
+export const ACTION_DOT = {
+    create: "bg-ok",
+    update: "bg-warn",
+    delete: "bg-bad",
+    other: "bg-faint",
 };
 
 export const isSuccess = (outcome) => /^success/i.test(String(outcome ?? "").trim());

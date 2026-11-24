@@ -11,6 +11,7 @@ import Modal from "../../components/shared/Modal.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { flatten, summarize, visibleRows } from "../../utils/orgUnit.js";
 import { getToken, sessionFromToken } from "../../auth/tokenStorage.js";
+import { canNow } from "../../auth/access.js";
 
 export default function OrgUnits() {
     const { query = "" } = useOutletContext() || {};
@@ -103,7 +104,7 @@ export default function OrgUnits() {
                         <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Organisation hierarchy</h1>
                         <p className="mt-1 text-sm text-ink-3">Zones, circles and divisions that staff and customers belong to.</p>
                     </div>
-                    <button type="button" onClick={() => setDialog({ type: "form", parent: null })} className={primaryBtn}>New top-level unit</button>
+                    {canNow(["OrgUnit.Manage"]) && <button type="button" onClick={() => setDialog({ type: "form", parent: null })} className={primaryBtn}>New top-level unit</button>}
                 </div>
 
                 <Alert>{error}</Alert>

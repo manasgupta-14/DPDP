@@ -1,5 +1,5 @@
 import StatTile from "../../components/shared/StatTile.jsx";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { createCampaign, getAllCampaigns, getCampaignStats } from "../../api/campaign.js";
 import { getDataInventory } from "../../api/dataInventory.js";
@@ -11,8 +11,9 @@ import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { timeOf } from "../../utils/breach.js";
+import { canNow } from "../../auth/access.js";
+import { getProfile } from "../../auth/authStore.js";
 import {
-    AUDIENCES,
     CAMPAIGN_TYPES,
     campaignState,
     dayStartISO,
@@ -58,7 +59,8 @@ function CreateForm({ onCreated, onDone }) {
     const [apiError, setApiError] = useState("");
     const [success, setSuccess] = useState("");
     const [inventory, setInventory] = useState({ loading: true, items: [], error: "" });
-    const [audiences, setAudiences] = useState(AUDIENCES);
+    const myRole = [].concat(getProfile()?.role ?? [])[0] || "";
+    const [audiences, setAudiences] = useState(() => [{ value: "All", label: "Everyone" }, ...(myRole ? [{ value: myRole, label: `${myRole} (you)` }] : [])]);
 
     useEffect(() => {
         let active = true;
@@ -68,8 +70,8 @@ function CreateForm({ onCreated, onDone }) {
         });
         getRoleOptions().then((res) => {
             if (!active || !res.ok || res.data.length === 0) return;
-            const names = [...new Set(res.data.map((r) => r.name))];
-            setAudiences([{ value: "All", label: "Everyone" }, ...names.map((name) => ({ value: name, label: name }))]);
+            const names = [...new Set([...res.data.map((r) => r.name), ...(myRole ? [myRole] : [])])];
+            setAudiences([{ value: "All", label: "Everyone" }, ...names.map((name) => ({ value: name, label: name === myRole ? `${name} (you)` : name }))]);
         });
         return () => { active = false; };
     }, []);
@@ -159,6 +161,7 @@ function CreateForm({ onCreated, onDone }) {
                             {audiences.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                         </select>
                         <span className="mt-1 block text-xs text-bad-ink">{errors.targetRole}</span>
+                        <span className="mt-1 block text-xs text-ink-3">Only staff whose role matches exactly will see this in My Tasks. Pick "Everyone" to include all staff, admins too.</span>
                     </label>
                 )}
                 {Number(form.targetAudience) === TARGET_AUDIENCE.specific && (
@@ -352,7 +355,7 @@ function CampaignTable({ campaigns, loading, error, onRefresh, onAssign }) {
                                                 <td className="whitespace-nowrap px-3 py-3 text-ink-2">{formatDay(c.startDate)} - {formatDay(c.endDate)}</td>
                                                 <td className="px-3 py-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${st.tone}`}>{st.label}</span></td>
                                                 <td className="whitespace-nowrap px-5 py-3 text-right">
-                                                    <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-info-ink hover:underline disabled:opacity-50">Assign Audience</button>
+                                                    {canNow(["Campaigns.Create"]) && <button type="button" disabled={!c.id} onClick={() => onAssign(c)} className="mr-4 text-sm font-semibold text-info-ink hover:underline disabled:opacity-50">Assign Audience</button>}
                                                     <button type="button" disabled={!c.id} onClick={() => setOpenId(open ? null : c.id)} aria-expanded={open} className="inline-flex items-center gap-1 text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                         View Stats
                                                         <Icon name="chevron" className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -399,6 +402,8 @@ export default function Campaigns() {
     const [creating, setCreating] = useState(false);
     const [assigning, setAssigning] = useState(null);
     const [flash, setFlash] = useState("");
+    const [warn, setWarn] = useState("");
+    const linked = useRef(false);
     const [groupsKey, setGroupsKey] = useState(0);
 
     const load = useCallback(async () => {
@@ -427,9 +432,10 @@ export default function Campaigns() {
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Campaigns</h1>
                     <p className="mt-1 text-sm text-ink-3">Create consent and awareness campaigns, then track how users respond.</p>
                 </div>
-                <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>+ Create new campaign</button>
+                {canNow(["Campaigns.Create"]) && <button type="button" onClick={() => setCreating(true)} className={primaryBtn}>+ Create new campaign</button>}
             </div>
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
+            {warn && <Alert tone="warning" action={<button type="button" aria-label="Dismiss" onClick={() => setWarn("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{warn}</Alert>}
             {!loading && campaigns.length > 0 && (
                 <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <StatTile label="All campaigns" value={campaigns.length} total={campaigns.length} icon="tasks" tone="info" hint="Consent and awareness" />
@@ -438,20 +444,34 @@ export default function Campaigns() {
                     <StatTile label="Consent campaigns" value={campaigns.filter((c) => isConsent(c.type)).length} total={campaigns.length} icon="consent" tone="warn" colorValue hint="Ask to allow or deny" />
                 </section>
             )}
-            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onAssign={(c) => { setFlash(""); setAssigning(c); }} />
+            <CampaignTable campaigns={campaigns} loading={loading} error={error} onRefresh={load} onAssign={(c) => { setFlash(""); setWarn(""); linked.current = false; setAssigning(c); }} />
             <AudienceGroups refreshKey={groupsKey} />
             {creating && (
                 <Modal title="Create new campaign" onClose={() => setCreating(false)}>
                     <CreateForm
                         onCreated={(created) => {
                             load();
-                            if (created) setAssigning(created);
+                            if (created) {
+                                linked.current = false;
+                                setWarn("");
+                                setAssigning(created);
+                            }
                         }}
                         onDone={() => setCreating(false)}
                     />
                 </Modal>
             )}
-            {assigning && <AudienceModal key={assigning.id} campaign={assigning} onClose={() => setAssigning(null)} onLinked={(msg) => { setFlash(msg); setGroupsKey((k) => k + 1); }} />}
+            {assigning && (
+                <AudienceModal
+                    key={assigning.id}
+                    campaign={assigning}
+                    onClose={() => {
+                        if (!linked.current) setWarn(`No audience was assigned to "${assigning.title}" yet. Nobody, including you, will see it in My Tasks until you click "Assign Audience" on it and save.`);
+                        setAssigning(null);
+                    }}
+                    onLinked={(msg) => { linked.current = true; setWarn(""); setFlash(msg); setGroupsKey((k) => k + 1); }}
+                />
+            )}
         </div>
     );
 }

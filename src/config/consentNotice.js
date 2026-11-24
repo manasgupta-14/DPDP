@@ -48,3 +48,20 @@ export const NOTICE_TEXT = {
         version: (v) => `गोपनीयता सूचना v${v}`,
     },
 };
+
+// Temporary: consent records do not carry the notice text yet, so the admin
+// screens show this built-in notice (in the record's language) until the API provides it.
+export function noticeFor(record) {
+    const lang = String(record?.language || "").toLowerCase().startsWith("hi") ? "hi" : "en";
+    const text = NOTICE_TEXT[lang];
+    return { lang, text, version: NOTICE_VERSION, versionLabel: text.version(NOTICE_VERSION) };
+}
+
+export function languageLabel(code) {
+    if (!code) return "";
+    const c = String(code).toLowerCase();
+    if (c.startsWith("hi")) return `Hindi (${code})`;
+    if (c.startsWith("en")) return `English (${code})`;
+    if (c.startsWith("mr")) return `Marathi (${code})`;
+    return String(code);
+}

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { addDataPrincipal, deleteDataPrincipal, get360View, getDataPrincipalCount, getDataPrincipals, updateDataPrincipal } from "../../api/dataPrincipal.js";
 import { getRoleOptions } from "../../api/roles.js";
 import Alert from "../../components/shared/Alert.jsx";
@@ -6,6 +7,11 @@ import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
+import { canNow } from "../../auth/access.js";
+import NewTag from "../../components/shared/NewTag.jsx";
+import { markSeen, useNewItems } from "../../utils/newItems.js";
+import { toDate, toTime } from "../../utils/audit.js";
+import { formatWhen } from "../../utils/bulkImport.js";
 
 const PAGE_SIZE = 10;
 const CLASSES = [
@@ -16,11 +22,28 @@ const CLASSES = [
 ];
 const classLabel = (c) => CLASSES.find(([v]) => v === String(c).toLowerCase())?.[1] ?? (c || "-");
 const LOCALES = { "en-IN": "English", "hi-IN": "Hindi", "mr-IN": "Marathi" };
+const NEW_CONSENT_DAYS = 7;
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
 const td = "px-3 py-3 text-sm text-ink-2";
 
+const CLASS_TONE = { adult: "brand", child: "amber", person_with_disability: "violet" };
+const initials = (name) => {
+    const parts = String(name || "").replace(/[^\p{L}\s]/gu, " ").trim().split(/\s+/).filter(Boolean);
+    return ((parts[0]?.[0] || "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "?";
+};
+const dateParts = (v) => {
+    const d = toDate(v);
+    if (!d) return null;
+    return {
+        date: d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" }),
+        time: d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }),
+    };
+};
+
 function Pill({ tone = "slate", children }) {
     const tones = {
+        brand: "bg-brand-soft text-brand-ink ring-brand/20",
+        violet: "bg-violet/10 text-violet-ink ring-violet/25",
         slate: "bg-subtle text-ink-2 ring-line-strong",
         green: "bg-ok/10 text-ok-ink ring-ok/25",
         amber: "bg-warn/10 text-warn-ink ring-warn/25",
@@ -40,6 +63,8 @@ function Section({ title, count, children }) {
 
 function View360({ principal, onClose }) {
     const [state, setState] = useState({ loading: true, data: null, error: "" });
+    const navigate = useNavigate();
+    const { isNew, isUnseen } = useNewItems();
 
     useEffect(() => {
         let active = true;
@@ -52,6 +77,29 @@ function View360({ principal, onClose }) {
     }, [principal.id]);
 
     const d = state.data;
+    const requests = useMemo(
+        () => [...(d?.requests ?? [])].sort((a, b) => toTime(b.raisedOn) - toTime(a.raisedOn) || String(b.reference).localeCompare(String(a.reference))),
+        [d],
+    );
+    const [openConsent, setOpenConsent] = useState(null);
+    const consents = useMemo(
+        () => [...(d?.consents ?? [])]
+            .map((c) => ({ ...c, key: `${principal.id}|${c.purpose}|${c.grantedOn ?? ""}` }))
+            .sort((a, b) => toTime(b.grantedOn) - toTime(a.grantedOn) || String(a.purpose).localeCompare(String(b.purpose))),
+        [d, principal.id],
+    );
+    const isNewConsent = (c) => {
+        const t = toTime(c.grantedOn);
+        return t > 0 && Date.now() - t <= NEW_CONSENT_DAYS * 86400000 && isUnseen("consent", c.key);
+    };
+    const toggleConsent = (c) => {
+        markSeen("consent", c.key);
+        setOpenConsent((cur) => (cur === c.key ? null : c.key));
+    };
+    const openRequest = (r) => {
+        markSeen("rights", r.id);
+        navigate(`/dashboard/rights-requests/${encodeURIComponent(r.id)}`);
+    };
     const empty = (text) => <p className="rounded-xl bg-soft px-3 py-3 text-sm text-muted ring-1 ring-line">{text}</p>;
 
     return (
@@ -99,18 +147,25 @@ function View360({ principal, onClose }) {
                             )}
                         </Section>
 
-                        <Section title="Rights requests" count={d.requests.length}>
-                            {d.requests.length === 0 ? empty("No rights requests raised.") : (
+                        <Section title="Rights requests" count={requests.length}>
+                            {requests.length === 0 ? empty("No rights requests raised.") : (
                                 <div className="overflow-x-auto rounded-xl ring-1 ring-line">
                                     <table className="w-full min-w-[520px]">
                                         <thead className="bg-soft"><tr><th className={th}>Reference</th><th className={th}>Right</th><th className={th}>Status</th><th className={th}>Raised</th><th className={th}>Deadline</th></tr></thead>
                                         <tbody className="divide-y divide-line">
-                                            {d.requests.map((r) => (
-                                                <tr key={r.id}>
+                                            {requests.map((r) => (
+                                                <tr
+                                                    key={r.id}
+                                                    tabIndex={0}
+                                                    role="link"
+                                                    onClick={() => openRequest(r)}
+                                                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openRequest(r); } }}
+                                                    className={`cursor-pointer hover:bg-soft focus:bg-soft focus:outline-none ${isNew("rights", r.id) ? "kv-new-row" : ""}`}
+                                                >
                                                     <td className={`${td} font-mono text-xs`}>{r.reference}</td>
                                                     <td className={td}>{r.right}</td>
-                                                    <td className={td}><Pill>{r.status}</Pill></td>
-                                                    <td className={td}>{formatDate(r.raisedOn)}</td>
+                                                    <td className={td}><span className="inline-flex items-center gap-2"><Pill>{r.status}</Pill><NewTag show={isNew("rights", r.id)} /></span></td>
+                                                    <td className={td}>{formatWhen(r.raisedOn)}</td>
                                                     <td className={td}>{formatDate(r.deadline)}</td>
                                                 </tr>
                                             ))}
@@ -120,13 +175,27 @@ function View360({ principal, onClose }) {
                             )}
                         </Section>
 
-                        <Section title="Active consents" count={d.consents.length}>
-                            {d.consents.length === 0 ? empty("No active consents.") : (
+                        <Section title="Active consents" count={consents.length}>
+                            {consents.length === 0 ? empty("No active consents.") : (
                                 <ul className="divide-y divide-line rounded-xl ring-1 ring-line">
-                                    {d.consents.map((c, n) => (
-                                        <li key={n} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-sm">
-                                            <span className="font-medium">{c.purpose}</span>
-                                            <span className="flex items-center gap-2 text-xs text-muted">{formatDate(c.grantedOn)} <Pill tone="green">{c.status}</Pill></span>
+                                    {consents.map((c) => (
+                                        <li key={c.key} className={isNewConsent(c) ? "kv-new-row" : ""}>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleConsent(c)}
+                                                aria-expanded={openConsent === c.key}
+                                                className="flex w-full flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-left text-sm focus:outline-none"
+                                            >
+                                                <span className="inline-flex items-center gap-2 font-medium">{c.purpose}<NewTag show={isNewConsent(c)} /></span>
+                                                <span className="flex items-center gap-2 text-xs text-muted">{formatWhen(c.grantedOn)} <Pill tone="green">{c.status}</Pill></span>
+                                            </button>
+                                            {openConsent === c.key && (
+                                                <dl className="grid gap-x-6 gap-y-1 bg-soft px-3 py-2.5 text-xs sm:grid-cols-3">
+                                                    <div><dt className="text-muted">Purpose</dt><dd className="font-medium">{c.purpose || "-"}</dd></div>
+                                                    <div><dt className="text-muted">Granted on</dt><dd className="font-medium">{formatWhen(c.grantedOn)}</dd></div>
+                                                    <div><dt className="text-muted">Status</dt><dd className="font-medium">{c.status || "-"}</dd></div>
+                                                </dl>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -349,7 +418,7 @@ export default function DataPrincipals() {
                         <Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />
                         Refresh
                     </button>
-                    <button type="button" onClick={() => { setFlash(""); setAdding(true); }} className={primaryBtn}>+ Add data principal</button>
+                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setAdding(true); }} className={primaryBtn}>+ Add data principal</button>}
                 </div>
             </header>
 
@@ -371,32 +440,55 @@ export default function DataPrincipals() {
                     <p className="px-5 py-12 text-center text-sm text-ink-3">{query || classType ? "No data principals match these filters." : "No data principals yet. Add one, or import a CSV from Bulk import."}</p>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full min-w-[940px]">
+                        <table className="w-full min-w-[860px]">
                             <thead className="bg-soft">
-                                <tr><th className={`${th} pl-5`}>Reference</th><th className={th}>Name</th><th className={th}>Mobile</th><th className={th}>Email</th><th className={th}>Class</th><th className={th}>Language</th><th className={th}>Added</th><th className={`${th} pr-5`} /></tr>
+                                <tr><th className={`${th} pl-5`}>Principal</th><th className={th}>Contact</th><th className={th}>Class</th><th className={th}>Language</th><th className={th}>Added</th><th className={`${th} pr-5 text-right`}>Actions</th></tr>
                             </thead>
                             <tbody className="divide-y divide-line">
-                                {state.rows.map((r) => (
-                                    <tr key={r.id} className="hover:bg-soft">
-                                        <td className={`${td} pl-5 font-mono text-xs`}>{r.referenceId}</td>
-                                        <td className={`${td} font-medium text-ink`}>{r.name || "-"}</td>
-                                        <td className={`${td} font-mono text-xs`}>{r.mobile || "-"}</td>
-                                        <td className={`${td} font-mono text-xs`}>{r.email || "-"}</td>
-                                        <td className={td}>
-                                            {classLabel(r.class)}
-                                            {r.guardian && <span className="ml-1.5"><Pill tone="amber">Guardian</Pill></span>}
-                                        </td>
-                                        <td className={td}>{LOCALES[r.locale] || r.locale || "-"}</td>
-                                        <td className={td}>{formatDate(r.createdAt)}</td>
-                                        <td className={`${td} pr-5 text-right`}>
-                                            <div className="flex items-center justify-end gap-3 whitespace-nowrap">
-                                                <button type="button" onClick={() => setViewing(r)} className="font-semibold text-brand-ink hover:underline">360° view</button>
-                                                <button type="button" onClick={() => { setFlash(""); setEditing(r); }} className="font-semibold text-brand-ink hover:underline">Edit</button>
-                                                <button type="button" onClick={() => { setFlash(""); setDeleting(r); }} className="font-semibold text-bad-ink hover:underline">Delete</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                {state.rows.map((r) => {
+                                    const added = dateParts(r.createdAt);
+                                    return (
+                                        <tr key={r.id} className="transition-colors hover:bg-soft">
+                                            <td className={`${td} pl-5`}>
+                                                <div className="flex items-center gap-3">
+                                                    <span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand-ink ring-1 ring-brand/20">{initials(r.name)}</span>
+                                                    <div className="min-w-0">
+                                                        <p className="truncate font-semibold text-ink">{r.name || "-"}</p>
+                                                        <p className="whitespace-nowrap font-mono text-[11px] text-muted">{r.referenceId}</p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className={td}>
+                                                <p className="whitespace-nowrap font-mono text-xs text-ink">{r.mobile || "-"}</p>
+                                                <p className="mt-0.5 max-w-[220px] truncate font-mono text-[11px] text-muted" title={r.email || undefined}>{r.email || "No email"}</p>
+                                            </td>
+                                            <td className={td}>
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                    <Pill tone={CLASS_TONE[String(r.class).toLowerCase()] || "slate"}>{classLabel(r.class)}</Pill>
+                                                    {r.guardian && <Pill tone="amber">Guardian</Pill>}
+                                                </div>
+                                            </td>
+                                            <td className={`${td} whitespace-nowrap`}>{LOCALES[r.locale] || r.locale || "-"}</td>
+                                            <td className={`${td} whitespace-nowrap`}>
+                                                {added ? (
+                                                    <>
+                                                        <p className="font-medium text-ink">{added.date}</p>
+                                                        <p className="mt-0.5 text-[11px] text-muted">{added.time}</p>
+                                                    </>
+                                                ) : "-"}
+                                            </td>
+                                            <td className={`${td} pr-5`}>
+                                                <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
+                                                    <button type="button" onClick={() => setViewing(r)} className="inline-flex items-center gap-1.5 rounded-lg bg-brand-soft px-2.5 py-1.5 text-xs font-semibold text-brand-ink transition hover:bg-brand hover:text-white focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40">
+                                                        <Icon name="eye" className="h-3.5 w-3.5" />360° view
+                                                    </button>
+                                                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setEditing(r); }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-subtle hover:text-ink focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40">Edit</button>}
+                                                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setDeleting(r); }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-bad-ink transition hover:bg-bad-soft focus:outline-none focus-visible:ring-3 focus-visible:ring-bad/40">Delete</button>}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

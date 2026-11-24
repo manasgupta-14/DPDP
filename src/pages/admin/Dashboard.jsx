@@ -2,6 +2,8 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { loadExecutiveData, takeExecutive } from "../../api/executive.js";
 import { getProfile, roleInfo } from "../../auth/authStore.js";
+import { useAccess } from "../../auth/access.js";
+import { permissionForPath } from "../../config/navigation.js";
 import { AreaChart, BAR3D, C, ColumnChart, CountUp, Donut, HBars, Legend, Progress, Ring, fmtNum } from "../../components/charts/kit.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -196,6 +198,8 @@ export default function Dashboard() {
     const location = useLocation();
     const profile = getProfile();
     const info = roleInfo(profile);
+    const { can } = useAccess();
+    const showCompliance = can(["Audit.View"]);
     const firstName = String(profile?.name || "").trim().split(/\s+/)[0] || "";
     const [banner, setBanner] = useState(!!location.state?.justLoggedIn);
     const [state, setState] = useState({ loading: true, model: null, error: "" });
@@ -229,6 +233,8 @@ export default function Dashboard() {
     };
 
     const m = state.model;
+    const healthTiles = m ? m.health.filter((h) => can(permissionForPath(h.to))) : [];
+    const moduleTiles = m ? m.modules.filter((x) => can(permissionForPath(x.to))) : [];
     const updated = m?.loadedAt ? m.loadedAt.toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
     const metaNote = updated ? `· Last updated ${updated}` : "· Loading latest data…";
 
@@ -261,10 +267,12 @@ export default function Dashboard() {
                             <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                             {refreshing ? "Refreshing" : "Refresh"}
                         </button>
-                        <Link to="/dashboard/reports" className="kd-btn">
+                        {can(["Audit.View"]) && (
+<Link to="/dashboard/reports" className="kd-btn">
                             <Icon name="barChart" className="h-4 w-4" />
                             Reports
                         </Link>
+)}
                         <button type="button" onClick={() => m && download(m)} disabled={!m} className="kd-btn is-primary">
                             <Icon name="download" className="h-4 w-4" />
                             Export summary
@@ -278,7 +286,7 @@ export default function Dashboard() {
 
             {m && (
                 <div key={round} className="space-y-5">
-                    {m.attention && (
+                    {m.attention && can(permissionForPath(m.attention.to)) && (
                         <div className={`pg-alert flex flex-wrap items-center justify-between gap-3 rounded-[12px] border px-4 py-3 text-sm ${m.attention.tone === "bad" ? "border-bad/25 bg-bad-soft" : "border-warn/30 bg-warn-soft"}`}>
                             <span className={`flex items-center gap-2.5 font-medium ${m.attention.tone === "bad" ? "text-bad-ink" : "text-warn-ink"}`}>
                                 <Icon name="alert" className="h-4 w-4 shrink-0" />
@@ -292,9 +300,10 @@ export default function Dashboard() {
                     )}
 
 
-                    <Card i={12} title="Health at a glance" sub="Six quick checks">
+                    {showCompliance && healthTiles.length > 0 && (
+<Card i={12} title="Health at a glance" sub="Six quick checks">
                         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-6">
-                            {m.health.map((h, hi) => (
+                            {healthTiles.map((h, hi) => (
                                 <Link key={h.key} to={h.to} className="kd-tile-tint group flex flex-col items-center rounded-xl border border-line px-2 py-4 text-center" style={{ "--kv-tint": HEALTH_COLORS[hi % HEALTH_COLORS.length] }}>
                                     <Ring value={h.value ?? 0} size={92} stroke={9} color={HEALTH_COLORS[hi % HEALTH_COLORS.length]} label={`${h.label}: ${h.value ?? "no data"}`} tip={{ title: h.label, rows: [{ name: h.band.label || "Score", value: h.value, display: h.value === null ? "No data" : `${Math.round(h.value)}%`, color: HEALTH_COLORS[hi % HEALTH_COLORS.length] }] }}>
                                         <span className="kd-big text-[19px]" style={{ color: `color-mix(in srgb, ${HEALTH_COLORS[hi % HEALTH_COLORS.length]} 80%, var(--k-ink))` }}>{h.value === null ? "—" : <CountUp value={Math.round(h.value)} suffix="%" />}</span>
@@ -305,6 +314,7 @@ export default function Dashboard() {
                             ))}
                         </div>
                     </Card>
+                    )}
 
                     <Defer height={560}>
                         <div className="grid gap-4 lg:grid-cols-3">
@@ -314,6 +324,7 @@ export default function Dashboard() {
                                     title: "Grievances",
                                     sub: "Complaints by status",
                                     to: "/dashboard/grievances",
+                                    perm: ["Grievances.View"],
                                     data: m.grievanceMix,
                                     parts: m.grievanceMix ? [
                                         { label: "Open", value: m.grievanceMix.open, color: C.amber },
@@ -329,6 +340,7 @@ export default function Dashboard() {
                                     title: "DPIA reviews",
                                     sub: "Assessments by decision",
                                     to: "/dashboard/dpia",
+                                    perm: ["DPIA.View"],
                                     data: m.dpiaMix,
                                     parts: m.dpiaMix ? [
                                         { label: "Approved", value: m.dpiaMix.approved, color: C.ok },
@@ -343,12 +355,13 @@ export default function Dashboard() {
                                     title: "Data by category",
                                     sub: "Data points in your inventory",
                                     to: "/dashboard/inventory",
+                                    perm: ["DataInventory.View"],
                                     data: m.categories,
                                     parts: (m.categories || []).map((c, k) => ({ label: c.label, value: c.value, color: [C.brand, C.teal, C.violet, C.amber, C.sky][k % 5] })),
                                     center: m.inventory?.total,
                                     caption: "data points",
                                 },
-                            ].map((d) => (
+                            ].filter((d) => can(d.perm)).map((d) => (
                                 <Card key={d.title} i={d.i} title={d.title} sub={d.sub} action={<Link to={d.to} className="kd-link">Open</Link>}>
                                     {d.data ? (
                                         d.center ? (
@@ -386,7 +399,8 @@ export default function Dashboard() {
 
                     <Defer height={700}>
                         <div className="grid gap-4 lg:grid-cols-3">
-                            <Card i={5} title="Compliance score" sub="Worked out live from your records">
+                            {showCompliance && (
+<Card i={5} title="Compliance score" sub="Worked out live from your records">
                                 <div className="flex items-center gap-5">
                                     <Ring value={m.score ?? 0} color={m.scoreBand.color} size={128} stroke={12} label={`Compliance score ${m.score ?? "no data"}`} tip={{ title: "Compliance score", rows: [{ name: m.scoreBand.label || "Score", value: m.score, display: m.score === null || m.score === undefined ? "No data" : `${m.score} / 100`, color: m.scoreBand.color }] }}>
                                         <div>
@@ -407,8 +421,10 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </Card>
+)}
 
-                            <Card i={6} title="Penalty exposure" sub="Highest fine if gaps stay open">
+                            {showCompliance && (
+<Card i={6} title="Penalty exposure" sub="Highest fine if gaps stay open">
                                 <div className="flex items-center gap-3">
                                     <span className={`inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 ${m.exposure ? "border-bad/30 bg-bad-soft text-bad-ink" : "border-ok/30 bg-ok-soft text-ok-ink"}`}>
                                         <Icon name="shield" className="h-4 w-4" />
@@ -429,8 +445,10 @@ export default function Dashboard() {
                                     ))}
                                 </ul>
                             </Card>
+)}
 
-                            <Card i={7} title="Active incidents" sub="Open breaches by severity" action={<Link to="/dashboard/breach" className="kd-link">Breach desk</Link>}>
+                            {can(["Breaches.View"]) && (
+<Card i={7} title="Active incidents" sub="Open breaches by severity" action={<Link to="/dashboard/breach" className="kd-link">Breach desk</Link>}>
                                 {m.severity ? (
                                     <ul className="space-y-2.5">
                                         {[
@@ -454,13 +472,15 @@ export default function Dashboard() {
                                     <NoAccess />
                                 )}
                             </Card>
+)}
                         </div>
                     </Defer>
 
                     <Defer height={360}>
-                        <Card i={11} title="Module health" sub="Score and highest fine for each area">
+                        {showCompliance && moduleTiles.length > 0 && (
+<Card i={11} title="Module health" sub="Score and highest fine for each area">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                                {m.modules.map((mod, idx) => (
+                                {moduleTiles.map((mod, idx) => (
                                     <button key={mod.key} type="button" onClick={() => setOpenMod(mod)} className="kd-tile-tint group rounded-xl border border-line p-4 text-left hover:shadow-[var(--k-shadow)]" style={{ "--kv-tint": mod.band.color || CARD_TINTS[idx % CARD_TINTS.length] }}>
                                         <div className="flex items-center gap-2">
                                             <span className={`grid h-6 w-6 place-items-center rounded-full ${TONE_ICON_BG[mod.band.tone]}`}>
@@ -482,11 +502,13 @@ export default function Dashboard() {
                                 ))}
                             </div>
                         </Card>
+)}
                     </Defer>
 
                     <Defer height={700}>
                         <div className="grid gap-4 lg:grid-cols-5">
-                            <Card i={8} className="lg:col-span-2" title="Rights request deadlines" sub="Open requests vs. the 30-day limit" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
+                            {can(["PrivacyRequest.View"]) && (
+<Card i={8} className="lg:col-span-2" title="Rights request deadlines" sub="Open requests vs. the 30-day limit" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
                                 {m.requests ? (
                                     <div className="flex flex-col items-center gap-5 sm:flex-row lg:flex-col xl:flex-row">
                                         <Donut
@@ -523,8 +545,10 @@ export default function Dashboard() {
                                     <NoAccess />
                                 )}
                             </Card>
+)}
 
-                            <Card i={9} className="lg:col-span-3" title="Consent over time" sub="New and still-active consents per month" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
+                            {can(["Consent.View", "Campaigns.View"]) && (
+<Card i={9} className="lg:col-span-3" title="Consent over time" sub="New and still-active consents per month" action={m.consent ? <Legend items={[{ label: "Recorded", color: C.brand }, { label: "Still active", color: C.teal }]} /> : null}>
                                 {m.consent ? (
                                     m.consent.total ? (
                                         <AreaChart
@@ -545,12 +569,14 @@ export default function Dashboard() {
                                     <NoAccess />
                                 )}
                             </Card>
+)}
                         </div>
                     </Defer>
 
                     <Defer height={600}>
                         <div className="grid gap-4 lg:grid-cols-2">
-                            <Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
+                            {can(["Consent.View"]) && (
+<Card i={12} title="Consent by purpose" sub="Share of people who allowed each purpose" action={<Link to="/dashboard/purposes" className="kd-link">Purposes</Link>}>
                                 {m.consent ? (
                                     m.consent.purposes.length ? (
                                         <HBars rows={m.consent.purposes.map((p, i) => ({ label: p.label, value: p.rate, display: `${p.rate}%`, note: `${fmtNum(p.allowed)} of ${fmtNum(p.total)} allowed`, color: [C.brand, C.teal, C.violet, C.amber, C.sky, C.red][i % 6] }))} max={100} />
@@ -561,8 +587,10 @@ export default function Dashboard() {
                                     <NoAccess />
                                 )}
                             </Card>
+)}
 
-                            <Card
+                            {can(["Campaigns.View"]) && (
+<Card
                                 i={13}
                                 title="Campaign performance"
                                 sub={m.campaignTotals ? `${m.campaigns.length} campaign${m.campaigns.length === 1 ? "" : "s"} · ${fmtNum(m.campaignTotals.total)} responses` : "Responses by campaign"}
@@ -588,14 +616,21 @@ export default function Dashboard() {
                                     <p className="py-8 text-center text-sm text-muted">No campaign responses yet. Create a campaign to start collecting consent.</p>
                                 )}
                             </Card>
+)}
                         </div>
                     </Defer>
 
                     <Defer height={480}>
-                        <section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-                            <Kpi i={1} label="Staff users" icon="users" tone="info" value={m.kpi.users} note="Accounts in your organisation" to="/dashboard/add-users" />
-                            <Kpi i={2} label="Data principals" icon="adduser" tone="violet" value={m.kpi.principals} note="Customers on record" to="/dashboard/data-principals" />
-                            <Kpi
+                        {can(["Users.View", "DataPrincipal.View", "Consent.View", "PrivacyRequest.View", "Breaches.View"]) && (
+<section aria-label="Key numbers" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                            {can(["Users.View"]) && (
+<Kpi i={1} label="Staff users" icon="users" tone="info" value={m.kpi.users} note="Accounts in your organisation" to="/dashboard/add-users" />
+)}
+                            {can(["DataPrincipal.View"]) && (
+<Kpi i={2} label="Data principals" icon="adduser" tone="violet" value={m.kpi.principals} note="Customers on record" to="/dashboard/data-principals" />
+)}
+                            {can(["Consent.View"]) && (
+<Kpi
                                 i={3}
                                 label="Consents granted"
                                 icon="consent"
@@ -605,13 +640,20 @@ export default function Dashboard() {
                                 noteTone="ok"
                                 to="/dashboard/consent"
                             />
-                            <Kpi i={4} label="Open rights requests" icon="rights" tone="warn" value={m.kpi.pending} note={m.kpi.slaRisk ? `${m.kpi.slaRisk} past 30-day deadline` : "All within deadline"} noteTone={m.kpi.slaRisk ? "bad" : "ok"} to="/dashboard/rights-requests" />
-                            <Kpi i={5} label="Data breaches" icon="alert" tone="bad" value={m.kpi.breaches} note={m.kpi.openBreaches ? `${m.kpi.openBreaches} still open` : m.kpi.openBreaches === 0 ? "None open" : "Recorded in total"} noteTone={m.kpi.openBreaches ? "bad" : "ok"} to="/dashboard/breach" />
+)}
+                            {can(["PrivacyRequest.View"]) && (
+<Kpi i={4} label="Open rights requests" icon="rights" tone="warn" value={m.kpi.pending} note={m.kpi.slaRisk ? `${m.kpi.slaRisk} past 30-day deadline` : "All within deadline"} noteTone={m.kpi.slaRisk ? "bad" : "ok"} to="/dashboard/rights-requests" />
+)}
+                            {can(["Breaches.View"]) && (
+<Kpi i={5} label="Data breaches" icon="alert" tone="bad" value={m.kpi.breaches} note={m.kpi.openBreaches ? `${m.kpi.openBreaches} still open` : m.kpi.openBreaches === 0 ? "None open" : "Recorded in total"} noteTone={m.kpi.openBreaches ? "bad" : "ok"} to="/dashboard/breach" />
+)}
                         </section>
+)}
                     </Defer>
 
                     <Defer height={300}>
-                        <Card i={10} title="Data inventory coverage" sub="Data with purpose, lawful basis, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
+                        {can(["DataInventory.View"]) && (
+<Card i={10} title="Data inventory coverage" sub="Data with purpose, lawful basis, storage and retention recorded" action={<Link to="/dashboard/inventory" className="kd-link">Open inventory <Icon name="arrowRight" className="h-3.5 w-3.5" /></Link>}>
                             {m.inventory ? (
                                 <div>
                                     <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
@@ -631,6 +673,7 @@ export default function Dashboard() {
                                 <NoAccess />
                             )}
                         </Card>
+)}
                     </Defer>
 
                     <Defer height={420}>
@@ -698,7 +741,8 @@ export default function Dashboard() {
 
                     <Defer height={520}>
                         <div className="grid gap-4 lg:grid-cols-2">
-                            <Card i={13} title="Rights requests by type" sub="Access, correction, erasure and more" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
+                            {can(["PrivacyRequest.View"]) && (
+<Card i={13} title="Rights requests by type" sub="Access, correction, erasure and more" action={<Link to="/dashboard/rights-requests" className="kd-link">View all</Link>}>
                                 {m.requests ? (
                                     m.requestTypes.length ? (
                                         <ColumnChart labels={m.requestTypes.map((r) => r.label)} series={[{ name: "Requests", values: m.requestTypes.map((r) => r.value) }]} barColors={BAR3D} height={250} ariaLabel="Rights requests by type" />
@@ -709,19 +753,23 @@ export default function Dashboard() {
                                     <NoAccess />
                                 )}
                             </Card>
-                            <Card i={14} title="Breaches over time" sub="Reported and closed each month" action={<Legend items={[{ label: "Closed", color: C.teal }, { label: "Still open", color: C.pink }]} />}>
+)}
+                            {can(["Breaches.View"]) && (
+<Card i={14} title="Breaches over time" sub="Reported and closed each month" action={<Legend items={[{ label: "Closed", color: C.teal }, { label: "Still open", color: C.pink }]} />}>
                                 {m.incidentTrend ? (
                                     <ColumnChart labels={m.incidentTrend.labels} series={[{ name: "Closed", values: m.incidentTrend.closed, color: C.teal }, { name: "Still open", values: m.incidentTrend.reported.map((v, k) => Math.max(0, v - (m.incidentTrend.closed[k] || 0))), color: C.pink }]} stacked height={230} ariaLabel="Breaches per month: closed and still open" />
                                 ) : (
                                     <NoAccess />
                                 )}
                             </Card>
+)}
                         </div>
                     </Defer>
 
                     <Defer height={640}>
                         <div className="grid gap-4 xl:grid-cols-5">
-                            <Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each legal duty and its highest fine">
+                            {showCompliance && (
+<Card i={14} className="xl:col-span-3" title="DPDP Act 2023 — section by section" sub="Each legal duty and its highest fine">
                                 <ul className="-mx-1 divide-y divide-line">
                                     {m.sections.map((x) => (
                                         <li key={x.key} className="flex items-center gap-3 px-1 py-2.5">
@@ -739,6 +787,7 @@ export default function Dashboard() {
                                     ))}
                                 </ul>
                             </Card>
+)}
 
                             <Card i={15} className="xl:col-span-2" title="Upcoming deadlines & tasks" sub="Most urgent first" action={<Link to="/dashboard/my-tasks" className="kd-link">My tasks</Link>}>
                                 {m.deadlines.length ? (

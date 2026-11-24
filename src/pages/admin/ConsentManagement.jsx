@@ -2,6 +2,7 @@ import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getConsentRecord, getConsentRecords, getPurposes } from "../../api/consent.js";
+import { getConsentNotices } from "../../api/consentNotice.js";
 import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModal.jsx";
 import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
 import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/consent/styles.js";
@@ -21,6 +22,7 @@ export default function ConsentManagement() {
     const { query } = useOutletContext() || { query: "" };
     const [records, setRecords] = useState([]);
     const [purposes, setPurposes] = useState([]);
+    const [notices, setNotices] = useState({ loading: true, list: [] });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
@@ -58,6 +60,16 @@ export default function ConsentManagement() {
         let active = true;
         getPurposes().then((res) => {
             if (active && res.ok) setPurposes(res.data);
+        });
+        return () => {
+            active = false;
+        };
+    }, [reloadKey]);
+
+    useEffect(() => {
+        let active = true;
+        getConsentNotices().then((res) => {
+            if (active) setNotices({ loading: false, list: res.ok ? res.data : [] });
         });
         return () => {
             active = false;
@@ -185,7 +197,7 @@ export default function ConsentManagement() {
                     <p className="mt-1 text-xs text-ink-3">{hasFilters || query ? "Try changing or clearing the filters." : "Consent records appear here once users answer the consent popup or their My Consents page."}</p>
                 </div>
             ) : (
-                <ConsentTable rows={slice} onOpen={(r) => setOpenId(r.id)} />
+                <ConsentTable rows={slice} notices={notices.list} noticesLoading={notices.loading} onOpen={(r) => setOpenId(r.id)} />
             )}
 
             {!loading && filtered.length > 0 && (
@@ -200,7 +212,7 @@ export default function ConsentManagement() {
                 </div>
             )}
 
-            {selected && <ConsentDetailModal record={selected} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
+            {selected && <ConsentDetailModal record={selected} notices={notices.list} noticesLoading={notices.loading} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
         </div>
     );
 }

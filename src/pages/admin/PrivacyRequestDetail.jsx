@@ -5,6 +5,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { REPLY_TEMPLATES, STATUSES, dateText, dateTimeText, dueInfo, isClosed, shortId, statusLabel, typeLabel } from "../../utils/privacyRequest.js";
+import { canNow } from "../../auth/access.js";
 
 const allTemplates = Object.values(REPLY_TEMPLATES).flat();
 
@@ -165,6 +166,7 @@ export default function PrivacyRequestDetail() {
                         </dl>
                     </Card>
 
+                    {canNow(["PrivacyRequest.Manage"]) && (
                     <Card title="Update this request">
                         <div className="space-y-4">
                             <Alert>{formError}</Alert>
@@ -198,6 +200,7 @@ export default function PrivacyRequestDetail() {
                             </div>
                         </div>
                     </Card>
+                    )}
                 </div>
 
                 <div className="space-y-6">

@@ -9,6 +9,7 @@ import PurposeTable from "../../components/admin/purposes/PurposeTable.jsx";
 import { CategoryModal, ProcessorModal } from "../../components/admin/purposes/RegistryModals.jsx";
 import RegistryTab from "../../components/admin/purposes/RegistryTab.jsx";
 import Icon from "../../components/shared/Icon.jsx";
+import { canNow } from "../../auth/access.js";
 
 const TABS = [["purposes", "Purposes"], ["categories", "Data categories"], ["processors", "Processors"]];
 
@@ -91,7 +92,7 @@ export default function Purposes() {
                     <button type="button" onClick={reload} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                     </button>
-                    {tab === "purposes" && (
+                    {tab === "purposes" && canNow(["Consent.Manage"]) && (
                         <button type="button" onClick={() => setModal({ type: "purpose" })} className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-xs font-semibold text-white transition hover:bg-brand-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">{addLabel}</button>
                     )}
                 </div>

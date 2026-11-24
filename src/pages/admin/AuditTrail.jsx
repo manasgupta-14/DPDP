@@ -5,7 +5,7 @@ import AuditDetailModal from "../../components/admin/audit/AuditDetailModal.jsx"
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel } from "../../components/shared/ui.js";
-import { ACTION_TONE, OUTCOME_TONE, actionKind, auditToCsv, countByKind, humanizeAction, humanizeEntity, isSuccess, shortHash } from "../../utils/audit.js";
+import { ACTION_DOT, ACTION_TONE, OUTCOME_TONE, actionKind, actionVerb, auditToCsv, countByKind, humanizeAction, humanizeEntity, isSuccess, shortHash } from "../../utils/audit.js";
 import StatTile from "../../components/shared/StatTile.jsx";
 
 const PAGE_SIZE = 20;
@@ -17,7 +17,12 @@ const byLabel = (a, b) => a.label.localeCompare(b.label);
 
 function ActionBadge({ action }) {
     const kind = actionKind(action);
-    return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>{humanizeAction(action) || "Not recorded"}</span>;
+    return (
+        <span title={humanizeAction(action)} className={`inline-flex min-w-[92px] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold ring-1 ${ACTION_TONE[kind]}`}>
+            <i aria-hidden className={`h-1.5 w-1.5 shrink-0 rounded-full ${ACTION_DOT[kind]}`} />
+            {actionVerb(action) || "Not recorded"}
+        </span>
+    );
 }
 
 function OutcomeBadge({ outcome }) {

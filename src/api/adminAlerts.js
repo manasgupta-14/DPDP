@@ -4,6 +4,7 @@ import { getAllGrievances } from "./grievance.js";
 import { getPrivacyRequestList } from "./privacyRequest.js";
 import { formatDate, isFinished, sameText } from "../utils/breach.js";
 import { toTime } from "../utils/audit.js";
+import { canNow } from "../auth/access.js";
 
 const DONE_REQUEST = /^(fulfilled|rejected|withdrawn|expired)$/i;
 const OPEN_GRIEVANCE = (s) => sameText(s, "open") || sameText(s, "in progress");
@@ -11,11 +12,12 @@ const time = (d) => toTime(d);
 const day = (d) => (d ? formatDate(d) : "");
 
 export async function getAdminAlerts(limit = 8) {
+    const skip = { ok: false, denied: true, error: "" };
     const [grievances, incidents, requests, dpias] = await Promise.all([
-        getAllGrievances(),
-        getAllIncidents(),
-        getPrivacyRequestList({ page: 1, pageSize: 25 }),
-        getAllDpia(),
+        canNow(["Grievances.View"]) ? getAllGrievances() : skip,
+        canNow(["Breaches.View"]) ? getAllIncidents() : skip,
+        canNow(["PrivacyRequest.View"]) ? getPrivacyRequestList({ page: 1, pageSize: 25 }) : skip,
+        canNow(["DPIA.View"]) ? getAllDpia() : skip,
     ]);
     const items = [];
 

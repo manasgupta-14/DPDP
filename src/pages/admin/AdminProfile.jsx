@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { logout, roleInfo } from "../../auth/authStore.js";
+import { getProfile, logout, roleInfo } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
 import { ghostBtn, panel } from "../../components/shared/ui.js";
 
@@ -39,7 +39,8 @@ const show = (v) => (v !== null && typeof v === "object" ? JSON.stringify(v) : S
 const shortKey = (k) => k.split("/").pop();
 
 export default function AdminProfile() {
-    const { profile } = useOutletContext();
+    const { profile: shellProfile } = useOutletContext() || {};
+    const profile = shellProfile || getProfile();
     const navigate = useNavigate();
     const [nowMs] = useState(() => Date.now());
     if (!profile) return null;
