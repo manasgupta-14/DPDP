@@ -10,7 +10,6 @@ import { allPermissionIds } from "../../utils/roles.js";
 
 const VISIBLE_MODULES = 3;
 
-// "Data Protection" role: is role se login karne wala DPO panel (DPIA review) me jaata hai
 const DPO_RE = /^dpo$|^data\s*protection(\s*officer)?$/i;
 
 export default function RolesPermissions() {
@@ -34,9 +33,7 @@ export default function RolesPermissions() {
         Promise.all([getRoleList(), getAllPermissions()]).then(([list, permissions]) => {
             if (!active) return;
             if (list.ok) {
-                // "DataPrincipal" customer ka system role hai (staff ka nahi), isliye yahan list me nahi dikhate
                 const rank = (n) => (/admin/i.test(n) ? 0 : /^staff$/i.test(n) ? 1 : DPO_RE.test(n) ? 2 : /^data\s*principals?$/i.test(n.replace(/[_-]/g, " ")) ? 3 : 4);
-                // "Data Protection" ek khaali, bina user wala role hai (DPO ke liye "dpo" role hai), isliye list me nahi dikhate
                 const HIDDEN = /^data[\s_-]*protection$/i;
                 setRoles(
                     list.data

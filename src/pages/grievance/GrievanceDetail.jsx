@@ -94,7 +94,6 @@ export default function GrievanceDetail() {
         const text = reply.trim();
         if (!text || busy) return;
         const wasInternal = internal;
-        // Optimistic: message turant chat mein dikhe, server confirm hone pe asli message aa jata hai.
         setPending([{ tempId: `tmp-${Date.now()}`, text, senderType: "Staff", isInternal: wasInternal, createdAt: new Date().toISOString() }]);
         setReply(""); setInternal(false);
         const res = await act(() => replyGrievance(id, { messageText: text, isInternal: wasInternal }), wasInternal ? "Internal note added." : "Reply sent.");

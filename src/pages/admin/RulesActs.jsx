@@ -8,8 +8,6 @@ import StatTile from "../../components/shared/StatTile.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 
-// Rules & Acts: kanoon, niyam aur company ki apni policies ki ek library.
-// Har entry ke saath official document ka link rehta hai, taaki team ek click me asli copy khol sake.
 
 const EMPTY = { title: "", category: "DPDP_Act", description: "", documentUrl: "" };
 
@@ -115,7 +113,6 @@ function RuleDetail({ rule: initial, onDeleted, onClose }) {
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
 
-    // Taaza copy backend se; na mile to list wala data hi dikhate rehte hain
     useEffect(() => {
         let live = true;
         getRule(initial.id).then((res) => {

@@ -27,8 +27,6 @@ export async function getStaffList() {
     }
     const list = asArray(res.data).map(normalizeStaff);
     const noRole = (s) => !s.role || /^unassigned$/i.test(s.role);
-    // Backend Staff list me role "Unassigned" aata hai (UserRole include nahi hai) ya list khali aati hai:
-    // tab hi my-team se role / users bhar lo.
     if (list.length && !list.some(noRole)) return { ...res, data: list };
     const team = await getOrganizationUsers();
     if (!team.ok) return { ...res, data: list };

@@ -285,7 +285,6 @@ function CampaignTable({ campaigns, loading, error, onRefresh, onAssign }) {
     const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
     const current = Math.min(page, pages);
     const rows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
-    // Page numbers: 10 tak seedhe, phir Previous / Next se aage
     const first = Math.max(1, Math.min(current - 4, pages - 9));
     const nums = Array.from({ length: Math.min(10, pages) }, (_, i) => first + i);
     const go = (n) => {

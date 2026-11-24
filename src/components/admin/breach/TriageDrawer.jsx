@@ -127,8 +127,6 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
 
     const busy = saving || assigning;
 
-    // Portal: page ke animated (transform) parent ke andar fixed drawer poore page jitna lamba ho jata tha
-    // aur scroll nahi hota tha. Body par render karne se drawer screen ki height me rehta hai.
     return createPortal(
         <div className="fixed inset-0 z-50 overscroll-contain">
             <button type="button" tabIndex={-1} aria-label="Close triage drawer" onClick={onClose} className="pg-modal-backdrop absolute inset-0" />

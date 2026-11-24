@@ -10,10 +10,6 @@ import { getNotices } from "./notice.js";
 import { getPrivacyRequestList } from "./privacyRequest.js";
 import { getRetentionMetrics } from "./retentionPolicy.js";
 
-/**
- * Executive dashboard ke liye saari asli API ek saath (parallel) mangwate hain.
- * Jis API ki permission nahi hai ya jo fail ho, uska hissa "no access" dikhata hai; baaki dashboard chalta rehta hai.
- */
 export async function loadExecutiveData() {
     const calls = {
         summary: getDashboardSummary(),
@@ -36,4 +32,18 @@ export async function loadExecutiveData() {
     });
     out.loadedAt = new Date();
     return out;
+}
+
+let pre = null;
+let preAt = 0;
+export function prefetchExecutive() {
+    if (!pre) {
+        pre = loadExecutiveData();
+        preAt = Date.now();
+    }
+}
+export function takeExecutive() {
+    const p = pre && Date.now() - preAt < 20000 ? pre : null;
+    pre = null;
+    return p || loadExecutiveData();
 }

@@ -1,17 +1,5 @@
-/* =====================================================================
-   Kavach OS — web-app design layer (pro.css)
-   ---------------------------------------------------------------------
-   index.css ke baad load hota hai, isliye usi ke upar naya look baithta hai.
-   Page ka logic / markup nahi badla: sirf rang (tokens), shell, cards, buttons, motion.
-
-   Rang:  electric blue (brand)  +  cyan (signal)   -> tech, bharosa
-          emerald = theek, amber = dhyan, rose = abhi action, violet = jaankari
-   Light: cool lab-white, crisp neela. Dark: deep space navy, neon glow.
-   ===================================================================== */
-
 @property --kx-ang { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 
-/* ------------------------------ Tokens: Light ------------------------------ */
 html:root {
   --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
 
@@ -53,7 +41,6 @@ html:root {
   --k-track: #E4EAF6;
   --k-grid: #E7ECF6;
 
-  /* Chart palette: halke, saaf rang (neon nahi). Sirf charts isse rang lete hain. */
   --kc-1: #4467E8; --kc-2: #1E9FB0; --kc-3: #E0A030; --kc-4: #E0556A; --kc-5: #7C69E0;
   --kc-6: #4A94D8; --kc-7: #CF6A97; --kc-8: #7FA83A; --kc-9: #5B5FC7; --kc-10: #E2804A;
   --kc-ok: #2E9E7C; --kc-warn: #D9962B; --kc-bad: #D9526A;
@@ -72,7 +59,6 @@ html:root {
   --kx-top-h: 64px;
 }
 
-/* ------------------------------ Tokens: Dark ------------------------------ */
 html[data-theme="dark"]:root {
   --k-bg: #050811;
   --k-surface: #0C1220;
@@ -135,7 +121,6 @@ html[data-theme] .lp-fluid, html[data-theme] .kv-orbs { display: none !important
 ::selection { background: color-mix(in srgb, var(--k-brand) 30%, transparent); }
 :focus-visible { outline: 2px solid var(--k-focus); outline-offset: 2px; }
 
-/* ------------------------------ Background (TechBackdrop) ------------------------------ */
 .kx-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: var(--k-bg); }
 .kx-net { position: absolute; inset: 0; }
 .kx-grid {
@@ -144,7 +129,7 @@ html[data-theme] .lp-fluid, html[data-theme] .kv-orbs { display: none !important
   background-size: 56px 56px;
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 20%, transparent 78%); mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 20%, transparent 78%);
 }
-.kx-aurora { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); will-change: transform; }
+.kx-aurora { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; }
 .kx-aurora-a { left: -18vmax; top: -26vmax; background: radial-gradient(circle, color-mix(in srgb, var(--k-brand) 38%, transparent), transparent 66%); opacity: 0.55; animation: kx-drift-a 32s ease-in-out infinite alternate; }
 .kx-aurora-b { right: -22vmax; bottom: -30vmax; background: radial-gradient(circle, color-mix(in srgb, var(--k-cyan) 34%, transparent), transparent 66%); opacity: 0.5; animation: kx-drift-b 38s ease-in-out infinite alternate; }
 html[data-theme="dark"] .kx-aurora-a { opacity: 0.50; }
@@ -152,7 +137,6 @@ html[data-theme="dark"] .kx-aurora-b { opacity: 0.38; }
 @keyframes kx-drift-a { to { transform: translate(14vmax, 10vmax) scale(1.12); } }
 @keyframes kx-drift-b { to { transform: translate(-12vmax, -8vmax) scale(1.1); } }
 
-/* ------------------------------ App shell ------------------------------ */
 .kx-app { background: transparent; }
 .kx-progress { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 70; transform-origin: left; transform: scaleX(var(--p, 0)); background: var(--kx-grad); box-shadow: 0 0 12px var(--k-focus); pointer-events: none; }
 
@@ -208,7 +192,6 @@ html[data-theme] body .kv-side-link.is-active .kv-side-ico {
 }
 html[data-theme] body .kv-side-note { background: color-mix(in srgb, var(--k-brand) 6%, var(--k-soft)); border-color: var(--k-line); }
 
-/* Collapsed rail: sirf icons */
 .kx-app[data-collapsed="true"] .kx-side .kx-label,
 .kx-app[data-collapsed="true"] .kx-side .kv-logo-word,
 .kx-app[data-collapsed="true"] .kx-side .kv-logo-sub,
@@ -239,7 +222,6 @@ html[data-theme] body .pg-theme-btn::before, html[data-theme] body .pg-theme-btn
 html[data-theme] body .pg-theme-btn:hover { border-color: var(--k-brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-focus) 20%, transparent); background: var(--k-soft); }
 html[data-theme] body .pg-theme-btn.is-dark { color: #FDE68A; }
 
-/* Command palette */
 .kx-palette {
   background: var(--k-surface); border: 1px solid var(--k-line-strong); border-radius: 20px;
   box-shadow: 0 40px 90px -24px rgba(0, 0, 0, 0.55), 0 0 0 1px color-mix(in srgb, var(--k-brand) 20%, transparent), 0 0 70px -24px color-mix(in srgb, var(--k-brand) 60%, transparent);
@@ -252,7 +234,6 @@ html[data-theme] body .kx-palette input { background: transparent !important; bo
 .kx-palette-item[data-active="true"] .kx-palette-ico { background: var(--kx-btn); color: #fff; box-shadow: 0 6px 14px -4px color-mix(in srgb, var(--k-brand) 70%, transparent); }
 @keyframes kx-pop { from { opacity: 0; transform: translateY(-10px) scale(0.97); } to { opacity: 1; transform: none; } }
 
-/* ------------------------------ Page + view transitions ------------------------------ */
 html body .pg-dash main > .kx-page { animation: kx-page-in 460ms cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 @keyframes kx-page-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes pg-page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -268,7 +249,6 @@ html.kx-vt, html.kx-vt *, html.kx-vt *::before, html.kx-vt *::after { transition
 html:not([data-theme="dark"]) .pg-modal-backdrop { background: rgba(10, 18, 38, 0.38); }
 [role="dialog"] > div:not(.pg-modal-backdrop):not(.kx-palette), .pg-modal-dialog { border-color: var(--k-line-strong); box-shadow: var(--k-shadow-lg), 0 0 60px -30px color-mix(in srgb, var(--k-brand) 55%, transparent); }
 
-/* ------------------------------ Cards ------------------------------ */
 html[data-theme] body :is(.kd-card, .kd-tile-tint) {
   background:
     radial-gradient(130% 120% at 100% 0%, color-mix(in srgb, var(--kv-tint, var(--k-brand)) 10%, transparent), transparent 56%),
@@ -292,7 +272,6 @@ html body .pg-dash main .grid > .kd-tint-muted { --kv-tint: var(--k-faint); }
 .kd-tint-ok { --kv-tint: var(--k-ok); } .kd-tint-warn { --kv-tint: var(--k-warn); } .kd-tint-bad { --kv-tint: var(--k-bad); }
 .kd-tint-violet { --kv-tint: var(--k-violet); } .kd-tint-muted { --kv-tint: var(--k-faint); } .kd-tint-info { --kv-tint: var(--k-brand); }
 
-/* Pointer ke saath chalta border-glow (utils/spotlight.js --mx/--my deta hai) */
 html body :is(.kd-card, .kv-glow-border)::after,
 html body .pg-dash main :where(div, section, article, form).pg-surface:not(.absolute):not(.fixed):not(.sticky)::after {
   content: "" !important; position: absolute; inset: 0; z-index: 1; border-radius: inherit; padding: 1.2px; pointer-events: none;
@@ -303,11 +282,9 @@ html body .pg-dash main :where(div, section, article, form).pg-surface:not(.abso
 html body :is(.kd-card, .kv-glow-border):hover::after,
 html body .pg-dash main :where(div, section, article, form).pg-surface:not(.absolute):not(.fixed):not(.sticky):hover::after { opacity: 1 !important; }
 
-/* Number cards: 3D tilt (utils/tilt.js) */
 .kd-kpi, .kd-tile, .kx-tilt { transform: perspective(900px) rotateX(var(--kx-rx, 0deg)) rotateY(var(--kx-ry, 0deg)); transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), translate 320ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 320ms ease, border-color 320ms ease; }
 .kd-kpi:hover, .kd-tile:hover, .kx-tilt:hover { will-change: transform; }
 
-/* Dashboard welcome hero: blue-cyan tech */
 html[data-theme] body .kv-welcome {
   border-radius: 24px; border: 1px solid var(--k-glass-line);
   background:
@@ -327,7 +304,6 @@ html[data-theme="dark"] body .kv-welcome { background-color: #070C1A; }
 .kv-welcome-ribbon #kvw-rb2 stop:nth-child(2) { stop-color: #38BDF8; }
 .kv-welcome-ribbon #kvw-rb2 stop:nth-child(3) { stop-color: #22D3EE; }
 
-/* ------------------------------ Buttons ------------------------------ */
 html[data-theme] body :is(.kd-btn.is-primary, .pg-cta, .kx-btn-primary) {
   position: relative; color: #fff; border-color: transparent; background-image: var(--kx-btn); background-color: var(--k-brand);
   box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--k-brand) 85%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.28);
@@ -345,7 +321,6 @@ html[data-theme] body .kd-btn:not(.is-primary):hover:not(:disabled) { background
 html[data-theme] body .kv-cta-main { background: var(--kx-btn); box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--k-brand) 85%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
 html[data-theme] body :is(.kv-grad-a, .kv-grad-b) { background-image: var(--kx-grad-text) !important; }
 
-/* ------------------------------ Inputs ------------------------------ */
 html[data-theme] body :is(.pg-dash main, .ap-auth, [role="dialog"]) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
   background-color: var(--k-soft); border-color: var(--k-line-strong); color: var(--k-ink); border-radius: 12px;
 }
@@ -358,17 +333,14 @@ html[data-theme] body .pg-dash select, html[data-theme] body [role="dialog"] sel
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238092B8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 10l5 5 5-5'/%3E%3C/svg%3E");
 }
 
-/* ------------------------------ Tables ------------------------------ */
 html body .pg-dash table thead th { font-size: 11.5px; font-weight: 600; letter-spacing: 0.04em; color: var(--k-muted); background: color-mix(in srgb, var(--k-brand) 5%, var(--k-soft)); }
 html body .pg-dash table tbody tr > td { border-color: var(--k-line); }
 html body .pg-dash table tbody tr:hover > td { background-color: color-mix(in srgb, var(--k-brand) 7%, transparent); }
 html body .pg-dash table tbody tr:hover > td:first-child { box-shadow: inset 3px 0 0 var(--k-brand); }
 
-/* Dropdown popup */
 html[data-theme] body .pg-select-pop { border-color: var(--k-line-strong); box-shadow: var(--k-shadow-lg), 0 0 40px -22px color-mix(in srgb, var(--k-brand) 60%, transparent); border-radius: 14px; }
 html[data-theme] body .pg-select-item.is-active { background: var(--k-brand-soft); }
 
-/* ------------------------------ Auth (login) ------------------------------ */
 .kx-auth { background: transparent; }
 .kx-auth-panel {
   border: 1px solid var(--k-glass-line);
@@ -393,7 +365,6 @@ html[data-theme] body .pg-select-item.is-active { background: var(--k-brand-soft
 }
 @keyframes kx-spin { to { --kx-ang: 360deg; } }
 
-/* Radar */
 .kx-radar { position: relative; width: 210px; height: 210px; flex: none; display: none; }
 @media (min-width: 1280px) { .kx-radar { display: block; } }
 .kx-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--k-brand) 32%, transparent); }
@@ -405,11 +376,9 @@ html[data-theme] body .pg-select-item.is-active { background: var(--k-brand-soft
 @keyframes kx-blip { 0%, 100% { opacity: 0.25; transform: scale(0.7); } 50% { opacity: 1; transform: scale(1.15); } }
 .kx-core { position: absolute; inset: 0; margin: auto; width: 68px; height: 68px; display: grid; place-items: center; border-radius: 22px; color: #fff; background: var(--kx-btn); box-shadow: 0 14px 34px -10px color-mix(in srgb, var(--k-brand) 80%, transparent), 0 0 40px -6px color-mix(in srgb, var(--k-cyan) 60%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.35); animation: kd-float 4s ease-in-out infinite; }
 
-/* Logo mark */
 html[data-theme] body .kv-logo-mark { background: var(--kx-btn); box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--k-brand) 80%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.3); }
 html[data-theme] body .kv-logo-word { font-family: var(--font-display); }
 
-/* ------------------------------ Loader ------------------------------ */
 .kx-scan { position: relative; display: grid; place-items: center; width: 68px; height: 68px; color: var(--k-brand-ink); }
 .kx-scan svg { width: 52px; height: 52px; filter: drop-shadow(0 0 10px color-mix(in srgb, var(--k-brand) 55%, transparent)); }
 .kx-scan i { position: absolute; left: 6px; right: 6px; top: 8px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--k-cyan), transparent); box-shadow: 0 0 14px var(--k-cyan); animation: kx-scanline 1.7s ease-in-out infinite; }
@@ -419,10 +388,12 @@ html[data-theme] body .kv-logo-word { font-family: var(--font-display); }
 @keyframes kx-draw { 0% { stroke-dashoffset: 40; } 55%, 100% { stroke-dashoffset: 0; } }
 @keyframes kx-bar { 0% { transform: translateX(-110%); } 100% { transform: translateX(340%); } }
 
-/* ------------------------------ Public site (Home) ------------------------------ */
 html[data-theme] body .kv-public, html[data-theme] body .kv-public main { background: transparent; }
 
-/* ------------------------------ Mobile + reduced motion ------------------------------ */
+@media (max-width: 1023px), (pointer: coarse) {
+  .kx-aurora { animation: none !important; }
+  .kx-net { display: none; }
+}
 @media (max-width: 1023px) { .kx-top { padding-left: 0.75rem; padding-right: 0.75rem; } }
 @media (prefers-reduced-motion: reduce) {
   .kx-aurora, .kx-sweep, .kx-blip, .kx-core, .kx-scan i, .kx-scan-tick, .kx-bar, .kx-auth-card::before, .kx-page { animation: none !important; }
@@ -431,27 +402,19 @@ html[data-theme] body .kv-public, html[data-theme] body .kv-public main { backgr
   .kx-scan-tick { stroke-dashoffset: 0; }
 }
 
-/* ------------------------------ Fixes after visual review ------------------------------ */
-/* Palette input: koi focus box nahi (poora palette hi focus ring hai) */
 html[data-theme] body [role="dialog"] .kx-palette input,
 html[data-theme] body [role="dialog"] .kx-palette input:focus,
 html[data-theme] body [role="dialog"] .kx-palette input:hover { outline: none; background: transparent !important; border: 0 !important; box-shadow: none !important; }
 
-/* Theme toggle: light me gehra sooraj, dark me peela chaand; koi purani chamak nahi */
 html[data-theme] body .pg-theme-btn { color: var(--k-ink-2); box-shadow: none; }
 html[data-theme] body .pg-theme-btn.is-dark { color: #FDE68A; }
 html[data-theme="light"] body .pg-theme-btn:not(.is-dark) { color: #B45309; }
 html[data-theme] body .pg-theme-btn:hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--k-focus) 20%, transparent); }
 
-/* Hero: naam aur shield bhi blue-cyan family me */
 html[data-theme] body .kv-welcome-name { background-image: var(--kx-grad-text) !important; }
 html[data-theme] body .kv-welcome-art { filter: none; }
 html[data-theme] body .kv-welcome-art .sh-float { filter: drop-shadow(0 12px 20px color-mix(in srgb, var(--k-brand) 20%, transparent)); }
 
-/* =====================================================================
-   Light + dark: cursor ke saath koi rang / glow / tilt nahi
-   (spotlight, border-glow, rangeen hover-shadow, mouse-tilt band)
-   ===================================================================== */
 html[data-theme] body :is(.kd-card, .kd-tile-tint, .kv-glow-border)::before,
 html[data-theme] body :is(.kd-card, .kv-glow-border)::after,
 html[data-theme] body .pg-dash main .pg-surface::before,
@@ -466,16 +429,12 @@ html[data-theme] body .kd-tile-tint:hover {
   box-shadow: var(--k-shadow-sm), inset 0 1px 0 var(--kx-hi);
 }
 
-/* =====================================================================
-   Charts: saaf 2D look + halka hightech motion
-   ===================================================================== */
 .kc-flat .kc-grid-soft { stroke: var(--k-grid); opacity: 0.8; }
 .kc-flat .kc-bar { transition: transform 1000ms cubic-bezier(0.34, 1.32, 0.64, 1) var(--d, 0ms); }
 .kc-flat .kc-barwrap { transition: opacity 220ms ease; }
 .kc-flat .kc-ghost { fill: var(--k-track); opacity: 0.55; }
 .kc-seg { transition: stroke-dasharray 1100ms cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease, stroke-width 0.2s ease; }
 
-/* Ek baar chart ke upar se guzarti halki roshni (scroll me aate hi) */
 .kc-stage { position: relative; }
 .kc-stage::after {
   content: ""; position: absolute; top: 0; bottom: 24px; left: 0; width: 90px; pointer-events: none; opacity: 0;
@@ -484,12 +443,10 @@ html[data-theme] body .kd-tile-tint:hover {
 .kc-stage[data-in="true"]::after { animation: kc-scan 1.7s cubic-bezier(0.4, 0, 0.2, 1) 0.15s 1 both; }
 @keyframes kc-scan { 0% { left: 0; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { left: calc(100% - 90px); opacity: 0; } }
 
-/* Line chart ke aakhri point par live pulse */
 .kc-pulse { fill: none; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; pointer-events: none; }
 [data-in="true"] .kc-pulse { animation: kc-pulse 2.6s ease-out 1.8s infinite; }
 @keyframes kc-pulse { 0% { opacity: 0.55; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
 
-/* Horizontal bars: bharne ke baad ek chamak */
 .kc-hbar { position: relative; overflow: hidden; }
 .kc-hbar::after { content: ""; position: absolute; inset: 0; transform: translateX(-120%); background: linear-gradient(100deg, transparent 25%, rgba(255, 255, 255, 0.38) 50%, transparent 75%); }
 [data-in="true"] .kc-hbar::after { animation: kc-sheen 1.5s cubic-bezier(0.4, 0, 0.2, 1) calc(var(--d, 0ms) + 900ms) 1 both; }
@@ -500,10 +457,8 @@ html[data-theme] body .kd-tile-tint:hover {
   .kc-flat .kc-bar { transition: none; }
 }
 
-/* Mouse-tilt band: cards cursor ke saath jhukte nahi */
 html[data-theme] body :is(.kd-kpi, .kd-tile, .kx-tilt) { transform: none; }
 
-/* Login: workspace preview card (ghoomta radar/shield ki jagah) */
 .kx-prev { display: none; flex: none; width: 250px; gap: 10px; padding: 12px; border-radius: 18px; background: var(--k-glass-strong); border: 1px solid var(--k-line); box-shadow: var(--k-shadow); animation: kd-float 6s ease-in-out infinite; }
 @media (min-width: 1280px) { .kx-prev { display: grid; } }
 .kx-prev-row { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; background: var(--k-soft); border: 1px solid var(--k-line); animation: kx-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms) both; }
@@ -515,3 +470,11 @@ html[data-theme] body :is(.kd-kpi, .kd-tile, .kx-tilt) { transform: none; }
 @keyframes kx-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes kx-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) { .kx-prev, .kx-prev-row, .kx-prev-bar i { animation: none !important; } }
+
+@media (max-width: 1023px), (pointer: coarse) {
+
+  .pg-dash main .kd-card { content-visibility: auto; contain-intrinsic-size: auto 300px; }
+
+  .kv-live-dot, .kv-hub-live i, .kv-clocks-live i, .kd-ico-glow, .kv-side-badge, .kv-side-badge::after,
+  .kv-new-tag, .kv-hub-float, .kv-vs-arrow, .kv-welcome-art .sh-float, .kv-welcome-art .sh-orbit, .pg-shimmer { animation: none !important; }
+}

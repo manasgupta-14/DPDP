@@ -16,18 +16,14 @@ export default function AdminLayout() {
     const last = useRef(0);
     const newItems = useNewItems();
 
-    // Is admin ka "seen" data load karo (login badalne par apna alag)
     useEffect(() => {
         initNewItems(profile?.email);
     }, [profile?.email]);
 
-    // Detail page (grievance / rights request / DPIA) khulte hi wo item "seen": tag hatega, sidebar count 1 kam hoga
     useEffect(() => {
         markFromPath(pathname);
     }, [pathname]);
 
-    // Menu me profile ka naam login ke role se: Admin -> "Admin profile", DPO -> "DPO profile".
-    // Naye (na khole gaye) items ka count badge ke roop me uss section ke aage.
     const sections = useMemo(
         () =>
             ADMIN_SECTIONS.map((s) => ({
@@ -40,7 +36,6 @@ export default function AdminLayout() {
         [info.profileLabel, newItems],
     );
 
-    // Bell ka data: page khulne ke thodi der baad, phir page badalne par (max har 30 sec me ek baar) aur har 2 minute me.
     useEffect(() => {
         let active = true;
         const t = setTimeout(() => {

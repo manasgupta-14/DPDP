@@ -1,5 +1,3 @@
-// Kavach logo: neeli dhaal (shield) + naam. Har jagah yahi ek component use hota hai.
-// tone="light" = gehre (dark) background par safed text.
 export const BRAND = "Kavach";
 
 export function KavachMark({ className = "" }) {

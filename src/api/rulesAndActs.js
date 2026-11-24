@@ -1,12 +1,6 @@
 import { apiFetch } from "./client.js";
 import { getToken, sessionFromToken } from "../auth/tokenStorage.js";
 
-// Backend: RulesAndActsController  (route "api/v1/RulesAndActs", sirf login chahiye, koi alag permission nahi)
-//   GET    /api/v1/RulesAndActs/organization/{orgId}  -> { success, data: Rule[] }
-//   GET    /api/v1/RulesAndActs/{id}                  -> { success, data: Rule }
-//   POST   /api/v1/RulesAndActs                       -> body { organizationId, title, description, category, documentUrl }
-//   DELETE /api/v1/RulesAndActs/{id}                  -> { success, message }  (backend soft delete karta hai)
-// { success, data } wrapper apiFetch khud khol deta hai.
 const BASE = "/api/v1/RulesAndActs";
 
 const arr = (v) => (Array.isArray(v) ? v : Array.isArray(v?.$values) ? v.$values : []);
@@ -24,13 +18,11 @@ export function ruleCategory(value) {
     const v = String(value || "");
     const known = RULE_CATEGORIES.find((c) => c.value.toLowerCase() === v.toLowerCase());
     if (known) return known;
-    // Backend me koi aur category ho to bhi padhne laayak dikhao: "IT_Act" -> "IT Act"
     return { value: v, label: v.replace(/_/g, " ").trim() || "Other", tone: "slate" };
 }
 
 export const RULE_LIMITS = { title: 200, category: 50, description: 1000, url: 1000 };
 
-// Sirf http/https link hi kholne dete hain
 export function safeUrl(url) {
     try {
         const u = new URL(String(url || "").trim());

@@ -10,12 +10,10 @@ import { Home, Login, PublicLayout, Register } from "./lazyPages.js";
 
 export default function AppRoutes() {
     const { pathname } = useLocation();
-    // Website (silk zyada) ya app (silk bahut halka, text saaf): CSS isi se background chunti hai
     const area = /^\/(dashboard|dpo|user)(\/|$)/.test(pathname) ? "app" : "site";
     if (typeof document !== "undefined") document.documentElement.dataset.area = area;
     return (
         <>
-        {/* Tech grid + aurora + neural-network canvas: poore app ke peeche, ek hi baar */}
         <TechBackdrop />
         <Suspense fallback={<PageLoader />}>
         <Routes>

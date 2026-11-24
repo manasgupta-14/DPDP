@@ -31,7 +31,6 @@ export default function RoleEditor({ mode }) {
     const [loadError, setLoadError] = useState("");
     const [reloadKey, setReloadKey] = useState(0);
     const [params] = useSearchParams();
-    // "Data Protection" ka "Create role" se aaye to naam aur kaam pehle se bhara hua
     const [form, setForm] = useState(() =>
         mode === "new" && params.get("preset") === "dpo" ? { roleName: "Data Protection", description: "Reviews DPIAs and oversees DPDP compliance." } : EMPTY,
     );

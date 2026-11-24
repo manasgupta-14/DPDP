@@ -1,9 +1,5 @@
 import { useMemo, useSyncExternalStore } from "react";
 
-// "Naya" item tracking (sidebar count + card par "New" tag).
-// - open: abhi ke open items (admin alerts API se). Kaun si cheez open hai, wahi "naya" ho sakti hai.
-// - seen: jo items admin ne khol liye. Browser (localStorage) me, admin ke email ke hisaab se.
-// Item "naya" = open hai AUR abhi tak khola nahi gaya. Khulte hi seen => tag hat jata hai, count 1 kam ho jata hai.
 
 const KINDS = ["breach", "grievance", "rights", "dpia"];
 const PREFIX = { breach: "b", grievance: "g", rights: "r", dpia: "d" };
@@ -38,11 +34,9 @@ function save() {
         const out = Object.fromEntries(KINDS.map((k) => [k, [...seen[k]].slice(-MAX_SEEN)]));
         localStorage.setItem(storeKey(owner), JSON.stringify(out));
     } catch {
-        /* storage band ho to bhi app chalta rahe */
     }
 }
 
-// Login badalne par us admin ka apna seen-data
 export function initNewItems(email) {
     const who = email || "admin";
     if (owner === who) return;
@@ -52,7 +46,6 @@ export function initNewItems(email) {
     emit();
 }
 
-// Alerts API ka result: har open item ka { kind, key }
 export function setOpenItems(all = []) {
     const next = empty();
     for (const a of all) if (next[a.kind]) next[a.kind].add(a.key);
@@ -69,7 +62,6 @@ export function markSeen(kind, id) {
     emit();
 }
 
-// Detail page khulte hi us item ko seen mark karo (URL se)
 export function markFromPath(pathname) {
     const m = /^\/dashboard\/(grievances|rights-requests|dpia)\/([^/]+)\/?$/.exec(pathname);
     if (!m || m[2] === "new") return;
@@ -98,8 +90,6 @@ const subscribe = (fn) => {
 };
 const snapshot = () => version;
 
-// Component ko re-render karata hai jab bhi naya/seen badle
-// Har badlav par naya object milta hai, isliye useMemo/useEffect ke deps me bhi sahi chalta hai
 export function useNewItems() {
     const v = useSyncExternalStore(subscribe, snapshot, snapshot);
     return useMemo(() => ({ isNew: (kind, id) => isNewItem(kind, id), count: (kind) => newCount(kind), version: v }), [v]);

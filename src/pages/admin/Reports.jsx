@@ -20,7 +20,6 @@ function readLabels() {
         return {};
     }
 }
-// Purane entries sirf title (string) the; naye me { title, campaignId } taaki "Generate again" ho sake
 const labelTitle = (v) => (typeof v === "string" ? v : v?.title || "");
 const labelCampaign = (v) => (typeof v === "string" ? "" : v?.campaignId || "");
 function saveLabel(jobId, title, campaignId) {
@@ -123,7 +122,7 @@ export default function Reports() {
     const [now, setNow] = useState(() => Date.now());
     const [campaigns, setCampaigns] = useState({ loading: true, items: [], error: "" });
     const [regenerating, setRegenerating] = useState(null);
-    const [pickFor, setPickFor] = useState(null); // job jiske liye campaign chunna hai
+    const [pickFor, setPickFor] = useState(null);
     const [pickId, setPickId] = useState("");
 
     const apply = useCallback((res) => {
@@ -157,7 +156,6 @@ export default function Reports() {
         };
     }, []);
 
-    // Expired report ko wahi type + format me dobara banao
     const runRegenerate = async (job, campaignId = "") => {
         const option = REPORT_OPTIONS.find((o) => o.type === job.type);
         if (!option) return setDownloadError(`"${reportTypeLabel(job.type)}" cannot be generated again from here. Use the form above.`);
@@ -185,7 +183,6 @@ export default function Reports() {
         const byTitle = campaigns.items.find((c) => c.title && c.title === labelTitle(saved));
         const known = job.campaignId || labelCampaign(saved) || byTitle?.id || (campaigns.items.length === 1 ? campaigns.items[0].id : "");
         if (known && campaigns.items.some((c) => c.id === known)) return runRegenerate(job, known);
-        // Campaign pata nahi: row me hi campaign chunne do
         setDownloadError("");
         setPickId("");
         setPickFor(job.id);

@@ -1,6 +1,3 @@
-// Dashboard ka upar wala welcome hero (Admin, DPO aur User teeno me ek jaisa).
-// Light: halka pastel; Dark: halka kaala + rangeen ribbon. Right side me flat dhaal (SVG, koi image nahi).
-// Status pill hamesha asli data se aata hai (jo page bhejta hai), koi nakli "online" nahi.
 
 function Ribbon() {
     return (
@@ -35,11 +32,9 @@ function ShieldArt() {
                 </linearGradient>
             </defs>
 
-            {/* Platform */}
             <ellipse cx="150" cy="188" rx="108" ry="11" style={{ fill: "var(--k-brand)", opacity: 0.1 }} />
             <ellipse cx="150" cy="186" rx="66" ry="6" fill="none" style={{ stroke: "var(--k-brand)", opacity: 0.28 }} strokeWidth="1.2" />
 
-            {/* Dhaal: flat 2D, system ka brand rang */}
             <g className="sh-float">
                 <path d="M150 20 L216 46 V98 C216 140 188 166 150 182 C112 166 84 140 84 98 V46 Z" fill="url(#kvw-s)" style={{ stroke: "color-mix(in srgb, var(--k-brand) 60%, transparent)" }} strokeWidth="2.5" strokeLinejoin="round" />
                 <path d="M150 34 L203 55 V98 C203 131 181 152 150 166 C119 152 97 131 97 98 V55 Z" fill="none" style={{ stroke: "var(--k-brand)", opacity: 0.22 }} strokeWidth="1.5" strokeLinejoin="round" />
@@ -49,15 +44,6 @@ function ShieldArt() {
     );
 }
 
-/**
- * eyebrow  : chhota upar ka label (role / page)
- * greeting : "Good afternoon" jaisa
- * name     : pehla naam (gradient me dikhta hai)
- * sub      : ek line me kaam ki baat
- * meta     : Live · Last updated jaisi line (optional)
- * status   : { tone: "ok"|"warn"|"bad"|"muted", label } — asli data se
- * actions  : buttons (jo pehle the wahi)
- */
 export default function WelcomeHero({ eyebrow, greeting, name, sub, meta, status, actions, style }) {
     return (
         <header className="kv-welcome" style={style}>

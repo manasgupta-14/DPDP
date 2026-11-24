@@ -1,5 +1,3 @@
-// KPI / number cards par halka 3D tilt: mouse ke hisaab se card jhukta hai (max ~5deg).
-// Sirf hover wale devices par, reduced-motion par band. Ek hi listener, rAF throttle.
 const SEL = ".kd-kpi, .kd-tile, .kx-tilt";
 
 export function installTilt() {

@@ -25,7 +25,6 @@ export const STATUS_LABEL = {
     Unknown: "Not recorded",
 };
 
-// Backend purpose na mile to naam "Unknown" bhejta hai (ConsentPurpose?.ShortName ?? "Unknown")
 export const REMOVED_PURPOSE = "Removed purpose";
 const purposeName = (v) => {
     const t = String(v ?? "").trim();
@@ -38,8 +37,6 @@ export const MISSING = "Not recorded";
 
 export const NOT_IN_API = "-";
 
-// Backend abhi har consent par ek hi fixed naam ("general_service_notice_v1") bhejta hai, asli notice nahi.
-// Use asli notice ki tarah nahi dikhate; jab backend asli notice code bhejega, wo apne aap dikhega.
 const PLACEHOLDER_NOTICES = new Set(["general_service_notice_v1"]);
 const realNotice = (v) => (v && !PLACEHOLDER_NOTICES.has(String(v).trim().toLowerCase()) ? v : "");
 export const NOT_IN_API_HINT = "";
@@ -126,16 +123,11 @@ function purposeState(decision, status, expiresAt, recordStatus) {
 }
 
 export function normalizeConsentArtifact(record, index = 0, purposes = [], principalId = "") {
-    // Backend history me purpose ka ID nahi aata, sirf naam. Aur backend har record me org ke SAARE purposes
-    // (edit se pehle wale purane versions bhi) save karta hai, isliye ek naam ki kai entries ho sakti hain.
-    // Pehle hum inhe kram se jodte the; DB ka kram badalne par decisions aapas me badal jaate the
-    // (ek Allow dabao to baaki bhi badal jaate). Ab ek naam = ek entry, aur use ACTIVE purpose se jodte hain.
     const key = (n) => String(n || "").trim().toLowerCase();
     const byName = new Map();
     purposes.forEach((p) => {
         const k = key(p.name);
         const cur = byName.get(k);
-        // active purpose ko pehle, fir naya version
         if (!cur || (p.active && !cur.active) || (p.active === cur.active && (p.version || 1) > (cur.version || 1))) byName.set(k, p);
     });
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
@@ -145,7 +137,6 @@ export function normalizeConsentArtifact(record, index = 0, purposes = [], princ
     const rawList = record?.purposes ?? record?.Purposes ?? record?.decisions ?? record?.Decisions;
     const list = Array.isArray(rawList) ? rawList : [];
 
-    // Ek naam ke saare versions (v1, v2, ...) purane se naye kram me
     const versionsByName = new Map();
     purposes.forEach((p) => {
         const k = key(p.name);
@@ -173,12 +164,6 @@ export function normalizeConsentArtifact(record, index = 0, purposes = [], princ
         if (!prev.expiresAt && item.expiresAt) prev.expiresAt = item.expiresAt;
     });
 
-    // Backend har record me org ke SAARE purpose versions likhta hai: purane (inactive) version par "No",
-    // lekin agar purana version mandatory tha to us par hamesha "Yes". Pehle "Yes jeetegi" rule tha, isliye
-    // Payment Processing jaise purpose par purane mandatory version ka "Yes" user ke "No" ko daba deta tha
-    // -> "Stop allowing" kabhi "Allow" nahi banta tha aur poori history me wo "Allowed" dikhta tha.
-    // Ab: record me jitni entries hain utne versions us samay maujood the (v1..vN). Purane versions (v1..vN-1)
-    // ke forced "Yes" ginkar ghatao; jo bacha wahi user ka asli faisla hai (sabse naya version).
     groups.forEach((g, gk) => {
         if (g.count > 1 && gk.startsWith("name:")) {
             const versions = versionsByName.get(key(g.name)) || [];
@@ -186,7 +171,6 @@ export function normalizeConsentArtifact(record, index = 0, purposes = [], princ
                 const older = versions.slice(0, g.count - 1);
                 const forcedYes = older.filter((p) => p.mandatory).length;
                 g.decision = g.yes - forcedYes > 0 ? "Yes" : "No";
-                // Har version par ek hi ID rahe (active wali), taaki history ke versions aapas me mil sakein
                 const canonical = byName.get(key(g.name))?.id;
                 if (canonical) g.purposeId = canonical;
             } else {
@@ -277,9 +261,6 @@ export function normalizeConsentRecord(record, index = 0, knownPurposes = []) {
             expiresAt,
         };
     });
-    // Backend har record me org ke saare purposes (edit se pehle wale purane versions bhi) rakhta hai, aur ID nahi bhejta.
-    // Ek naam ki kai entries aati thi -> React me "same key" warning aur list me dohra naam. Ab ek ID/naam = ek entry,
-    // aur "Yes" wali jeetegi (purane inactive versions par backend hamesha "No" rakhta hai).
     const seen = new Map();
     all.forEach((p) => {
         const k = p.purposeId.trim().toLowerCase();
@@ -290,7 +271,6 @@ export function normalizeConsentRecord(record, index = 0, knownPurposes = []) {
             if (p.decision === "Yes") prev.yes += 1;
         }
     });
-    // Purane mandatory versions ka forced "Yes" user ke faisle ko na dabaye (normalizeConsentArtifact wala hi niyam)
     const nameKey = (n) => String(n || "").trim().toLowerCase();
     const purposes = [...seen.values()].map(({ yes, count, ...p }) => {
         if (count <= 1 || !Array.isArray(knownPurposes)) return p;

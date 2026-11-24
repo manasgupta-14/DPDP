@@ -3,9 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { ADMIN_REGISTER_ENABLED, getSession, homePath, isAdmin, roleInfo } from "../../auth/authStore.js";
 import { CountUp, useInView } from "../../components/charts/kit.jsx";
 import { Logo } from "../../components/shared/Brand.jsx";
-import { CAPABILITIES, COMPARE_ROWS, ECOSYSTEM, FAQ, FEATURES, ICONS, MILESTONES, ROTATING_WORDS, STATS, STEPS } from "../../components/public/home/data.js";
+import { CAPABILITIES, CLOCKS, COMPARE_PAIRS, ECOSYSTEM, FAQ, FEATURES, ICONS, MILESTONES, ROTATING_WORDS, STATS, STEPS } from "../../components/public/home/data.js";
 
-// Kavach website: content Kavach ka hi hai, design saaf aur seedha (koi 3D / mesh nahi).
 
 function Glyph({ name, className = "h-5 w-5" }) {
     return (
@@ -24,7 +23,6 @@ function Reveal({ children, className = "", delay = 0, as: Tag = "div" }) {
     );
 }
 
-// Har card ka apna rang (PDF: blue, pink, mint, orange, purple, emerald)
 const TONES = ["blue", "pink", "mint", "orange", "purple", "emerald"];
 
 function SectionHead({ eyebrow, title, text, id, center = true }) {
@@ -59,13 +57,11 @@ function cta() {
 }
 
 
-// Feature card ka har box: admin ho to seedha us module par, warna features section par
 function hubLink(item) {
     const s = getSession();
     return s && isAdmin(s) ? item.to : "/#features";
 }
 
-// Naam: pehle "Kavach", fir hindi me "कवच" — akshar ek-ek karke aate hain, aur yeh chakkar chalta rehta hai.
 const HUB_NAMES = [
     { text: "Kavach", lang: "en" },
     { text: "कवच", lang: "hi" },
@@ -92,7 +88,6 @@ function HubName() {
     );
 }
 
-// Card tairta hai, aur mouse ke saath halka sa jhukta (tilt) hai. Touch / reduced-motion par tilt band.
 function useTilt(max = 7) {
     const ref = useRef(null);
     useEffect(() => {
@@ -175,17 +170,77 @@ function HubCard() {
                     </li>
                 ))}
             </ul>
+            <div className="kv-clocks">
+                <div className="kv-clocks-head">
+                    <span>
+                        <b>DPDP clocks Kavach keeps</b>
+                        <small>Time limits Kavach tracks under the DPDP Act and Rules</small>
+                    </span>
+                    <span className="kv-clocks-live">
+                        <i aria-hidden="true" />
+                        ALWAYS ON
+                    </span>
+                </div>
+                <ul className="kv-clocks-grid">
+                    {CLOCKS.map((c) => (
+                        <li key={c.key} className="kv-clock" data-tone={c.tone}>
+                            <span className="kv-clock-ring" aria-hidden="true">
+                                <svg viewBox="0 0 48 48">
+                                    <circle className="trk" cx="24" cy="24" r="20" />
+                                    <circle className="bar" cx="24" cy="24" r="20" pathLength="100" style={{ "--fill": c.fill * 100 }} />
+                                </svg>
+                                <Glyph name={c.icon} className="h-4 w-4" />
+                            </span>
+                            <span className="kv-clock-val">
+                                {c.value} <small>{c.unit}</small>
+                            </span>
+                            <span className="kv-clock-text">{c.text}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
         </div>
         </div>
     );
 }
 
+function useFitScreen(ref) {
+    useEffect(() => {
+        const root = ref.current;
+        if (!root) return undefined;
+        const fit = () => {
+            const kids = Array.from(root.querySelectorAll(":scope > .kv-fit"));
+            const setZoom = (z) => kids.forEach((k) => { k.style.zoom = z >= 1 ? "" : z.toFixed(3); });
+            const tallest = () => Math.max(...kids.map((k) => k.getBoundingClientRect().height));
+            setZoom(1);
+            if (!window.matchMedia("(min-width: 1024px)").matches) return;
+            const avail = window.innerHeight - 76 - 12;
+            if (tallest() <= avail) return;
+            let lo = 0.5;
+            let hi = 1;
+            for (let i = 0; i < 8; i += 1) {
+                const mid = (lo + hi) / 2;
+                setZoom(mid);
+                if (tallest() <= avail) lo = mid;
+                else hi = mid;
+            }
+            setZoom(lo);
+        };
+        fit();
+        window.addEventListener("resize", fit);
+        document.fonts?.ready.then(fit);
+        return () => window.removeEventListener("resize", fit);
+    }, [ref]);
+}
+
 function Hero() {
     const c = cta();
+    const gridRef = useRef(null);
+    useFitScreen(gridRef);
     return (
-        <section data-bg="trust" aria-labelledby="home-title" className="relative overflow-hidden border-b border-line">
-            <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pt-32 lg:grid-cols-[0.92fr_1.08fr] lg:gap-10 xl:grid-cols-[1fr_1fr] lg:pb-24 lg:pt-36">
-                <div className="kv-hero-copy kv-focus min-w-0">
+        <section data-bg="trust" aria-labelledby="home-title" className="relative overflow-hidden border-b border-line lg:flex lg:min-h-[100svh] lg:items-center">
+            <div ref={gridRef} className="relative mx-auto grid w-full max-w-7xl items-center gap-12 px-4 pb-20 pt-28 sm:px-6 sm:pt-32 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10 lg:pb-3 lg:pt-[4.75rem] xl:gap-12">
+                <div className="kv-hero-copy kv-fit kv-focus min-w-0">
                     <span className="kv-new-chip inline-flex max-w-full items-center gap-2 rounded-full px-1.5 py-1 pr-3 text-xs font-semibold text-ink-2" style={{ animation: "pg-rise .5s ease-out both" }}>
                         <span className="tag shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white">DPDP</span>
                         <span className="min-w-0">Built for the DPDP Act, 2023 and DPDP Rules, 2025</span>
@@ -221,8 +276,7 @@ function Hero() {
                     </div>
                 </div>
 
-                {/* Feature card: beech me Kavach, chhe module (har ek apne rang me, tairta hua) */}
-                <div id="ecosystem" className="relative min-w-0 scroll-mt-24" style={{ animation: "pg-rise .7s ease-out 200ms both" }}>
+                <div id="ecosystem" className="kv-fit relative min-w-0 scroll-mt-24" style={{ animation: "pg-rise .7s ease-out 200ms both" }}>
                     <HubCard />
                 </div>
             </div>
@@ -309,45 +363,49 @@ function Stats() {
 }
 
 function Compare() {
-    const Mark = ({ ok }) => (
-        <span className={`kv-mark ${ok ? "is-yes" : "is-no"}`} role="img" aria-label={ok ? "Yes" : "No"}>
-            <Glyph name={ok ? "check" : "x"} />
-        </span>
-    );
     return (
         <section data-bg="care" aria-labelledby="cmp-title" className="border-y border-line bg-surface/35 py-20 sm:py-24">
-            <div className="mx-auto max-w-4xl px-4 sm:px-6">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6">
                 <SectionHead id="cmp-title" eyebrow="Comparison" title="Kavach compared with spreadsheets" text="What an auditor asks for, and whether each approach can show it." />
-                <Reveal className="kv-compare mt-10 overflow-x-auto rounded-[16px] border">
-                    <table className="w-full min-w-[520px] text-left">
-                        <thead className="uppercase">
-                            <tr>
-                                <th scope="col" className="px-5 py-3.5 font-bold">
-                                    What you need
-                                </th>
-                                <th scope="col" className="px-5 py-3.5 text-center font-bold">
-                                    Spreadsheets
-                                </th>
-                                <th scope="col" className="px-5 py-3.5 text-center font-bold text-brand-ink">
-                                    Kavach
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {COMPARE_ROWS.map(([label, a, b]) => (
-                                <tr key={label} className="border-t border-line">
-                                    <td className="px-5 py-4 font-medium">{label}</td>
-                                    <td className="px-5 py-3.5 text-center">
-                                        <Mark ok={a} />
-                                    </td>
-                                    <td className="px-5 py-3.5 text-center">
-                                        <Mark ok={b} />
-                                    </td>
-                                </tr>
+                <div className="kv-vs mt-10">
+                    <Reveal className="kv-vs-card is-no">
+                        <div className="kv-vs-head">
+                            <span className="kv-vs-badge" aria-hidden="true">
+                                <Glyph name="x" className="h-4 w-4" />
+                            </span>
+                            <h3>Spreadsheets &amp; Email</h3>
+                        </div>
+                        <dl>
+                            {COMPARE_PAIRS.map(([label, a]) => (
+                                <div key={label}>
+                                    <dt>{label}</dt>
+                                    <dd>{a}</dd>
+                                </div>
                             ))}
-                        </tbody>
-                    </table>
-                </Reveal>
+                        </dl>
+                    </Reveal>
+
+                    <span className="kv-vs-arrow" aria-hidden="true">
+                        <Glyph name="arrow" className="h-5 w-5" />
+                    </span>
+
+                    <Reveal delay={120} className="kv-vs-card is-yes">
+                        <div className="kv-vs-head">
+                            <span className="kv-vs-badge" aria-hidden="true">
+                                <Glyph name="check" className="h-4 w-4" />
+                            </span>
+                            <h3>With Kavach</h3>
+                        </div>
+                        <dl>
+                            {COMPARE_PAIRS.map(([label, , b]) => (
+                                <div key={label}>
+                                    <dt>{label}</dt>
+                                    <dd>{b}</dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </Reveal>
+                </div>
             </div>
         </section>
     );
@@ -403,20 +461,20 @@ function Faq() {
 }
 
 function CtaRibbon() {
+    const stop = (o, v, op) => <stop offset={o} style={{ stopColor: `var(${v})` }} stopOpacity={op} />;
     return (
         <svg className="kv-cta2-ribbon" viewBox="0 0 1000 360" preserveAspectRatio="none" aria-hidden="true">
             <defs>
                 <linearGradient id="kvc-rb" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#7DD3FC" stopOpacity="0.15" />
-                    <stop offset="30%" stopColor="#A5B4FC" stopOpacity="0.75" />
-                    <stop offset="60%" stopColor="#D8B4FE" stopOpacity="0.8" />
-                    <stop offset="85%" stopColor="#F9A8D4" stopOpacity="0.7" />
-                    <stop offset="100%" stopColor="#FDBA74" stopOpacity="0.6" />
+                    {stop("0%", "--k-c6", 0.12)}
+                    {stop("35%", "--k-c1", 0.5)}
+                    {stop("70%", "--k-c5", 0.5)}
+                    {stop("100%", "--k-c3", 0.35)}
                 </linearGradient>
                 <linearGradient id="kvc-rb2" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#99F6E4" stopOpacity="0.5" />
-                    <stop offset="50%" stopColor="#C4B5FD" stopOpacity="0.55" />
-                    <stop offset="100%" stopColor="#FBCFE8" stopOpacity="0.2" />
+                    {stop("0%", "--k-c2", 0.35)}
+                    {stop("55%", "--k-c5", 0.35)}
+                    {stop("100%", "--k-c1", 0.12)}
                 </linearGradient>
             </defs>
             <path fill="url(#kvc-rb)" d="M560,360 C690,300 800,330 900,262 C950,228 980,214 1000,206 L1000,268 C960,286 920,316 860,338 C800,360 720,352 640,360 Z" />
@@ -431,7 +489,6 @@ function FinalCta() {
         <section data-bg="action" aria-labelledby="cta-title" className="py-20">
             <div className="mx-auto max-w-5xl px-4 sm:px-6">
                 <Reveal className="kv-cta2 px-6 py-14 text-center sm:px-12">
-                    {/* Background aapke silk jaisa (pastel ribbon + bubbles); dark mode me bhi yahi */}
                     <CtaRibbon />
                     <span className="kv-cta2-focus" aria-hidden="true" />
                     <span className="kv-cta2-bubble is-a" aria-hidden="true" />

@@ -11,7 +11,6 @@ import { RISKS, STATUS, displayStatus } from "../../utils/dpia.js";
 import { PHASES } from "../../utils/executive.js";
 import { toDate, toTime } from "../../utils/audit.js";
 
-// DPO ka dashboard: review ka kaam pehle (kitni DPIA intezaar me hain), phir risk aur trend.
 const DAY = 86400000;
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
 const dateText = (d) => {
@@ -88,7 +87,6 @@ export default function DpoDashboard() {
                 }
         });
         const risk = RISKS.map((r) => ({ label: `${r} risk`, value: items.filter((d) => String(d.residualRisk).toLowerCase() === r.toLowerCase()).length }));
-        // Jinki tareekh nahi pata, unhe "0 din" mat gino
         const waitingDays = pending.map((d) => toTime(d.createdAt)).filter(Boolean).map((t) => Math.max(0, Math.floor((now - t) / DAY)));
         const reviewDue = items.filter((d) => toTime(d.nextReviewDate) && toTime(d.nextReviewDate) - now < 30 * DAY);
         return {

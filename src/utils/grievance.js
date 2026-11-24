@@ -14,13 +14,11 @@ export const PERM = {
     escalate: "Breaches.Manage",
 };
 
-// Data access / correction / erasure grievance nahi, Rights request hai (Privacy settings se), isliye yahan nahi.
 export const CATEGORIES = ["Consent", "Data Breach", "Other"];
 export const STATUSES = ["Open", "In Progress", "Resolved", "Escalated to Breach"];
 export const SEVERITIES = ["Low", "Medium", "High", "Critical"];
 export const ESC_SEVERITIES = SEVERITIES;
 
-// "InProgress" / "in_progress" / "IN PROGRESS" -> backend ka "In Progress" (backend "In Progress" aur "Escalated to Breach" bhejta hai)
 function tidyStatus(v) {
     const t = String(v ?? "").trim();
     if (!t) return "";

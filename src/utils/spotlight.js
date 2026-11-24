@@ -1,5 +1,3 @@
-// Mouse spotlight: jis card par mouse ho, us par mouse ki jagah --mx/--my lagta hai.
-// CSS (index.css "Mouse spotlight") wahan halka rangeen gola dikhata hai. Ek hi listener, rAF throttle.
 const SEL = ".kd-card, .kd-tile-tint, .pg-dash main .pg-surface";
 
 export function installSpotlight() {
@@ -10,7 +8,6 @@ export function installSpotlight() {
     let queued = false;
     const apply = () => {
         queued = false;
-        // Light mode: cursor ke saath koi rang nahi (sirf dark mode me glow)
         const dark = document.documentElement.dataset.theme === "dark";
         const el = dark ? ev?.target?.closest?.(SEL) : null;
         if (last && last !== el) {

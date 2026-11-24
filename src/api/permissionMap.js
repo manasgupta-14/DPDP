@@ -1,6 +1,3 @@
-// Backend ke [HasPermission] attributes ka map (Kavach backend se generate kiya).
-// 403 aane par user ko saaf batate hain ki kaunsi permission chahiye.
-// Backend me permission badle to ye list bhi update karni hogi.
 
 const RULES = [
     ["GET", "/api/Audit/logs", "Audit.View"],
@@ -109,7 +106,6 @@ const RULES = [
     ["PUT", "/api/User/edit/{userId}", "Users.Edit"],
 ];
 
-// "/api/Consent/history/{dataPrincipalId}" jaise route ko regex me badlo
 const escapeRx = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const COMPILED = RULES.map(([verb, route, perm]) => {
     const pattern = route

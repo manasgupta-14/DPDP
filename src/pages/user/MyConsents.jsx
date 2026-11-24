@@ -93,7 +93,6 @@ export default function MyConsents() {
     }, [apply, principalId]);
 
     const latest = history[0] || null;
-    // Purpose ID se milao; ID na mile to naam se (backend history me sirf naam bhejta hai)
     const entryOf = useMemo(() => {
         const ids = new Map((latest?.purposes ?? []).map((p) => [p.purposeId, p]));
         const names = new Map((latest?.purposes ?? []).map((p) => [p.name.trim().toLowerCase(), p]));
@@ -101,7 +100,6 @@ export default function MyConsents() {
     }, [latest, purposes]);
     const withdrawn = latest?.status === CONSENT_STATUS.withdrawn;
 
-    // Har version ko pichhle version se milao: kya allow hua, kya band hua (naam se, kyunki backend ID nahi bhejta)
     const rows = useMemo(() => history.map((c, i) => {
         const prev = history[i + 1];
         if (c.status === CONSENT_STATUS.withdrawn && prev) return { c, change: { kind: "withdrawn" } };

@@ -13,7 +13,6 @@ import { band } from "../../utils/executive.js";
 import { dateText, typeLabel as requestTypeLabel } from "../../utils/privacyRequest.js";
 import { toDate } from "../../utils/audit.js";
 
-// User (customer ya employee) ka overview: pehle "aapka kaam", phir privacy health, phir haal ki gatividhi.
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
 const TONE_BG = { info: "bg-brand-soft text-brand-ink", ok: "bg-ok-soft text-ok-ink", warn: "bg-warn-soft text-warn-ink", violet: "bg-violet/12 text-violet-ink" };
 

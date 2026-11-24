@@ -69,7 +69,6 @@ export function normalizeDpia(r) {
 }
 
 const SCHEMA = "kavach-dpia/1";
-// Purane records (pehle ke naam se save hue) bhi structured hi padhe jaate hain
 const LEGACY_SCHEMAS = new Set([SCHEMA, "privy" + "guard-dpia/1"]);
 
 export function emptyForm() {

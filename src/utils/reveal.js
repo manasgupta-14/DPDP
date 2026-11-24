@@ -1,7 +1,3 @@
-// Scroll-reveal: page khulne par aur scroll karte waqt headings, text, cards aur
-// table rows modern tareeke se "reveal" hote hain. Koi page code nahi badalta —
-// yeh script khud naye elements dhoondh kar unhe observe karti hai.
-// Styling: index.css ka "Reveal" section.
 
 const TARGETS = [
     ".pg-dash main h1",
@@ -15,7 +11,7 @@ const TARGETS = [
 ].join(",");
 
 const SKIP = '[role="dialog"], [data-no-reveal], .pg-select-pop, nav, header.sticky';
-const MAX_ROWS = 40; // isse zyada table rows ho to baaki turant dikhe (performance)
+const MAX_ROWS = 40;
 
 let io = null;
 let seen = new WeakSet();
@@ -48,7 +44,7 @@ function scan() {
         if (seen.has(el)) continue;
         seen.add(el);
         if (el.closest(SKIP)) continue;
-        if (hasRevealAncestor(el)) continue; // card ke andar wale bachche alag reveal na hon
+        if (hasRevealAncestor(el)) continue;
         const kind = kindOf(el);
         if (kind === "row" && ++rows > MAX_ROWS) continue;
         el.dataset.reveal = kind;
@@ -63,7 +59,6 @@ function queueScan() {
 }
 
 function onIntersect(entries) {
-    // Ek saath dikhne wale elements thoda stagger ke saath aayein
     const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top || a.boundingClientRect.left - b.boundingClientRect.left);
     visible.forEach((entry, i) => {
         const el = entry.target;
@@ -79,7 +74,6 @@ export function installReveal() {
     window.__pgReveal = true;
     if (!("IntersectionObserver" in window)) return;
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    // Chhoti screen / touch device par reveal band: content seedha dikhta hai (performance)
     if (window.matchMedia?.("(max-width: 1023px), (pointer: coarse)").matches) return;
 
     document.documentElement.classList.add("pg-reveal-on");
@@ -93,7 +87,6 @@ export function installReveal() {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
     else start();
 
-    // Safety: print ya kisi wajah se observer na chale to content chhupa na rahe
     window.addEventListener("beforeprint", () => {
         document.querySelectorAll("[data-reveal]").forEach((el) => { el.dataset.revealed = "true"; });
     });

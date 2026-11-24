@@ -9,8 +9,9 @@ import { installReveal } from "./utils/reveal.js";
 import { installScrollBorder } from "./utils/scrollBorder.js";
 import { installRipple } from "./utils/ripple.js";
 import "./styles/pro.css";
+import { preloadRoute } from "./utils/preloadRoute.js";
 
-// Reveal pehle paint se pehle (warna content jhatke se chhupta), baaki listeners idle me (main thread free rehta hai)
+preloadRoute();
 installReveal();
 const later = (fn) => (typeof requestIdleCallback === "function" ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 600));
 later(() => {

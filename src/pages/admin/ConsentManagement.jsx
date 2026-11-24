@@ -8,7 +8,6 @@ import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/
 import Icon from "../../components/shared/Icon.jsx";
 import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, REMOVED_PURPOSE, STATUS_LABEL, withVersions } from "../../utils/consent.js";
 
-// Detail API kabhi purpose ka naam nahi bhejti (sab "Removed purpose" ban jaate hain); tab list wale sahi purposes use karo
 const usablePurposes = (list) => Array.isArray(list) && list.length > 0 && !list.every((p) => p.name === REMOVED_PURPOSE);
 
 const PAGE_SIZE = 10;

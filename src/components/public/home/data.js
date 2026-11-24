@@ -1,5 +1,3 @@
-// Landing page ka saara content (Kavach) yahan hai (data-driven). Sirf product ki asli baatein;
-// koi nakli customer, testimonial ya aankda nahi.
 
 export const ICONS = {
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z",
@@ -35,7 +33,6 @@ export const CAPABILITIES = [
     "Audit trail", "Downloadable reports", "Bulk import",
 ];
 
-// Hub-and-spoke: beech me Kavach, chaaron taraf modules
 export const ECOSYSTEM = [
     { key: "consent", icon: "consent", title: "Consent", text: "Allow / deny per purpose, withdraw any time.", status: "Recorded", tone: "blue", statusTone: "ok", to: "/dashboard/consent" },
     { key: "notice", icon: "notice", title: "Privacy notices", text: "Versioned, in English, Hindi and Marathi.", status: "Published", tone: "pink", statusTone: "ok", to: "/dashboard/notices" },
@@ -65,7 +62,6 @@ export const STEPS = [
     { title: "Evidence", text: "Download reports and show the audit trail when asked." },
 ];
 
-// Sirf product ke asli tathya
 export const STATS = [
     { value: 3, suffix: "", label: "panels", sub: "Admin, User and DPO", icon: "grid" },
     { value: 3, suffix: "", label: "notice languages", sub: "English, Hindi and Marathi", icon: "globe" },
@@ -82,6 +78,22 @@ export const COMPARE_ROWS = [
     ["Change history you can export", false, true],
 ];
 
+export const CLOCKS = [
+    { key: "breach", icon: "breach", value: "72", unit: "hours", text: "Breach report to the Board", tone: "bad", fill: 0.78 },
+    { key: "rights", icon: "retention", value: "30", unit: "days", text: "Rights request due date", tone: "ok", fill: 0.55 },
+    { key: "grievance", icon: "grievance", value: "90", unit: "days", text: "Grievance limit (DPDP Rules)", tone: "warn", fill: 0.35 },
+    { key: "consent", icon: "consent", value: "Any", unit: "time", text: "Consent can be withdrawn", tone: "info", fill: 0.9 },
+];
+
+export const COMPARE_PAIRS = [
+    ["Consent records", "Often spread across forms, emails and sheets", "Each decision stored per purpose, with date and reference"],
+    ["Rights requests", "Due dates tracked by hand", "Every request gets a reference number and a due date"],
+    ["Ownership", "It can be unclear who is handling what", "Assigned owners and separate Admin, DPO and User panels"],
+    ["Change history", "Edits can overwrite earlier versions", "Changes are written to an audit trail"],
+    ["Privacy notices", "Versions kept in separate files", "Versioned notices in English, Hindi and Marathi"],
+    ["Reports", "Put together by hand when someone asks", "PDF or CSV export with a SHA-256 fingerprint"],
+];
+
 export const MILESTONES = [
     { label: "Phase 1", date: "13 Nov 2025", text: "DPDP Rules notified and the Data Protection Board set up" },
     { label: "Phase 2", date: "13 Nov 2026", text: "Rules for registering Consent Managers apply" },
@@ -96,7 +108,6 @@ export const FAQ = [
     { q: "Does using Kavach make us compliant?", a: "No tool can promise that. Kavach keeps your tasks and records organised; check obligations and dates against official MeitY sources and get legal advice where needed." },
 ];
 
-// Navbar ke logged-out links: landing page ke sections
 export const SECTION_LINKS = [
     { label: "Ecosystem", href: "/#ecosystem" },
     { label: "Features", href: "/#features" },

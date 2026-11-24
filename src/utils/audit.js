@@ -3,9 +3,6 @@ const pick = (o, ...keys) => {
     return null;
 };
 
-// Poore app ki ek hi tareekh-padhne wali function.
-// Backend khaali tareekh ko C# default "0001-01-01" (ya SQL ki 1753/1900) bhejta hai: use "tareekh nahi hai" maano,
-// warna screen par "Jan 1, 1" ya "20776 days" jaisa galat data dikhta hai.
 const MIN_REAL_YEAR = 1971;
 export function toDate(value) {
     if (value === null || value === undefined || value === "") return null;
@@ -45,8 +42,6 @@ export function humanizeEntity(name) {
     return String(name ?? "").replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
 }
 
-// Backend action "campaignaudiencegroupmembers.added" jaise lowercase jude hue shabd bhejta hai.
-// In shabdon ki list se hum unhe "Campaign audience group members · added" bana dete hain.
 const WORDS = (
     "campaign audience group groups member members mapping mappings response responses data principal principals identifier identifiers " +
     "consent consents record records detail details purpose purposes category categories processor processors notice notices template templates " +
@@ -71,7 +66,6 @@ function segment(word) {
     return best[w.length] ? best[w.length].join(" ") : word;
 }
 
-/** "campaignaudiencegroupmembers.added" -> "Campaign audience group members · added" */
 export function humanizeAction(action) {
     const raw = String(action ?? "").trim();
     if (!raw) return "";

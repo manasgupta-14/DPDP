@@ -35,7 +35,6 @@ export default function MyGrievanceDetail() {
         setBusy(true);
         setError("");
         setFlash("");
-        // Optimistic: message turant chat mein dikh jaye, server confirm hone pe asli message le leta hai.
         setPending([{ tempId: `tmp-${Date.now()}`, text, senderType: "User", isInternal: false, createdAt: new Date().toISOString() }]);
         setReply("");
         const res = await replyGrievance(id, { messageText: text, isInternal: false });

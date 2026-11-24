@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-// Kavach chart kit: bina library ke SVG charts.
-// - Har chart screen par aate hi chalta hai (scroll) aur page refresh / "Refresh" button par dobara.
-// - Rang CSS variables (styles/pro.css --kc-*) se: halke, saaf rang, light aur dark dono me.
 
 export const C = {
     brand: "var(--kc-1)",
@@ -27,7 +24,6 @@ export const SERIES = [C.brand, C.teal, C.amber, C.red, C.violet, C.sky];
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, Number(v) || 0));
 export const fmtNum = (v) => Number(v || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 });
 
-/** Element screen par hai ya nahi. replay=true: bahar jaa kar wapas aaye to animation fir chale. */
 export function useInView({ replay = true, threshold = 0.25 } = {}) {
     const ref = useRef(null);
     const [inView, setInView] = useState(false);
@@ -51,12 +47,12 @@ export function useInView({ replay = true, threshold = 0.25 } = {}) {
     return [ref, inView];
 }
 
-/** Number 0 se value tak gin kar badhta hai (jab active ho). */
 export function useCountUp(value, active, duration = 1100) {
     const target = Number(value) || 0;
     const [shown, setShown] = useState(0);
+    const skip = typeof window !== "undefined" && !!window.matchMedia?.("(max-width: 1023px), (pointer: coarse), (prefers-reduced-motion: reduce)").matches;
     useEffect(() => {
-        if (!active) return undefined;
+        if (!active || skip) return undefined;
         let raf = 0;
         const start = performance.now();
         const tick = (now) => {
@@ -67,7 +63,8 @@ export function useCountUp(value, active, duration = 1100) {
         };
         raf = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(raf);
-    }, [target, active, duration]);
+    }, [target, active, duration, skip]);
+    if (skip) return active ? target : 0;
     return active ? shown : 0;
 }
 
@@ -106,7 +103,6 @@ function niceScale(max, ticks = 4) {
     return { step, top: step * Math.ceil(max / step) };
 }
 
-// Smooth (monotone) curve
 function curve(pts) {
     const n = pts.length;
     if (n < 2) return n ? `M${pts[0].x},${pts[0].y}` : "";
@@ -128,9 +124,6 @@ function curve(pts) {
     return d;
 }
 
-/* ------------------------------------------------------------------ Floating tooltip (cursor ke saath)
-   Ring, Donut, Gauge, HBars, Progress aur Sparkline ke liye. Wahi kc-tip style jo Area/Column chart me hai.
-   Portal se body me banta hai, isliye card ka overflow use kaat nahi sakta. */
 function TipBody({ title, rows }) {
     return (
         <>
@@ -169,7 +162,6 @@ export function useFloatTip() {
     return [bind, render];
 }
 
-/* ------------------------------------------------------------------ Ring (percentage) */
 export function Ring({ value, size = 132, stroke = 12, color = C.brand, children, label, name, tip, unit = "" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -201,7 +193,6 @@ export function Ring({ value, size = 132, stroke = 12, color = C.brand, children
     );
 }
 
-/* ------------------------------------------------------------------ Donut (kai hisse) */
 export function Donut({ parts, size = 168, stroke = 22, children, label, name }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -262,7 +253,6 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
     );
 }
 
-/* ------------------------------------------------------------------ Semi gauge */
 export function Gauge({ value, size = 220, color = C.brand, children, label, name }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -283,7 +273,6 @@ export function Gauge({ value, size = 220, color = C.brand, children, label, nam
     );
 }
 
-/* ------------------------------------------------------------------ Tooltip */
 function Tip({ x, width, title, rows }) {
     const left = Math.min(Math.max(x - 70, 4), width - 150);
     return (
@@ -302,7 +291,6 @@ function Tip({ x, width, title, rows }) {
     );
 }
 
-/* ------------------------------------------------------------------ Area / line chart */
 export function AreaChart({ labels, series, height = 220, area = true, yFormat = fmtNum, ariaLabel }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
@@ -388,13 +376,8 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
     );
 }
 
-/* ------------------------------------------------------------------ Column (bar) chart */
-/** Bar palette (ek-series chart me har bar alag rang) */
 export const BAR3D = [C.brand, C.violet, C.teal, C.amber, C.pink, C.lime, C.orange, C.sky];
 
-// Saaf 2D vertical bars: gol upar ke kone, ek hi rang ka halka gradient, peeche halka track, upar % label,
-// hover par baaki bars dheemi + tooltip, aur neeche se smooth animated growth.
-// barColors: ek-series chart me har bar ka apna rang. percent: "series" (us series ke total ka %) ya "group" (us column ke total ka %).
 export function ColumnChart({ labels, series, height = 230, stacked = false, ariaLabel, barColors, percent }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
@@ -510,7 +493,6 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
     );
 }
 
-/* ------------------------------------------------------------------ Horizontal bars (list) */
 export function HBars({ rows, suffix = "", max, showValue = true }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -562,7 +544,6 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
     );
 }
 
-/* ------------------------------------------------------------------ Single progress bar */
 export function Progress({ value, color = C.brand, height = 10, delay = 0, name, valueName = "Done" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -575,7 +556,6 @@ export function Progress({ value, color = C.brand, height = 10, delay = 0, name,
     );
 }
 
-/* ------------------------------------------------------------------ Sparkline */
 export function Sparkline({ values, color = C.brand, width = 96, height = 32, labels, name = "Value" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -610,7 +590,6 @@ export function Sparkline({ values, color = C.brand, width = 96, height = 32, la
     );
 }
 
-/* ------------------------------------------------------------------ Legend */
 export function Legend({ items }) {
     return (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-3">
@@ -625,7 +604,6 @@ export function Legend({ items }) {
     );
 }
 
-/* ------------------------------------------------------------------ Data table (screen readers / exact numbers) */
 export function ChartTable({ head, rows, summary = "Show data as table" }) {
     return (
         <details className="mt-3 text-sm">

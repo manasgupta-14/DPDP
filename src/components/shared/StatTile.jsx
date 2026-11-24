@@ -2,9 +2,6 @@ import { Link } from "react-router-dom";
 import { CountUp, fmtNum, useFloatTip, useInView } from "../charts/kit.jsx";
 import Icon from "./Icon.jsx";
 
-// Ek number wala card (har page ke summary me): bada number, chhota icon, halka rang aur
-// neeche chhota bar jo dikhata hai ki yeh number poore (total) ka kitna hissa hai.
-// tone ka rang matlab: info = neela, ok = hara, warn = peela, bad = laal, violet, muted = grey.
 
 const TONES = {
     info: { ink: "text-brand-ink", ico: "bg-brand-soft text-brand-ink", bar: "var(--k-brand)", tint: "kd-tint-info" },
@@ -21,7 +18,6 @@ export default function StatTile({ label, value, hint, tone = "info", icon, tota
     const isNum = typeof value === "number" && Number.isFinite(value);
     const share = isNum && total > 0 ? Math.min(100, (value / total) * 100) : null;
     const [bind, renderTip] = useFloatTip();
-    // Popup poore card par aata hai (sirf patli bar par nahi). Jab value hi total ho (jaise "9 of 9"), popup kuch naya nahi batata, isliye nahi dikhate.
     const showTip = share !== null && value !== total;
     const hover = showTip ? bind : {};
 

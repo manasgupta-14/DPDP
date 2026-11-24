@@ -8,7 +8,6 @@ import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 const label = "block text-sm font-medium text-ink-2";
 const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "", roleId: "", password: "", confirm: "" };
 
-// Login (optional): password diya to email zaroori, kam se kam 8 akshar, aur dono password same
 function validateLogin(form) {
     const e = {};
     if (!form.password && !form.confirm) return e;

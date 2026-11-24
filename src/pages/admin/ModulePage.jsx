@@ -23,6 +23,5 @@ export default function ModulePage() {
     if (slug === "dsar") return <Suspense fallback={<PageLoader />}><RightsRequests /></Suspense>;
     if (slug === "rules") return <Suspense fallback={<PageLoader />}><RulesActs /></Suspense>;
     if (slug === "checklist") return <Suspense fallback={<PageLoader />}><ComplianceChecklist /></Suspense>;
-    // Jin slugs ka asli page nahi (jaise "timeline"), unhe adhoora panel dikhane ke bajay dashboard par bhejo
     return <Navigate to="/dashboard" replace />;
 }

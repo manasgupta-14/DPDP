@@ -1,12 +1,6 @@
 import { useEffect, useRef } from "react";
 import { THEME_EVENT } from "../../utils/theme.js";
 
-/*
- * App background (web-app jaisa, website jaisa nahi):
- *  1) halka tech grid (CSS), 2) dheemi aurora glow (CSS), 3) canvas par "neural network":
- *  chhote nodes tairte hain, paas wale judte hain, 
- * Performance: nodes kam, tab chhupa ho to ruk jata hai, reduced-motion par sirf ek frame.
- */
 const css = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 
 export default function TechBackdrop() {
@@ -18,7 +12,15 @@ export default function TechBackdrop() {
         const ctx = canvas.getContext("2d");
         if (!ctx) return undefined;
         const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const lite =
+            window.matchMedia?.("(max-width: 1023px), (pointer: coarse)").matches ||
+            navigator.connection?.saveData ||
+            (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
+        if (lite) {
+            canvas.style.display = "none";
+            return undefined;
+        }
+        const dpr = 1;
         let w = 0;
         let h = 0;
         let nodes = [];
@@ -43,7 +45,7 @@ export default function TechBackdrop() {
             canvas.style.width = `${w}px`;
             canvas.style.height = `${h}px`;
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            const count = Math.min(70, Math.max(24, Math.round((w * h) / 24000)));
+            const count = Math.min(40, Math.max(18, Math.round((w * h) / 36000)));
             nodes = Array.from({ length: count }, () => ({
                 x: Math.random() * w,
                 y: Math.random() * h,
@@ -57,6 +59,7 @@ export default function TechBackdrop() {
             ctx.clearRect(0, 0, w, h);
             const [r, g, b] = rgb;
             const LINK = 150;
+            const LINK2 = LINK * LINK;
             for (let i = 0; i < nodes.length; i++) {
                 const a = nodes[i];
                 if (!reduced) {
@@ -69,8 +72,11 @@ export default function TechBackdrop() {
                 }
                 for (let j = i + 1; j < nodes.length; j++) {
                     const c = nodes[j];
-                    const d = Math.hypot(a.x - c.x, a.y - c.y);
-                    if (d < LINK) {
+                    const dx = a.x - c.x;
+                    const dy = a.y - c.y;
+                    const d2 = dx * dx + dy * dy;
+                    if (d2 < LINK2) {
+                        const d = Math.sqrt(d2);
                         const o = (1 - d / LINK) * alpha * 0.55;
                         ctx.strokeStyle = `rgba(${r},${g},${b},${Math.min(o, 0.85)})`;
                         ctx.lineWidth = 0.8;
@@ -87,9 +93,13 @@ export default function TechBackdrop() {
             }
         };
 
-        const loop = () => {
+        let last = 0;
+        const loop = (t = 0) => {
             if (!running) return;
-            draw();
+            if (t - last >= 33) {
+                last = t;
+                draw();
+            }
             raf = requestAnimationFrame(loop);
         };
 
@@ -101,8 +111,12 @@ export default function TechBackdrop() {
 
         readTheme();
         resize();
-        draw();
-        if (!reduced) loop();
+        let idle = 0;
+        const start = () => {
+            draw();
+            if (!reduced) loop();
+        };
+        idle = typeof requestIdleCallback === "function" ? requestIdleCallback(start, { timeout: 2500 }) : setTimeout(start, 1200);
         window.addEventListener("resize", resize);
         document.addEventListener("visibilitychange", onVis);
         const onTheme = () => {
@@ -112,6 +126,8 @@ export default function TechBackdrop() {
         window.addEventListener(THEME_EVENT, onTheme);
         return () => {
             running = false;
+            if (typeof cancelIdleCallback === "function") cancelIdleCallback(idle);
+            else clearTimeout(idle);
             cancelAnimationFrame(raf);
             window.removeEventListener("resize", resize);
             document.removeEventListener("visibilitychange", onVis);

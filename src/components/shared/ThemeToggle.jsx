@@ -1,6 +1,5 @@
 import { toggleTheme, useTheme } from "../../utils/theme.js";
 
-// Sooraj / chaand wala gol button. Icon ghoom kar badalta hai.
 export default function ThemeToggle({ className = "" }) {
     const theme = useTheme();
     const dark = theme === "dark";

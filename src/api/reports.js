@@ -27,7 +27,6 @@ export const REPORT_OPTIONS = [
 export const REPORT_TYPES = Object.fromEntries(REPORT_OPTIONS.map((o) => [o.type, o.label]));
 export const reportTypeLabel = (t) => REPORT_TYPES[t] ?? (t ? String(t).replace(/([a-z])([A-Z])/g, "$1 $2") : "-");
 
-// Backend ReportJob.ParametersJson me campaignId ho to use "Generate again" ke liye nikaal lo
 function campaignIdOf(json) {
     if (!json) return "";
     try {
@@ -57,7 +56,6 @@ export async function getReportHistory() {
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeJob) } : res;
 }
 
-// Backend har report PDF ya CSV me bana sakta hai (?format=PDF|CSV, default PDF)
 export const REPORT_FORMATS = ["PDF", "CSV"];
 const fmtQuery = (format) => `?format=${encodeURIComponent(REPORT_FORMATS.includes(format) ? format : "PDF")}`;
 
@@ -77,7 +75,6 @@ export async function generateCampaignReport(campaignId, format = "PDF") {
 
 const slug = (t) => String(t || "Report").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "Report";
 
-// Server ka naam "CampaignAudit_<orgId>_<time>.pdf" hota hai; user ko "Kavach_Campaign-report_2026-11-19_1554.pdf" do
 export function kavachFileName(job, serverName, isPdf) {
     const ext = (/\.([a-z0-9]+)$/i.exec(serverName || "")?.[1] || (isPdf ? "pdf" : "csv")).toLowerCase();
     const d = job?.createdAt ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(job.createdAt)) ? job.createdAt : `${job.createdAt}Z`) : new Date();
@@ -130,13 +127,11 @@ export async function downloadReport(jobId, job = null) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    // SHA-256 file ke asli bytes se (PDF binary hai, text se hash galat aata)
     let hash = "";
     try {
         const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
         hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
     } catch {
-        // crypto.subtle sirf https/localhost par: tab text wala hash (CSV ke liye) page khud nikaal leta hai
     }
     return { ok: true, fileName, hash, text: isPdf ? "" : await blob.text() };
 }

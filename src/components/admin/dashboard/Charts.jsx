@@ -1,4 +1,3 @@
-// Purane imports ke liye (Breach page wagairah): naya chart kit hi use hota hai.
 import { AreaChart, ChartTable, ColumnChart, SERIES } from "../../charts/kit.jsx";
 
 export { ChartTable };
@@ -8,7 +7,6 @@ export function LineChart({ labels, series }) {
 }
 
 export function BarChart({ bars, unit = "Value" }) {
-    // Har bar apne rang me: ek-ek series bana kar stacked dikhate hain (ek label = ek bar)
     const labels = bars.map((b) => b.label);
     const series = bars.map((b, i) => ({
         name: unit,

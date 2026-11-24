@@ -8,7 +8,6 @@ const pick = (o, ...keys) => {
     return null;
 };
 
-// 403 ka message ab client.js se aata hai (saath me exact permission ka naam).
 const forbidden = (res) => res;
 
 function normalizeTemplate(t) {

@@ -1,13 +1,9 @@
 import { apiFetch } from "./client.js";
 
-// GET /api/ComplianceChecklist (backend: ComplianceChecklistController, permission "Audit.View").
-// Har item backend ke asli records ki ginti se banta hai; frontend kuch nahi gadhta.
 const arr = (v) => (Array.isArray(v) ? v : Array.isArray(v?.$values) ? v.$values : []);
 const pick = (o, key) => o?.[key] ?? o?.[key[0].toUpperCase() + key.slice(1)];
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 
-// Backend ka text "3 record(s)" / "policy/policies" / purana product naam jaisa hai; dikhane se pehle saaf karte hain
-// (sirf shabd sahi hote hain, ginti wahi rehti hai jo backend ne bheji).
 export function tidy(text) {
     return String(text || "")
         .replace(/\b(?:Privacy\s?Guard|PrivyGuard)\b/gi, "Kavach")
@@ -15,7 +11,6 @@ export function tidy(text) {
         .replace(/(\d+)([^\d;.,]*?)\b([A-Za-z]+)\(s\)/g, (_, n, mid, w) => `${n}${mid}${w}${Number(n) === 1 ? "" : "s"}`);
 }
 
-// Backend "Module" naam -> Kavach ka page
 export const CHECKLIST_MODULE_LINKS = {
     DataInventory: "/dashboard/inventory",
     Notice: "/dashboard/notices",
@@ -28,7 +23,6 @@ export const CHECKLIST_MODULE_LINKS = {
     Audit: "/dashboard/audit",
 };
 
-// Status: Complete / NeedsAttention / NotTracked (backend constants)
 export function checklistStatus(raw) {
     const s = String(raw || "").replace(/\s+/g, "").toLowerCase();
     if (s === "complete") return { key: "complete", label: "Complete", tone: "ok" };

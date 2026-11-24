@@ -27,8 +27,6 @@ export const TARGET_AUDIENCE_OPTIONS = [
     { value: TARGET_AUDIENCE.specific, label: "Specific people (choose after creating)" },
 ];
 
-// Backend enum AudienceType number bhejta hai: Specific=1, AllDataPrincipals=2, AllInternalUsers=3, Everyone=4.
-// Kabhi naam aaye ("AllDataPrincipals") to bhi wahi number banao.
 const AUDIENCE_NAMES = { specific: 1, alldataprincipals: 2, allinternalusers: 3, everyone: 4 };
 function audienceNumber(v) {
     if (v === null || v === undefined || v === "") return 0;

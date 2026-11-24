@@ -7,10 +7,6 @@ import PageLoader from "../components/shared/PageLoader.jsx";
 import CommandPalette from "../components/shared/CommandPalette.jsx";
 import ThemeToggle from "../components/shared/ThemeToggle.jsx";
 
-// Admin, DPO aur User teeno panels ka ek hi frame: bayen sidebar, upar header, beech me page.
-// Design: web-app jaisa. Sidebar screen se chipka (dock), collapse hokar sirf icons ban sakta hai (yaad rehta hai),
-// active page par chamakta indicator slide karta hai, Ctrl+K se command palette, upar scroll-progress line.
-// Rang theme tokens se, isliye light aur dark dono me sab padhne layak.
 const SIDE_KEY = "pg_side";
 
 function useClickAway(ref, onAway) {
@@ -31,7 +27,6 @@ function Sidebar({ sections, footer, subtitle, onNavigate, collapsed = false, on
     const barRef = useRef(null);
     const { pathname } = useLocation();
 
-    // Active link ke peeche ek hi "pill" hai jo page badalne par slide karta hai
     useLayoutEffect(() => {
         const nav = navRef.current;
         const bar = barRef.current;
@@ -46,7 +41,6 @@ function Sidebar({ sections, footer, subtitle, onNavigate, collapsed = false, on
             bar.style.height = `${el.offsetHeight}px`;
             bar.style.transform = `translateY(${el.offsetTop}px)`;
         };
-        place();
         const raf = requestAnimationFrame(place);
         window.addEventListener("resize", place);
         return () => {
@@ -171,7 +165,6 @@ export default function DashboardShell({
             try {
                 localStorage.setItem(SIDE_KEY, next ? "1" : "0");
             } catch {
-                // private mode
             }
             return next;
         });
@@ -254,7 +247,7 @@ export default function DashboardShell({
                         <button type="button" onClick={() => setBellOpen((v) => !v)} aria-label={bell.title} aria-expanded={bellOpen} className="kv-icon-btn">
                             <Icon name="bell" className="h-5 w-5" />
                             {bell.count > 0 && (
-                                <span className="absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full bg-bad px-1 text-[10px] font-bold text-white ring-2 ring-surface">
+                                <span className="absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full bg-[#C0172F] px-1 text-[10px] font-bold text-white ring-2 ring-surface">
                                     {bell.count > 99 ? "99+" : bell.count}
                                 </span>
                             )}

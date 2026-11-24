@@ -1,7 +1,3 @@
-// Dark / Light theme: <html data-theme="dark|light">, localStorage me yaad rehta hai.
-// Pehli baar: system ki setting (prefers-color-scheme). index.html ka chhota script
-// page paint hone se pehle hi theme laga deta hai (safed chamak nahi).
-// Toggle par: jahan click hua wahin se naya theme gol (circle) ban kar phailta hai (View Transitions API).
 import { useSyncExternalStore } from "react";
 
 const KEY = "pg_theme";
@@ -21,7 +17,6 @@ export function setTheme(theme) {
     try {
         localStorage.setItem(KEY, t);
     } catch {
-        // private mode: sirf is session ke liye
     }
     window.dispatchEvent(new Event(EVENT));
     window.setTimeout(() => root.classList.remove("pg-theme-anim"), 450);

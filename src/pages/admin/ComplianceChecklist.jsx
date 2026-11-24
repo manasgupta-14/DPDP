@@ -5,8 +5,6 @@ import { C, CountUp, Ring } from "../../components/charts/kit.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 
-// Compliance checklist: backend ka GET /api/ComplianceChecklist. Har line asli records ki ginti se banti hai.
-// "Tracked outside Kavach" wali lines (training, processor agreements) backend jaan-boojh kar nahi ginta.
 
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
 
@@ -16,7 +14,6 @@ const TONE = {
     muted: { pill: "bg-subtle text-muted ring-line", icon: "info", tile: "var(--k-faint)" },
 };
 
-// Pehle "needs attention", phir complete, phir bahar track hone wale (category ke hisaab se)
 const ORDER = { attention: 0, complete: 1, untracked: 2, other: 3 };
 
 const FILTERS = [

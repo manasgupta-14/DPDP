@@ -1,5 +1,3 @@
-// Button click par chhota "ripple" (lehar) jo click ki jagah se phailti hai.
-// Sirf primary / cta buttons par. CSS: pro.css ka ".kx-ripple".
 const SEL = ".kd-btn.is-primary, .pg-cta, .kx-btn-primary, .kv-cta-main";
 
 export function installRipple() {

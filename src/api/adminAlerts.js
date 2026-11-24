@@ -10,10 +10,6 @@ const OPEN_GRIEVANCE = (s) => sameText(s, "open") || sameText(s, "in progress");
 const time = (d) => toTime(d);
 const day = (d) => (d ? formatDate(d) : "");
 
-/**
- * Admin bell ke liye asli kaam: khuli shikayatein, khule breach, pending rights requests
- * aur review ka intezaar karti DPIA. Jis API ki permission nahi hai, wo chupchaap chhod di jati hai.
- */
 export async function getAdminAlerts(limit = 8) {
     const [grievances, incidents, requests, dpias] = await Promise.all([
         getAllGrievances(),
@@ -52,6 +48,5 @@ export async function getAdminAlerts(limit = 8) {
     }
 
     items.sort((a, b) => b.at - a.at);
-    // all: har open item ka (kind, key). Sidebar ke "naye" count (badge) isi se nikalte hain.
     return { total: items.length, items: items.slice(0, limit), all: items.map(({ kind, key }) => ({ kind, key })) };
 }

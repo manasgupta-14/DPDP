@@ -101,7 +101,6 @@ export default function DpiaList() {
         setFlash("Draft deleted.");
     };
 
-    // Backend me "Rejected" status nahi hai (sirf In Review / Approved / Needs Changes), isliye wo filter nahi dikhate
     const filters = ["All", ...STATUS_LIST].filter((s) => (s !== STATUS.DRAFT || canCreate) && (s !== STATUS.REJECTED || REJECT_SUPPORTED));
 
     return (

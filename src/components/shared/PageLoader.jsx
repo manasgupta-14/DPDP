@@ -1,4 +1,3 @@
-// Page loader: shield ke upar scan-line, neeche chalti progress line. Text ke saath (screen reader ke liye role="status").
 export default function PageLoader() {
     return (
         <div role="status" aria-live="polite" className="flex min-h-[45vh] flex-col items-center justify-center gap-5 text-sm text-ink-3">

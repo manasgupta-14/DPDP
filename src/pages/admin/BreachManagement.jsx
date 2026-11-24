@@ -20,11 +20,9 @@ export default function BreachManagement() {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
     const [pickedId, setSelectedId] = useState(null);
     const [params, setParams] = useSearchParams();
-    // Bell notification "?incident=<id>" se seedha us incident ka drawer khulta hai.
     const linkedId = params.get("incident");
     const selectedId = pickedId ?? linkedId;
 
-    // Incident (card) khulte hi "seen": New tag hatega aur sidebar count 1 kam hoga
     useEffect(() => {
         if (selectedId) markSeen("breach", selectedId);
     }, [selectedId]);

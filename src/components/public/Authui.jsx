@@ -89,7 +89,6 @@ const POINTS = [
     "Breach handling and a reviewable audit trail",
 ];
 
-// Workspace preview: web-app ke modules ka chhota card (koi ghoomta shield nahi). Sirf decoration (aria-hidden).
 const PREVIEW = [
     { label: "Consent register", tone: "var(--k-c1)", w: "86%", d: "120ms", icon: "M7 3h7l4 4v14H7zM9.5 13l2 2 3.5-4" },
     { label: "Rights requests", tone: "var(--k-c2)", w: "64%", d: "260ms", icon: "M4 5h16v11H9l-5 4z" },
@@ -118,7 +117,6 @@ function Preview() {
     );
 }
 
-// Login / register ka frame: bayen tech panel (preview + points), dayen form card. Light aur dark dono me theme tokens se.
 export default function AuthLayout({ title, subtitle, children, footer }) {
     return (
         <div className="ap-auth kx-auth min-h-screen">

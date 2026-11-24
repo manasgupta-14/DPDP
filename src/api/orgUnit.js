@@ -6,8 +6,6 @@ const seg = (id) => encodeURIComponent(id);
 const WRAPPER_KEYS = ["data", "Data", "items", "Items", "results", "Results", "value", "Value", "units", "Units", "orgUnits", "OrgUnits", "hierarchy", "Hierarchy", "roots", "Roots", "nodes", "Nodes", "$values"];
 const CHILD_KEYS = ["children", "Children", "childUnits", "ChildUnits", "subUnits", "SubUnits", "items", "Items"];
 
-// Backend kabhi plain array, kabhi { data: [...] }, kabhi { success, data: { items: [...] } }
-// ya ek single root object bhejta hai. Sab cases se array nikaal lo.
 function unwrap(value, depth = 0) {
     if (Array.isArray(value)) return value;
     if (!value || typeof value !== "object" || depth > 4) return [];
@@ -18,12 +16,10 @@ function unwrap(value, depth = 0) {
             if (inner.length) return inner;
         }
     }
-    // Single unit object (root) aaya ho
     if (value.id !== undefined || value.Id !== undefined) return [value];
     return [];
 }
 
-// Children ko "children" key me laao ($values / ChildUnits / SubUnits sab)
 function unifyChildren(raw) {
     if (!raw || typeof raw !== "object") return raw;
     let kids = null;
@@ -38,7 +34,6 @@ function unifyChildren(raw) {
     return { ...raw, children: (kids || []).map(unifyChildren) };
 }
 
-// Agar backend flat list bhejta hai (sab units, ParentId ke saath) to tree khud banao.
 function buildTree(units) {
     const hasNested = units.some((u) => u.children.length > 0);
     const hasParentRefs = units.some((u) => u.parentId);

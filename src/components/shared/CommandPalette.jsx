@@ -3,8 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Icon from "./Icon.jsx";
 import { toggleTheme, useTheme } from "../../utils/theme.js";
 
-// Ctrl/Cmd + K: poore app ka "jump to" box. Sidebar ke saare pages + kuch quick actions.
-// Keyboard: upar/neeche, Enter, Esc. Navigation sirf wahi pages dikhata hai jo is role ko sidebar me milte hain.
 export default function CommandPalette({ open, onClose, sections, onLogout }) {
     const navigate = useNavigate();
     const theme = useTheme();

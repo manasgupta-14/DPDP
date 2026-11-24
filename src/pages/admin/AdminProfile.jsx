@@ -4,7 +4,6 @@ import { logout, roleInfo } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
 import { ghostBtn, panel } from "../../components/shared/ui.js";
 
-// Profile page: Admin, DPO aur User teeno ke liye ek hi page. Title aur label login ke role se aate hain.
 const fmt = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
 
 function Row({ icon, label, value, mono, copy = true }) {

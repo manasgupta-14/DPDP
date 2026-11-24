@@ -1,14 +1,9 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { permissionMessage } from "./permissionMap.js";
 
-// Backend ka base URL: .env / Vercel ke VITE_API_BASE_URL se (aakhri "/" hata diya jata hai).
-// Khaali ho to relative "/api/..." jata hai (dev me Vite proxy, ya Vercel rewrite).
 export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
 const TIMEOUT_MS = 15000;
 
-// Backend ka naya standard wrapper: { success, message, data }.
-// Sabhi API calls yahin se guzarti hain, isliye unwrap ek hi jagah hota hai (axios interceptor jaisa).
-// Purane endpoints jo seedha array/object bhejte hain, waise hi chalte rahenge.
 const ENVELOPE_KEYS = new Set(["success", "message", "data", "errors", "statuscode", "timestamp", "traceid"]);
 
 export function readEnvelope(body) {
@@ -24,7 +19,6 @@ export function readEnvelope(body) {
 
 function extractError(data, status, method, path) {
     if (status === 403) return permissionMessage(method, path);
-    // DbUpdateException par backend asli wajah innerError / rootError me bhejta hai
     if (data && typeof data === "object") {
         const root = data.rootError || data.RootError || data.innerError || data.InnerError;
         if (typeof root === "string" && root.trim()) return root.trim();
@@ -76,7 +70,6 @@ export async function apiFetch(path, { method = "GET", body, auth = true, token 
 
         const env = readEnvelope(data);
         if (env) {
-            // 200 aaya par success:false — ise error hi maano
             if (res.ok && !env.success) return { ok: false, status: res.status, data: env.data, message: env.message, error: env.message || extractError(env.errors ? { errors: env.errors } : null, res.status, method, path) };
             if (res.ok) return { ok: true, status: res.status, data: env.data, message: env.message, error: null };
         }

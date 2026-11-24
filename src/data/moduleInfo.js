@@ -1,4 +1,3 @@
-// Module pages ke liye sirf jaankari ka text (koi fake record nahi).
 export const MODULE_INFO = {
     timeline: { title: "Act & Rules timeline", text: "Statutory phases and commencement dates in one view." },
     consent: { title: "Consent management", text: "Purposes, consent records and withdrawals." },

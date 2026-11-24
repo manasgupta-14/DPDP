@@ -3,7 +3,6 @@ import { formatDate } from "../../utils/breach.js";
 
 const NEAR_BOTTOM_PX = 80;
 
-// "Live" dot: green = auto-update chal raha hai, amber = server se connection toota hua.
 export function LiveBadge({ offline }) {
     return (
         <span
@@ -16,12 +15,6 @@ export function LiveBadge({ offline }) {
     );
 }
 
-/**
- * Chat jaisa conversation view.
- *  perspective = "user"  -> Data Principal ka apna view ("You" = User messages)
- *  perspective = "staff" -> Support/DPO ka view ("You" = staff messages)
- *  pending = abhi bheje ja rahe (optimistic) messages
- */
 export default function ChatThread({ messages, pending = [], perspective, raisedBy = "", emptyText = "No messages yet." }) {
     const listRef = useRef(null);
     const nearBottomRef = useRef(true);
@@ -33,7 +26,6 @@ export default function ChatThread({ messages, pending = [], perspective, raised
     const all = [...messages, ...pending.map((p) => ({ ...p, pending: true }))];
     const total = all.length;
 
-    // Naya message aaya: agar user neeche hi tha (ya khud bheja) to neeche scroll, warna "new messages" pill.
     useEffect(() => {
         totalRef.current = total;
         const el = listRef.current;

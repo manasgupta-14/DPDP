@@ -2,16 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getGrievance } from "../api/grievance.js";
 import { isClosedStatus } from "../utils/grievance.js";
 
-// Backend mein realtime (SignalR/WebSocket) nahi hai, isliye frontend smart polling karta hai:
-//  - tab dikh raha ho tabhi poll (hidden tab pe request nahi jaati)
-//  - tab wapas aate hi / internet wapas aate hi turant refresh
-//  - close ho chuke ticket pe slow poll, server down ho to backoff
-//  - sirf tab state update hota hai jab kuch sach mein badla ho (re-render / scroll jump nahi)
 const FAST_MS = 4000;
 const SLOW_MS = 15000;
 const MAX_BACKOFF_MS = 30000;
 
-// Ticket ka "fingerprint": naya message ya status change hua to badal jayega.
 function fingerprint(t) {
     if (!t) return "";
     const last = t.messages[t.messages.length - 1];
@@ -26,8 +20,8 @@ export default function useLiveGrievance(id) {
     const reloadRef = useRef(null);
 
     useEffect(() => {
-        let stopped = false;   // unmount / id change
-        let dead = false;      // 404 / 403: ab poll karne ka faayda nahi
+        let stopped = false;
+        let dead = false;
         let running = null;
         let again = false;
         let failures = 0;
@@ -57,8 +51,6 @@ export default function useLiveGrievance(id) {
             if (initial) setLoading(false);
         };
 
-        // Ek waqt pe ek hi request. Beech mein reload() aaye to uske baad ek aur fetch hota hai
-        // aur wahi promise return hota hai, taaki "await reload()" ke baad data pakka fresh ho.
         const fetchOnce = (initial = false) => {
             if (running) {
                 again = true;

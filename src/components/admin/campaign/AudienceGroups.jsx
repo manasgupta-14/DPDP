@@ -24,7 +24,6 @@ const initials = (text) =>
         .map((w) => w[0]?.toUpperCase())
         .join("") || "?";
 
-/** Group ke members ko naam/email ke saath bharna (backend sirf id + type deta hai). */
 function hydrateMembers(group, directory) {
     const byId = new Map(directory.map((m) => [m.id.toLowerCase(), m]));
     return group.members.map((m) => {
