@@ -9,6 +9,7 @@ import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 import StatTile from "../../components/shared/StatTile.jsx";
+import DataPrincipal360Modal from "../../components/admin/principals/DataPrincipal360Modal.jsx";
 import { toTime } from "../../utils/audit.js";
 
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
@@ -142,6 +143,7 @@ function daysFromNow(value) {
 function ErasureQueue({ query }) {
     const [state, setState] = useState({ loading: true, rows: [], error: "" });
     const [filter, setFilter] = useState("all");
+    const [openId, setOpenId] = useState(null);
 
     const load = useCallback(async () => {
         setState((s) => ({ ...s, loading: true }));
@@ -200,7 +202,15 @@ function ErasureQueue({ query }) {
                                     const d = daysFromNow(r.dueDate);
                                     const late = r.status === "Overdue";
                                     return (
-                                        <tr key={r.id}>
+                                        <tr
+                                            key={r.id}
+                                            role="button"
+                                            tabIndex={0}
+                                            title="View details of this record"
+                                            onClick={() => r.id && setOpenId(r.id)}
+                                            onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && r.id) { e.preventDefault(); setOpenId(r.id); } }}
+                                            className="cursor-pointer transition hover:bg-soft focus-visible:bg-soft focus-visible:outline-none"
+                                        >
                                             <td className={`${td} pl-5`}>
                                                 <p className="font-mono text-[13px] font-medium text-ink">{r.reference || r.id.slice(0, 8)}</p>
                                             </td>
@@ -225,6 +235,7 @@ function ErasureQueue({ query }) {
                     </div>
                 )}
             </div>
+            {openId && <DataPrincipal360Modal id={openId} onClose={() => setOpenId(null)} />}
         </>
     );
 }
