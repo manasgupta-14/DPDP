@@ -17,7 +17,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            // React and React DOM
             if (
               id.includes("/react/") ||
               id.includes("/react-dom/") ||
@@ -26,7 +25,6 @@ export default defineConfig({
               return "react-vendor";
             }
 
-            // React Router
             if (
               id.includes("react-router") ||
               id.includes("@remix-run")
@@ -34,12 +32,10 @@ export default defineConfig({
               return "router-vendor";
             }
 
-            // Lucide Icons
             if (id.includes("lucide-react")) {
               return "icons";
             }
 
-            // Remaining dependencies
             return "vendor";
           }
         },
