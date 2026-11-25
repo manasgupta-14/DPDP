@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { getDataPrincipal360 } from "../../../api/dataPrincipals.js";
+import { setLegalHold } from "../../../api/retentionPolicy.js";
+import { canNow } from "../../../auth/access.js";
+import Alert from "../../shared/Alert.jsx";
 import { formatWhen } from "../../../utils/bulkImport.js";
 import { PRINCIPAL_CLASSES } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
-import { ghostBtn, panel } from "../../shared/ui.js";
+import { field, ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { NotInApi } from "../purposes/NotInApi.jsx";
 import NewTag from "../../shared/NewTag.jsx";
 import StatusBadge from "../../shared/StatusBadge.jsx";
@@ -30,7 +33,40 @@ function Empty({ children }) {
     return <p className="text-xs text-muted">{children}</p>;
 }
 
-export default function DataPrincipal360Modal({ id, onClose }) {
+function LegalHold({ id, onChanged }) {
+    const [reason, setReason] = useState("");
+    const [busy, setBusy] = useState("");
+    const [msg, setMsg] = useState({ tone: "success", text: "" });
+
+    const apply = async (on) => {
+        setBusy(on ? "on" : "off");
+        setMsg({ tone: "success", text: "" });
+        const res = await setLegalHold(id, { on, reason });
+        setBusy("");
+        if (!res.ok) return setMsg({ tone: "error", text: res.error });
+        setMsg({ tone: "success", text: res.data.message || (on ? "Legal hold applied." : "Legal hold removed.") });
+        if (on) setReason("");
+        onChanged?.();
+    };
+
+    return (
+        <Block title="Legal hold" note="A record on legal hold is skipped by the retention job and cannot be erased, manually or automatically. The server does not report the current hold status, so use the buttons below to place or release it.">
+            <div className="space-y-3">
+                <label className="block text-xs font-semibold text-ink-2">
+                    Reason (optional, up to 250 characters)
+                    <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={250} disabled={!!busy} placeholder="e.g. Court order, ongoing investigation" className={`${field} mt-1`} />
+                </label>
+                <Alert tone={msg.tone}>{msg.text}</Alert>
+                <div className="flex flex-wrap gap-2.5">
+                    <button type="button" onClick={() => apply(true)} disabled={!!busy} className={primaryBtn}>{busy === "on" ? "Applying..." : "Place on legal hold"}</button>
+                    <button type="button" onClick={() => apply(false)} disabled={!!busy} className={ghostBtn}>{busy === "off" ? "Releasing..." : "Release hold"}</button>
+                </div>
+            </div>
+        </Block>
+    );
+}
+
+export default function DataPrincipal360Modal({ id, onClose, onChanged }) {
     const [state, setState] = useState({ loading: true, error: "", data: null });
     const { isUnseen } = useNewItems();
 
@@ -120,6 +156,8 @@ export default function DataPrincipal360Modal({ id, onClose }) {
                                 </div>
                             )}
                         </Block>
+
+                        {canNow(["RetentionPolicy.Manage"]) && <LegalHold id={id} onChanged={onChanged} />}
                     </>
                 )}
 

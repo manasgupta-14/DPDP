@@ -46,7 +46,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://bprmnnz1-7139.inc1.devtunnels.ms",
+        target: "https://localhost:7139",
         changeOrigin: true,
         secure: false,
       },

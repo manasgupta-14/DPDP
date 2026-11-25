@@ -4,15 +4,15 @@ import { asArray } from "../utils/breach.js";
 
 export const TRIGGER_EVENTS = [
     { value: "DataCreatedDate", label: "From the date the record was created" },
-    { value: "ConsentWithdrawn", label: "From the date consent was withdrawn" },
-    { value: "PurposeCompleted", label: "From the date the purpose was completed" },
-    { value: "LastLoginDate", label: "From the last login / last activity" },
+    { value: "LastActivity", label: "From the last activity (last time the record was updated)" },
 ];
+// Backend: "Delete" and "Anonymize" both erase personal data in place; the record shell (reference ID) and consent/request history stay as audit proof.
 export const ACTION_TYPES = [
-    { value: "Anonymize", label: "Anonymise (hide name, email, mobile)" },
-    { value: "Delete", label: "Delete permanently" },
+    { value: "Anonymize", label: "Anonymise (erase name, email, mobile and identifiers)" },
+    { value: "Delete", label: "Delete personal data (irreversible, audit trail kept)" },
 ];
-export const triggerLabel = (v) => TRIGGER_EVENTS.find((t) => t.value === v)?.label ?? (v || "-");
+export const isSupportedTrigger = (v) => TRIGGER_EVENTS.some((t) => t.value === v);
+export const triggerLabel = (v) => TRIGGER_EVENTS.find((t) => t.value === v)?.label ?? (v ? `${v} (no longer supported)` : "-");
 export const actionLabel = (v) => (v === "Delete" ? "Delete" : v === "Anonymize" ? "Anonymise" : v || "-");
 
 const seg = (id) => encodeURIComponent(id);
@@ -71,6 +71,7 @@ export async function updateRetentionPolicy(id, form) {
             policyName: form.name.trim(),
             description: form.description.trim(),
             retentionPeriodInDays: Number(form.days),
+            triggerEvent: isSupportedTrigger(form.trigger) ? form.trigger : "DataCreatedDate",
             isActive: !!form.active,
         },
     });
@@ -111,4 +112,35 @@ export async function getErasureQueue() {
             status: String(pick(r, "status", "Status") ?? "Pending"),
         })),
     };
+}
+
+export async function runRetentionJob() {
+    const res = await apiFetch("/api/RetentionPolicy/run", { method: "POST" });
+    if (!res.ok) return permission(res);
+    return { ...res, data: { processed: Number(pick(res.data, "processedRecords", "ProcessedRecords") ?? 0), executedAt: pick(res.data, "executedAtUtc", "ExecutedAtUtc") } };
+}
+
+export async function getErasedRecords() {
+    const res = await apiFetch("/api/RetentionPolicy/erased");
+    if (!res.ok) return permission(res);
+    return {
+        ...res,
+        data: asArray(res.data).map((r) => ({
+            id: String(pick(r, "recordId", "RecordId") ?? ""),
+            reference: String(pick(r, "referenceId", "ReferenceId") ?? ""),
+            erasedAt: pick(r, "erasedAt", "ErasedAt"),
+            action: String(pick(r, "actionType", "ActionType") ?? "Anonymize"),
+            policy: String(pick(r, "policyName", "PolicyName") ?? ""),
+        })),
+    };
+}
+
+// The server does not return a principal's current hold status, so this only sets or releases it.
+export async function setLegalHold(id, { on, reason }) {
+    const res = await apiFetch(`/api/RetentionPolicy/legal-hold/${seg(id)}`, {
+        method: "PATCH",
+        body: { isOnLegalHold: !!on, reason: on ? (reason || "").trim() || null : null },
+    });
+    if (!res.ok) return permission(res);
+    return { ...res, data: { message: String(pick(res.data, "message", "Message") ?? ""), on: pick(res.data, "isOnLegalHold", "IsOnLegalHold") === true } };
 }
