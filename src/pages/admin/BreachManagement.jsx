@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getAllIncidents, getMyTeam } from "../../api/breach.js";
+import Icon from "../../components/shared/Icon.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import BreachCharts from "../../components/admin/breach/BreachCharts.jsx";
 import IncidentTable from "../../components/admin/breach/IncidentTable.jsx";
@@ -113,6 +114,7 @@ export default function BreachManagement() {
                     <p className="mt-1 text-sm leading-relaxed text-muted">{headline}</p>
                 </div>
                 <button type="button" onClick={reload} disabled={loading} className={ghostBtn}>
+                    <Icon name="refresh" className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                     {loading ? "Refreshing..." : "Refresh"}
                 </button>
             </header>

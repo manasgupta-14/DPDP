@@ -1,4 +1,6 @@
 import Icon from "../../shared/Icon.jsx";
+import RowDetail, { RowLink } from "../../shared/RowDetail.jsx";
+import { useRowDetail } from "../../shared/useRowDetail.js";
 import { panel } from "../../shared/ui.js";
 import { formatDate } from "../../../utils/noticeTemplate.js";
 import { NotInApi } from "../purposes/NotInApi.jsx";
@@ -7,7 +9,9 @@ const th = "px-4 py-2.5 text-left text-[10px] font-semibold uppercase tracking-w
 const action = "h-8 rounded-lg border border-line bg-surface px-3 text-xs font-semibold text-ink-2 transition hover:border-brand hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 export default function TemplateTable({ templates, nameOf, loading, error, onRefresh, onEdit, onDelete }) {
+    const [detail, rowProps, closeDetail] = useRowDetail();
     return (
+        <>
         <div className={`${panel} overflow-hidden`}>
             <div className="flex items-center justify-between gap-3 px-5 py-4">
                 <div>
@@ -31,9 +35,9 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                         ) : templates.length === 0 ? (
                             <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-ink-3">No notice templates yet. Use New template to create the first one.</td></tr>
                         ) : templates.map((t) => (
-                            <tr key={t.id} className="align-top hover:bg-soft">
+                            <tr key={t.id} {...rowProps(() => ({ title: t.name, subtitle: t.code, items: [{ label: "Template", value: t.name }, { label: "Description", value: t.description }, { label: "Code", value: t.code }, { label: "Purposes", value: t.purposes.length ? t.purposes.join(", ") : "None" }, { label: "Layout", value: t.layout }, { label: "Created", value: formatDate(t.createdAt) }] }))} className="cursor-pointer align-top hover:bg-soft">
                                 <td className="max-w-[300px] px-4 py-3">
-                                    <p className="font-semibold text-ink">{t.name}</p>
+                                    <p><RowLink>{t.name}</RowLink></p>
                                     {t.description && <p className="mt-0.5 line-clamp-2 text-[11px] text-ink-3">{t.description}</p>}
                                 </td>
                                 <td className="px-4 py-3"><span className="font-mono text-[11px]">{t.code}</span></td>
@@ -58,5 +62,7 @@ export default function TemplateTable({ templates, nameOf, loading, error, onRef
                 </table>
             </div>
         </div>
+        <RowDetail row={detail} onClose={closeDetail} />
+        </>
     );
 }

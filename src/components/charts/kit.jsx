@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 
@@ -141,25 +141,65 @@ function TipBody({ title, rows }) {
     );
 }
 
+const isTouchDevice = () => typeof window !== "undefined" && !!window.matchMedia?.("(hover: none), (pointer: coarse)").matches;
+
+function useAutoClear(active, clear, holderRef, delay = 2600) {
+    useEffect(() => {
+        if (!active || !isTouchDevice()) return undefined;
+        const timer = setTimeout(clear, delay);
+        const onOutside = (e) => {
+            const holder = holderRef?.current;
+            if (!holder || !holder.contains(e.target)) clear();
+        };
+        const onScroll = () => clear();
+        document.addEventListener("touchstart", onOutside, { passive: true });
+        document.addEventListener("mousedown", onOutside);
+        window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+        return () => {
+            clearTimeout(timer);
+            document.removeEventListener("touchstart", onOutside);
+            document.removeEventListener("mousedown", onOutside);
+            window.removeEventListener("scroll", onScroll, { capture: true });
+        };
+    }, [active, clear, holderRef, delay]);
+}
+
 export function useFloatTip() {
     const [pos, setPos] = useState(null);
+    const holder = useRef(null);
+    const clear = useCallback(() => setPos(null), []);
+    useAutoClear(pos, clear, holder);
+    const at = (e, x, y) => {
+        holder.current = e.currentTarget;
+        setPos({ x, y });
+    };
     const bind = {
-        onMouseMove: (e) => setPos({ x: e.clientX, y: e.clientY }),
-        onMouseLeave: () => setPos(null),
+        onMouseMove: (e) => at(e, e.clientX, e.clientY),
+        onMouseLeave: clear,
+        onTouchStart: (e) => {
+            const t = e.touches?.[0];
+            if (t) at(e, t.clientX, t.clientY);
+        },
+        onTouchMove: (e) => {
+            const t = e.touches?.[0];
+            if (t) at(e, t.clientX, t.clientY);
+        },
+        onTouchCancel: clear,
     };
     const render = (content) => {
         if (!pos || !content || typeof document === "undefined") return null;
         const vw = window.innerWidth;
-        const left = pos.x + 190 > vw ? pos.x - 178 : pos.x + 14;
+        const width = Math.min(220, vw - 16);
+        const left = Math.max(8, Math.min(pos.x + 14 + width > vw ? pos.x - width - 14 : pos.x + 14, vw - width - 8));
         const top = Math.max(8, pos.y - 12);
         return createPortal(
-            <div className="kc-tip kc-tip-float" style={{ position: "fixed", left, top, transform: "translateY(-100%)" }} role="tooltip">
+            <div className="kc-tip kc-tip-float" style={{ position: "fixed", left, top, maxWidth: width, pointerEvents: "none", transform: "translateY(-100%)" }} role="tooltip">
                 <TipBody {...content} />
             </div>,
             document.body
         );
     };
-    return [bind, render];
+    return [bind, render, pos];
 }
 
 export function Ring({ value, size = 132, stroke = 12, color = C.brand, children, label, name, tip, unit = "" }) {
@@ -195,8 +235,9 @@ export function Ring({ value, size = 132, stroke = 12, color = C.brand, children
 
 export function Donut({ parts, size = 168, stroke = 22, children, label, name }) {
     const [ref, inView] = useInView();
-    const [bind, renderTip] = useFloatTip();
-    const [active, setActive] = useState(null);
+    const [bind, renderTip, tipPos] = useFloatTip();
+    const [activeRaw, setActive] = useState(null);
+    const active = tipPos ? activeRaw : null;
     const total = parts.reduce((s, p) => s + (Number(p.value) || 0), 0);
     const share = (v) => (total > 0 ? Math.round(((Number(v) || 0) / total) * 100) : 0);
     const rowOf = (p) => ({ name: `${p.label} · ${share(p.value)}%`, value: p.value, color: p.color });
@@ -215,7 +256,7 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
             style={{ width: size, height: size }}
             role="img"
             aria-label={label || parts.map((p) => `${p.label} ${p.value}`).join(", ")}
-            onMouseMove={bind.onMouseMove}
+            {...bind}
             onMouseLeave={(e) => {
                 setActive(null);
                 bind.onMouseLeave(e);
@@ -238,6 +279,7 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
                                 strokeDasharray={`${inView ? Math.max(len - gap, 0) : 0} 100`}
                                 strokeDashoffset={-start}
                                 onMouseEnter={() => setActive(i)}
+                                onTouchStart={() => setActive(i)}
                                 onMouseLeave={() => setActive(null)}
                                 className="kc-seg"
                                 style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease, stroke-width .2s ease` }}
@@ -308,9 +350,12 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
     const every = Math.max(1, Math.ceil(n / Math.max(2, Math.floor(w / 70))));
     const uid = useRef(`kc${Math.random().toString(36).slice(2, 8)}`).current;
 
+    const clearHover = useCallback(() => setHover(null), []);
+    useAutoClear(hover !== null, clearHover, wrapRef);
     const onMove = (e) => {
         const rect = e.currentTarget.getBoundingClientRect();
-        const x = e.clientX - rect.left - m.l;
+        const cx = e.touches?.[0]?.clientX ?? e.clientX;
+        const x = cx - rect.left - m.l;
         const i = n <= 1 ? 0 : Math.round((x / w) * (n - 1));
         setHover(Math.max(0, Math.min(n - 1, i)));
     };
@@ -318,7 +363,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
     return (
         <div ref={wrapRef} className="relative w-full">
             <div ref={ref} data-in={inView} className="kc-stage">
-                <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
+                <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onTouchStart={onMove} onTouchMove={onMove} onMouseLeave={() => setHover(null)}>
                     <defs>
                         {series.map((s, si) => (
                             <linearGradient key={`${s.name}-${si}`} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
@@ -404,6 +449,8 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
         return base ? Math.round((v / base) * 100) : 0;
     };
     const colorOf = (si, i) => (barColors && series.length === 1 ? barColors[i % barColors.length] : series[si].color || SERIES[si]);
+    const clearHover = useCallback(() => setHover(null), []);
+    useAutoClear(hover !== null, clearHover, wrapRef);
     const showPct = !stacked && bw >= 14;
     const pctSize = bw >= 26 ? 12 : 10;
 
@@ -436,7 +483,7 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                         const x0 = m.l + band * i + (band - inner) / 2;
                         let acc = 0;
                         return (
-                            <g key={`${l}-${i}`} onMouseEnter={() => setHover(i)}>
+                            <g key={`${l}-${i}`} onMouseEnter={() => setHover(i)} onTouchStart={() => setHover(i)}>
                                 <rect x={m.l + band * i} y={m.t} width={band} height={h} rx="8" fill={hover === i ? "var(--k-subtle)" : "transparent"} opacity=".7" />
                                 {series.map((s, si) => {
                                     const v = Number(s.values[i]) || 0;
@@ -495,8 +542,9 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
 
 export function HBars({ rows, suffix = "", max, showValue = true }) {
     const [ref, inView] = useInView();
-    const [bind, renderTip] = useFloatTip();
-    const [active, setActive] = useState(null);
+    const [bind, renderTip, tipPos] = useFloatTip();
+    const [activeRaw, setActive] = useState(null);
+    const active = tipPos ? activeRaw : null;
     const top = max ?? Math.max(1, ...rows.map((r) => Number(r.value) || 0));
     const sum = rows.reduce((s, r) => s + (Number(r.value) || 0), 0);
     const ar = active !== null ? rows[active] : null;
@@ -512,7 +560,7 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
             ref={ref}
             data-in={inView}
             className="space-y-3.5"
-            onMouseMove={bind.onMouseMove}
+            {...bind}
             onMouseLeave={(e) => {
                 setActive(null);
                 bind.onMouseLeave(e);
@@ -521,7 +569,7 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
             {rows.map((r, i) => {
                 const pct = top > 0 ? (Number(r.value) / top) * 100 : 0;
                 return (
-                    <li key={`${r.label}-${i}`} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
+                    <li key={`${r.label}-${i}`} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onTouchStart={() => setActive(i)} onMouseLeave={() => setActive(null)}>
                         <div className="flex items-baseline justify-between gap-3 text-sm">
                             <span className="truncate font-medium text-ink-2" title={r.label}>
                                 {r.label}
@@ -558,16 +606,19 @@ export function Progress({ value, color = C.brand, height = 10, delay = 0, name,
 
 export function Sparkline({ values, color = C.brand, width = 96, height = 32, labels, name = "Value" }) {
     const [ref, inView] = useInView();
-    const [bind, renderTip] = useFloatTip();
-    const [idx, setIdx] = useState(null);
+    const [bind, renderTip, tipPos] = useFloatTip();
+    const [idxRaw, setIdx] = useState(null);
+    const idx = tipPos ? idxRaw : null;
     if (!values || values.length < 2) return null;
     const max = Math.max(1, ...values);
     const pts = values.map((v, i) => ({ x: 2 + (i / (values.length - 1)) * (width - 4), y: height - 3 - (v / max) * (height - 6) }));
     const onMove = (e) => {
         const box = e.currentTarget.getBoundingClientRect();
-        const i = Math.round(((e.clientX - box.left) / box.width) * (values.length - 1));
+        const cx = e.touches?.[0]?.clientX ?? e.clientX;
+        const i = Math.round(((cx - box.left) / box.width) * (values.length - 1));
         setIdx(Math.max(0, Math.min(values.length - 1, i)));
-        bind.onMouseMove(e);
+        if (e.touches) bind.onTouchMove(e);
+        else bind.onMouseMove(e);
     };
     return (
         <svg
@@ -578,6 +629,9 @@ export function Sparkline({ values, color = C.brand, width = 96, height = 32, la
             aria-hidden="true"
             className="kc-hov"
             onMouseMove={onMove}
+            onTouchStart={onMove}
+            onTouchMove={onMove}
+            onTouchCancel={bind.onTouchCancel}
             onMouseLeave={(e) => {
                 setIdx(null);
                 bind.onMouseLeave(e);
