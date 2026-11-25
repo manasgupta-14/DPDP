@@ -1,5 +1,5 @@
 import { apiFetch } from "../api/client.js";
-import { claimsFromToken, clearToken, getToken, saveToken, sessionFromToken, isTokenExpired } from "./tokenStorage.js";
+import { claimsFromToken, clearToken, getSignedInAt, getToken, saveToken, sessionFromToken, isTokenExpired } from "./tokenStorage.js";
 
 export async function registerUser({ name, email, organisation, phone, password }) {
     const res = await apiFetch("/api/Auth/register-tenant", {
@@ -75,7 +75,7 @@ export function getProfile() {
         ...session,
         name,
         initials: name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
-        issuedAt: claims.iat ? new Date(claims.iat * 1000) : null,
+        issuedAt: claims.iat ? new Date(claims.iat * 1000) : claims.nbf ? new Date(claims.nbf * 1000) : getSignedInAt(),
         claims,
     };
 }

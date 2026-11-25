@@ -88,6 +88,7 @@ export const USER_SECTIONS = [
             { to: "/user/grievance", label: "Grievance", icon: "chat", tone: "amber" },
             { to: "/user/privacy", label: "Privacy settings", icon: "lock", tone: "teal" },
             { to: "/user/privacy-notices", label: "Privacy notices", icon: "layout", tone: "pink" },
+            { to: "/user/rules", label: "Rules & Acts", icon: "book", tone: "indigo" },
         ],
     },
     {

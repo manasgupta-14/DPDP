@@ -1,5 +1,5 @@
 export const MODULE_INFO = {
-    timeline: { title: "Act & Rules timeline", text: "Statutory phases and commencement dates in one view." },
+    timeline: { title: "Act & Rules timeline", text: "Legal phases and their start dates in one view." },
     consent: { title: "Consent management", text: "Purposes, consent records and withdrawals." },
     notice: { title: "Privacy notice builder", text: "Draft and version your privacy notices." },
     "rights-requests": { title: "Rights Requests", text: "Data Subject Access Requests: access, correction, erasure and grievance." },

@@ -1,6 +1,7 @@
 
 
 const TOKEN_KEY = "pg_auth_token";
+const SIGNED_IN_KEY = "pg_signed_in_at";
 const CLAIM = {
     id: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
     email: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
@@ -32,13 +33,31 @@ export function isTokenExpired(token) {
 
 export function saveToken(token, remember) {
     clearToken();
-    (remember ? localStorage : sessionStorage).setItem(TOKEN_KEY, token);
+    const store = remember ? localStorage : sessionStorage;
+    store.setItem(TOKEN_KEY, token);
+    try {
+        store.setItem(SIGNED_IN_KEY, String(Date.now()));
+    } catch {
+        return;
+    }
+}
+
+export function getSignedInAt() {
+    try {
+        const raw = sessionStorage.getItem(SIGNED_IN_KEY) || localStorage.getItem(SIGNED_IN_KEY);
+        const ms = Number(raw);
+        return ms > 0 ? new Date(ms) : null;
+    } catch {
+        return null;
+    }
 }
 
 export function clearToken() {
     try {
         sessionStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem(SIGNED_IN_KEY);
+        localStorage.removeItem(SIGNED_IN_KEY);
     } catch {
         return;
     }

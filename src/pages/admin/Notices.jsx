@@ -7,6 +7,8 @@ import {
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
+import RowDetail, { RowLink } from "../../components/shared/RowDetail.jsx";
+import { useRowDetail } from "../../components/shared/useRowDetail.js";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 
@@ -226,6 +228,7 @@ export default function Notices() {
     const [flash, setFlash] = useState("");
     const [actionError, setActionError] = useState("");
     const [busyId, setBusyId] = useState(null);
+    const [detail, rowProps, closeDetail] = useRowDetail();
 
     const apply = useCallback((res) => setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error }), []);
     const load = useCallback(async () => {
@@ -269,7 +272,7 @@ export default function Notices() {
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Privacy notices</h1>
                     <p className="mt-1 max-w-3xl text-sm text-ink-3">Privacy notices shown to customers. Write a draft, add translations, then publish. Published notices are locked; to change one, create a new version.</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-3.5">
                     <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
                     <button type="button" onClick={() => { setFlash(""); setCreating(true); }} className={primaryBtn}>+ New notice</button>
                 </div>
@@ -301,13 +304,13 @@ export default function Notices() {
                             </thead>
                             <tbody className="divide-y divide-line">
                                 {rows.map((r) => (
-                                    <tr key={r.id} className="hover:bg-soft">
-                                        <td className={`${td} pl-5 font-mono text-xs`}>{r.code}</td>
-                                        <td className={`${td} font-medium text-ink`}>{r.title || "-"}</td>
-                                        <td className={td}>v{r.version}</td>
-                                        <td className={td}><StatusPill status={r.status} /></td>
-                                        <td className={td}>{r.purposesCount}</td>
-                                        <td className={td}>{formatDate(r.createdAt)}</td>
+                                    <tr key={r.id} {...rowProps(() => ({ title: r.title || r.code, subtitle: r.code, items: [{ label: "Code", value: r.code }, { label: "Title", value: r.title }, { label: "Version", value: `v${r.version}` }, { label: "Status", value: r.status }, { label: "Purposes", value: r.purposesCount }, { label: "Created", value: formatDate(r.createdAt) }] }))} className="cursor-pointer hover:bg-soft">
+                                        <td className={`${td} whitespace-nowrap pl-5 font-mono text-xs`}><RowLink>{r.code}</RowLink></td>
+                                        <td className={`${td} min-w-[220px] font-medium text-ink`}>{r.title || "-"}</td>
+                                        <td className={`${td} whitespace-nowrap`}>v{r.version}</td>
+                                        <td className={`${td} whitespace-nowrap`}><StatusPill status={r.status} /></td>
+                                        <td className={`${td} whitespace-nowrap`}>{r.purposesCount}</td>
+                                        <td className={`${td} whitespace-nowrap`}>{formatDate(r.createdAt)}</td>
                                         <td className={`${td} whitespace-nowrap pr-5 text-right`}>
                                             <button type="button" onClick={() => { setFlash(""); setOpenId(r.id); }} className="font-semibold text-brand-ink hover:underline">{isPublished(r.status) ? "View" : "Edit"}</button>
                                             {isPublished(r.status) && (
@@ -323,6 +326,7 @@ export default function Notices() {
             </div>
 
             {creating && <CreateModal onClose={() => setCreating(false)} onCreated={(newId) => { setCreating(false); setFlash("Draft created. Add purposes and translations, then publish."); load(); if (newId) setOpenId(newId); }} />}
+            <RowDetail row={detail} onClose={closeDetail} />
             {openId && <EditorModal key={openId} id={openId} onClose={() => setOpenId(null)} onChanged={(msg) => { if (msg) setFlash(msg); load(); }} />}
         </div>
     );

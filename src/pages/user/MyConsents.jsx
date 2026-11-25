@@ -3,7 +3,9 @@ import { getConsentHistory, getPurposes, recordConsent, withdrawConsent } from "
 import { getProfile, isDataPrincipal } from "../../auth/authStore.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
-import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
+import RowDetail, { RowLink } from "../../components/shared/RowDetail.jsx";
+import { useRowDetail } from "../../components/shared/useRowDetail.js";
+import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate, timeOf } from "../../utils/breach.js";
 import { CONSENT_STATUS, PURPOSE_STATE, questionFor, STATUS_LABEL, allowedPurposes } from "../../utils/consent.js";
 
@@ -27,6 +29,15 @@ function stateOf(purpose, entry) {
     return entry ? entry.state : "Not answered";
 }
 
+const goToChoices = () => document.getElementById("my-choices")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+const changeText = (change) => {
+    if (change.kind === "withdrawn") return "Withdrew all consent";
+    if (change.kind === "first") return "First choices saved";
+    if (change.on.length === 0 && change.off.length === 0) return "No change (saved again)";
+    return [change.on.length ? `Allowed: ${change.on.join(", ")}` : "", change.off.length ? `Stopped: ${change.off.join(", ")}` : ""].filter(Boolean).join("\n");
+};
+
 function Summary({ allowed, blocked }) {
     return (
         <div className="grid gap-4 sm:grid-cols-2">
@@ -37,6 +48,7 @@ function Summary({ allowed, blocked }) {
                 ) : (
                     <ul className="mt-2 flex flex-wrap gap-1.5">{allowed.map((p) => <li key={p.id} className="rounded-md bg-ok/10 px-2 py-1 text-xs font-medium text-ok-ink ring-1 ring-ok/25">{p.name}</li>)}</ul>
                 )}
+                <button type="button" onClick={goToChoices} className={`${ghostBtn} mt-4 px-3 py-1.5 text-xs`}>{allowed.length === 0 ? "Choose what to allow" : "Review my choices"}</button>
             </div>
             <div className={`${panel} p-5`}>
                 <p className="text-sm font-semibold text-bad-ink">You did not allow ({blocked.length})</p>
@@ -46,6 +58,7 @@ function Summary({ allowed, blocked }) {
                     <ul className="mt-2 flex flex-wrap gap-1.5">{blocked.map((p) => <li key={p.id} className="rounded-md bg-bad/10 px-2 py-1 text-xs font-medium text-bad-ink ring-1 ring-bad/25">{p.name}</li>)}</ul>
                 )}
                 {blocked.length > 0 && <p className="mt-2 text-xs text-muted">These details are not used or shared.</p>}
+                {blocked.length > 0 && <button type="button" onClick={goToChoices} className={`${ghostBtn} mt-4 px-3 py-1.5 text-xs`}>Allow again</button>}
             </div>
         </div>
     );
@@ -62,6 +75,8 @@ export default function MyConsents() {
     const [busyId, setBusyId] = useState("");
     const [confirmWithdraw, setConfirmWithdraw] = useState(false);
     const [shown, setShown] = useState(HISTORY_PAGE);
+    const [historyQuery, setHistoryQuery] = useState("");
+    const [detail, rowProps, closeDetail] = useRowDetail();
 
     const apply = useCallback(([hist, list]) => {
         if (hist.ok) {
@@ -117,6 +132,15 @@ export default function MyConsents() {
             },
         };
     }), [history]);
+
+    const filteredRows = useMemo(() => {
+        const q = historyQuery.trim().toLowerCase();
+        if (!q) return rows;
+        return rows.filter(({ c, change }) => {
+            const hay = [`v${c.version}`, STATUS_LABEL[c.status] || c.status, changeText(change), allowedPurposes(c).map((p) => p.name).join(" "), formatDate(c.submittedAt)].join(" ").toLowerCase();
+            return hay.includes(q);
+        });
+    }, [rows, historyQuery]);
 
     const allowed = purposes.filter((p) => p.mandatory || entryOf.get(p.id)?.allowed);
     const blocked = purposes.filter((p) => !p.mandatory && latest && !entryOf.get(p.id)?.allowed);
@@ -180,7 +204,7 @@ export default function MyConsents() {
 
             {!loading && latest && <Summary allowed={withdrawn ? [] : allowed} blocked={withdrawn ? purposes.filter((p) => !p.mandatory) : blocked} />}
 
-            <section aria-label="Purposes" className="space-y-3">
+            <section id="my-choices" aria-label="Purposes" className="scroll-mt-24 space-y-3">
                 <h2 className="text-lg font-semibold">Your choices</h2>
                 <p className="mt-0.5 text-xs text-muted">Turn each purpose on or off. Changes are saved straight away.</p>
                 {loading ? (
@@ -247,7 +271,20 @@ export default function MyConsents() {
                             <h2 className="text-lg font-semibold">My consent history</h2>
                             <p className="mt-0.5 text-xs text-muted">Every time you allow, stop or withdraw something, a new version is saved. Each row shows what changed in that version.</p>
                         </div>
-                        <p className="text-xs text-muted">{history.length} version{history.length === 1 ? "" : "s"}</p>
+                        <div className="flex w-full flex-wrap items-center justify-end gap-3 sm:w-auto">
+                            <div className="relative w-full sm:w-64">
+                                <Icon name="search" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                                <input
+                                    type="search"
+                                    value={historyQuery}
+                                    onChange={(e) => { setHistoryQuery(e.target.value); setShown(HISTORY_PAGE); }}
+                                    placeholder="Search history"
+                                    aria-label="Search consent history"
+                                    className={`${field} !mt-0 pl-9`}
+                                />
+                            </div>
+                            <p className="whitespace-nowrap text-xs text-muted">{historyQuery.trim() ? `${filteredRows.length} of ${history.length}` : history.length} version{history.length === 1 ? "" : "s"}</p>
+                        </div>
                     </div>
                     <div className={`${panel} overflow-x-auto`}>
                         <table className="w-full min-w-[760px] text-sm">
@@ -259,10 +296,13 @@ export default function MyConsents() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
-                                {rows.slice(0, shown).map(({ c, change }) => (
-                                    <tr key={c.id} className="align-top">
+                                {filteredRows.length === 0 && (
+                                    <tr><td colSpan={4} className="px-5 py-10 text-center text-sm text-ink-3">No history matches your search.</td></tr>
+                                )}
+                                {filteredRows.slice(0, shown).map(({ c, change }) => (
+                                    <tr key={c.id} {...rowProps(() => ({ title: `Version ${c.version}`, subtitle: STATUS_LABEL[c.status] || c.status, items: [{ label: "Version", value: `v${c.version}` }, { label: "Status", value: STATUS_LABEL[c.status] || c.status }, { label: "What changed", value: changeText(change) }, { label: "Allowed after this change", value: c.status === CONSENT_STATUS.withdrawn ? "Nothing" : allowedPurposes(c).map((p) => p.name).join(", ") || "Nothing" }, { label: "Recorded", value: formatDate(c.submittedAt) }] }))} className="cursor-pointer align-top hover:bg-soft">
                                         <td className="px-5 py-3.5">
-                                            <p className="font-medium text-ink">v{c.version}</p>
+                                            <p><RowLink>v{c.version}</RowLink></p>
                                             <p className="mt-0.5 text-xs text-muted">{STATUS_LABEL[c.status] || c.status}</p>
                                         </td>
                                         <td className="px-5 py-3.5">
@@ -294,21 +334,22 @@ export default function MyConsents() {
                             </tbody>
                         </table>
                     </div>
-                    {history.length > HISTORY_PAGE && (
+                    {filteredRows.length > HISTORY_PAGE && (
                         <div className="flex flex-wrap items-center gap-3">
-                            {shown < history.length && (
+                            {shown < filteredRows.length && (
                                 <button type="button" onClick={() => setShown((n) => n + HISTORY_PAGE)} className={ghostBtn}>
-                                    Show {Math.min(HISTORY_PAGE, history.length - shown)} more
+                                    Show {Math.min(HISTORY_PAGE, filteredRows.length - shown)} more
                                 </button>
                             )}
                             {shown > HISTORY_PAGE && (
                                 <button type="button" onClick={() => setShown(HISTORY_PAGE)} className="text-sm font-semibold text-ink-3 hover:underline">Show less</button>
                             )}
-                            <span className="text-xs text-muted">Showing {Math.min(shown, history.length)} of {history.length}</span>
+                            <span className="text-xs text-muted">Showing {Math.min(shown, filteredRows.length)} of {filteredRows.length}</span>
                         </div>
                     )}
                 </section>
             )}
+            <RowDetail row={detail} onClose={closeDetail} />
         </div>
     );
 }
