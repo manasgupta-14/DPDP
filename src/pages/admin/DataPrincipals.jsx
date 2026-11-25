@@ -334,14 +334,14 @@ function DeleteConfirm({ principal, onClose, onDeleted }) {
         const res = await deleteDataPrincipal(principal.id);
         setBusy(false);
         if (!res.ok) return setError(res.error);
-        onDeleted(`Data principal ${principal.referenceId} deleted.`);
+        onDeleted(`Data principal ${principal.referenceId} erased and removed from the list.`);
     };
     return (
         <Modal title="Delete data principal" onClose={() => !busy && onClose()}>
             <div className={`${panel} space-y-3 p-5 sm:p-6`}>
                 <h2 className="pr-8 text-lg font-semibold">Delete data principal?</h2>
                 <p className="text-sm text-ink-3">
-                    <span className="font-semibold text-ink">{principal.name || principal.referenceId}</span> ({principal.referenceId}) will be removed from this list. Their name, mobile, email and login are erased. Consent and request history is kept as audit proof.
+                    <span className="font-semibold text-ink">{principal.name || principal.referenceId}</span> ({principal.referenceId}) will be removed from this list. Their name, mobile, email and login are erased permanently and this cannot be undone. Consent and request history is kept as audit proof. A record on legal hold cannot be erased.
                 </p>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5 pt-1">

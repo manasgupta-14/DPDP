@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import {
-    ACTION_TYPES, TRIGGER_EVENTS, actionLabel, createRetentionPolicy, deleteRetentionPolicy, getErasureQueue, getRetentionMetrics, getRetentionPolicies, getRetentionPolicy, triggerLabel, updateRetentionPolicy,
+    ACTION_TYPES, TRIGGER_EVENTS, actionLabel, createRetentionPolicy, deleteRetentionPolicy, getErasedRecords, getErasureQueue, getRetentionMetrics, getRetentionPolicies, getRetentionPolicy, isSupportedTrigger, runRetentionJob, triggerLabel, updateRetentionPolicy,
 } from "../../api/retentionPolicy.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -26,7 +26,8 @@ function humanDays(n) {
 
 function PolicyForm({ policy, onClose, onSaved }) {
     const editing = !!policy;
-    const [form, setForm] = useState(() => (policy ? { ...EMPTY, ...policy, days: String(policy.days) } : EMPTY));
+    const [form, setForm] = useState(() => (policy ? { ...EMPTY, ...policy, days: String(policy.days), trigger: isSupportedTrigger(policy.trigger) ? policy.trigger : "DataCreatedDate" } : EMPTY));
+    const legacyTrigger = editing && !isSupportedTrigger(policy.trigger);
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
@@ -78,8 +79,8 @@ function PolicyForm({ policy, onClose, onSaved }) {
                     </label>
                     <label className="block text-sm font-medium text-ink-2">
                         Countdown starts
-                        <select value={form.trigger} onChange={set("trigger")} disabled={busy || editing} className={field}>
-                            {[...TRIGGER_EVENTS, ...(TRIGGER_EVENTS.some((t) => t.value === form.trigger) ? [] : [{ value: form.trigger, label: form.trigger }])].map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                        <select value={form.trigger} onChange={set("trigger")} disabled={busy} className={field}>
+                            {TRIGGER_EVENTS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                         </select>
                     </label>
                 </div>
@@ -89,14 +90,15 @@ function PolicyForm({ policy, onClose, onSaved }) {
                         {ACTION_TYPES.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                     </select>
                 </label>
-                {editing && <p className="text-xs text-muted">Trigger and action cannot be changed after a policy is created. Create a new policy if they need to change.</p>}
+                {legacyTrigger && <Alert tone="warning">This policy uses the trigger "{policy.trigger}", which the server no longer supports, so the job skips it. Pick a supported countdown above and save to fix it.</Alert>}
+                {editing && <p className="text-xs text-muted">The action cannot be changed after a policy is created. Create a new policy if it needs to change.</p>}
                 {editing && (
                     <label className="flex items-center gap-2 text-sm text-ink-2">
                         <input type="checkbox" checked={!!form.active} onChange={set("active")} disabled={busy} />
                         Active (inactive policies are skipped by the erasure job)
                     </label>
                 )}
-                {!editing && form.action === "Delete" && <Alert>Delete removes the data principal's record permanently. It cannot be undone.</Alert>}
+                {!editing && <Alert tone={form.action === "Delete" ? "warning" : "info"}>{form.action === "Delete" ? "Delete erases the person's name, email, mobile and identifiers permanently. It cannot be undone. The record's reference ID and its consent and request history are kept as audit proof." : "Anonymise replaces the person's name, email, mobile and identifiers. It cannot be undone. The reference ID and consent and request history are kept as audit proof."}</Alert>}
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5 pt-1">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
@@ -133,6 +135,94 @@ function ConfirmDelete({ policy, onClose, onDeleted }) {
 }
 
 
+function RunNowConfirm({ onClose, onDone }) {
+    const [busy, setBusy] = useState(false);
+    const [error, setError] = useState("");
+    const go = async () => {
+        setBusy(true);
+        setError("");
+        const res = await runRetentionJob();
+        setBusy(false);
+        if (!res.ok) return setError(res.error);
+        onDone(res.data.processed);
+    };
+    return (
+        <Modal title="Run retention job now" onClose={() => !busy && onClose()}>
+            <div className={`${panel} mx-auto max-w-md space-y-4 p-5 sm:p-6`}>
+                <h2 className="pr-8 text-lg font-semibold">Run the retention job now?</h2>
+                <p className="text-sm text-ink-3">Every active policy runs for your organisation right away, instead of waiting for the daily job. Records past their retention period are erased and this cannot be undone. Records on legal hold are skipped.</p>
+                <Alert>{error}</Alert>
+                <div className="flex justify-end gap-2.5">
+                    <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
+                    <button type="button" onClick={go} disabled={busy} className={primaryBtn}>{busy ? "Running..." : "Run now"}</button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+
+function ErasedRecords({ query, reloadKey = 0 }) {
+    const [state, setState] = useState({ loading: true, rows: [], error: "" });
+
+    const load = useCallback(async () => {
+        setState((s) => ({ ...s, loading: true }));
+        const res = await getErasedRecords();
+        setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error });
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        getErasedRecords().then((res) => {
+            if (!active) return;
+            setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error });
+        });
+        return () => { active = false; };
+    }, [reloadKey]);
+
+    const rows = useMemo(() => {
+        const q = (query || "").trim().toLowerCase();
+        return q ? state.rows.filter((r) => [r.reference, r.policy, r.action].some((v) => v.toLowerCase().includes(q))) : state.rows;
+    }, [state.rows, query]);
+
+    return (
+        <>
+            {state.error && <Alert action={<button type="button" onClick={load} className="shrink-0 font-semibold underline">Retry</button>}>{state.error}</Alert>}
+            <div className={`${panel} overflow-hidden`}>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-3.5">
+                    <p className="text-xs text-ink-3"><Icon name="shield" className="mr-1 inline h-3.5 w-3.5 align-[-2px] text-brand-ink" />{state.rows.length} record{state.rows.length === 1 ? "" : "s"} erased. Personal details are gone for good; only the reference ID and audit trail remain. The policy shown is the one active now.</p>
+                    <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
+                </div>
+                {state.loading ? (
+                    <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="pg-shimmer h-10 rounded-lg" />)}</div>
+                ) : rows.length === 0 ? (
+                    <div className="px-5 py-12 text-center">
+                        <p className="text-sm font-semibold text-ink">{state.rows.length ? "Nothing matches this search" : state.error ? "Erased records could not be loaded" : "No erased records yet"}</p>
+                        <p className="mx-auto mt-1 max-w-lg text-sm text-ink-3">{state.rows.length || state.error ? "Try another search." : "Records appear here once the retention job or a manual erase has anonymised them."}</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full min-w-[640px]">
+                            <thead className="bg-soft">
+                                <tr><th className={`${th} pl-5`}>Reference ID</th><th className={th}>Erased on</th><th className={th}>Action</th><th className={`${th} pr-5`}>Policy</th></tr>
+                            </thead>
+                            <tbody className="divide-y divide-line">
+                                {rows.map((r) => (
+                                    <tr key={r.id || r.reference}>
+                                        <td className={`${td} pl-5 font-mono text-[13px] font-semibold text-ink`}>{r.reference || r.id.slice(0, 8)}</td>
+                                        <td className={td}>{formatDate(r.erasedAt)}</td>
+                                        <td className={td}><span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${r.action === "Delete" ? "bg-bad/10 text-bad-ink ring-bad/25" : "bg-subtle text-ink-2 ring-line-strong"}`}>{actionLabel(r.action)}</span></td>
+                                        <td className={`${td} pr-5`}>{r.policy || "-"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
 function daysFromNow(value) {
     const t = toTime(value);
     if (!t) return null;
@@ -141,7 +231,7 @@ function daysFromNow(value) {
     return Math.round((t - startOfToday.getTime()) / 86400000);
 }
 
-function ErasureQueue({ query }) {
+function ErasureQueue({ query, reloadKey = 0 }) {
     const [state, setState] = useState({ loading: true, rows: [], error: "" });
     const [filter, setFilter] = useState("all");
     const [openId, setOpenId] = useState(null);
@@ -159,7 +249,7 @@ function ErasureQueue({ query }) {
             setState(res.ok ? { loading: false, rows: res.data, error: "" } : { loading: false, rows: [], error: res.error });
         });
         return () => { active = false; };
-    }, []);
+    }, [reloadKey]);
 
     const overdue = state.rows.filter((r) => r.status === "Overdue").length;
     const rows = useMemo(() => {
@@ -191,7 +281,7 @@ function ErasureQueue({ query }) {
                 ) : rows.length === 0 ? (
                     <div className="px-5 py-12 text-center">
                         <p className="text-sm font-semibold text-ink">{state.rows.length ? "Nothing matches this filter" : state.error ? "Queue could not be loaded" : "Queue is clear"}</p>
-                        <p className="mx-auto mt-1 max-w-lg text-sm text-ink-3">{state.rows.length || state.error ? "Try another filter or search." : "No records are close to their erasure date under the active retention policy."}</p>
+                        <p className="mx-auto mt-1 max-w-lg text-sm text-ink-3">{state.rows.length || state.error ? "Try another filter or search." : "No records are close to their erasure date under the active retention policy. Records on legal hold never appear here."}</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
@@ -243,7 +333,7 @@ function ErasureQueue({ query }) {
                     </div>
                 )}
             </div>
-            {openId && <DataPrincipal360Modal id={openId} onClose={() => setOpenId(null)} />}
+            {openId && <DataPrincipal360Modal id={openId} onClose={() => setOpenId(null)} onChanged={load} />}
         </>
     );
 }
@@ -256,6 +346,7 @@ export default function Retention() {
     const [flash, setFlash] = useState("");
     const [opening, setOpening] = useState(null);
     const [openError, setOpenError] = useState("");
+    const [queueKey, setQueueKey] = useState(0);
 
     const openEdit = async (p) => {
         setFlash("");
@@ -302,6 +393,13 @@ export default function Retention() {
         load();
     };
 
+    const ranJob = (n) => {
+        setModal(null);
+        setFlash(n ? `Retention job finished. ${n} record${n === 1 ? "" : "s"} erased.` : "Retention job finished. No records were due for erasure.");
+        setQueueKey((k) => k + 1);
+        load();
+    };
+
     const activeCount = state.rows.filter((p) => p.active).length;
 
     return (
@@ -309,14 +407,13 @@ export default function Retention() {
             <div className="flex flex-wrap items-end justify-between gap-4">
                 <div>
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Retention &amp; erasure</h1>
-                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Delete data once its purpose is done or consent is withdrawn, unless another law says to keep it (Sec 8(7)).</p>
+                    <p className="mt-1 max-w-3xl text-sm text-ink-3">Erase personal data once its purpose is done or consent is withdrawn, unless another law says to keep it (Sec 8(7)). The job runs automatically every day; records on legal hold are skipped. Erased records are listed in the third tab.</p>
                 </div>
-                {tab === "policies" && (
-                    <div className="flex gap-2">
-                        <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>
-                        {canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => { setFlash(""); setModal({ kind: "form", item: null }); }} className={primaryBtn}>+ New policy</button>}
-                    </div>
-                )}
+                <div className="flex flex-wrap gap-2">
+                    {tab === "policies" && <button type="button" onClick={load} disabled={state.loading} className={ghostBtn}><Icon name="refresh" className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`} />Refresh</button>}
+                    {canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => { setFlash(""); setModal({ kind: "run" }); }} className={tab === "queue" ? primaryBtn : ghostBtn}><Icon name="clock" className="h-4 w-4" />Run now</button>}
+                    {tab === "policies" && canNow(["RetentionPolicy.Manage"]) && <button type="button" onClick={() => { setFlash(""); setModal({ kind: "form", item: null }); }} className={primaryBtn}>+ New policy</button>}
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
@@ -326,7 +423,7 @@ export default function Retention() {
             </div>
 
             <div className="flex gap-1 border-b border-line" role="tablist" aria-label="Sections">
-                {[["queue", "Erasure queue"], ["policies", "Retention policies"]].map(([key, label]) => (
+                {[["queue", "Erasure queue"], ["policies", "Retention policies"], ["erased", "Erased records"]].map(([key, label]) => (
                     <button key={key} type="button" role="tab" aria-selected={tab === key} onClick={() => setTab(key)} className={`-mb-px border-b-2 px-3 py-2 text-sm font-semibold transition ${tab === key ? "border-brand text-brand-ink" : "border-transparent text-ink-3 hover:text-ink"}`}>
                         {label}
                     </button>
@@ -336,7 +433,9 @@ export default function Retention() {
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
 
             {tab === "queue" ? (
-                <ErasureQueue query={query} />
+                <ErasureQueue query={query} reloadKey={queueKey} />
+            ) : tab === "erased" ? (
+                <ErasedRecords query={query} reloadKey={queueKey} />
             ) : (
                 <>
                     {openError && <Alert>{openError}</Alert>}
@@ -360,7 +459,7 @@ export default function Retention() {
                                                     {p.description && <p className="mt-0.5 line-clamp-2 text-xs text-muted">{p.description}</p>}
                                                 </td>
                                                 <td className={td}>{humanDays(p.days)}<span className="block text-xs text-muted">{p.days} days</span></td>
-                                                <td className={td}>{triggerLabel(p.trigger)}</td>
+                                                <td className={td}>{triggerLabel(p.trigger)}{!isSupportedTrigger(p.trigger) && <span className="block text-xs font-semibold text-warn-ink">Skipped by the job. Edit to fix.</span>}</td>
                                                 <td className={td}>
                                                     <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${p.action === "Delete" ? "bg-bad/10 text-bad-ink ring-bad/25" : "bg-subtle text-ink-2 ring-line-strong"}`}>{actionLabel(p.action)}</span>
                                                 </td>
@@ -383,6 +482,7 @@ export default function Retention() {
             )}
 
             {modal?.kind === "form" && <PolicyForm policy={modal.item} onClose={() => setModal(null)} onSaved={done} />}
+            {modal?.kind === "run" && <RunNowConfirm onClose={() => setModal(null)} onDone={ranJob} />}
             {modal?.kind === "delete" && <ConfirmDelete policy={modal.item} onClose={() => setModal(null)} onDeleted={done} />}
         </div>
     );
