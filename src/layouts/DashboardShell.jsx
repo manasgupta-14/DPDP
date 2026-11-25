@@ -244,37 +244,72 @@ export default function DashboardShell({
                     <ThemeToggle />
 
                     <div ref={bellRef} className="relative">
-                        <button type="button" onClick={() => setBellOpen((v) => !v)} aria-label={bell.title} aria-expanded={bellOpen} className="kv-icon-btn">
+                        <button
+                            type="button"
+                            onClick={() => setBellOpen((v) => !v)}
+                            aria-label={bell.count > 0 ? `${bell.title}, ${bell.count} new` : bell.title}
+                            aria-expanded={bellOpen}
+                            className="kv-icon-btn"
+                        >
                             <Icon name="bell" className="h-5 w-5" />
                             {bell.count > 0 && (
-                                <span className="kv-count-badge absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full px-1 text-[10px] font-bold ring-2 ring-surface">
+                                <span
+                                    key={bell.count}
+                                    aria-hidden="true"
+                                    className="kv-count-badge absolute right-1 top-1 grid h-[18px] min-w-[18px] animate-[pg-badge-pop_.4s_ease-out_both] place-items-center rounded-full px-1 text-[10px] font-bold ring-2 ring-surface"
+                                >
                                     {bell.count > 99 ? "99+" : bell.count}
                                 </span>
                             )}
                         </button>
                         {bellOpen && (
-                            <div className="kv-menu pg-alert absolute right-0 mt-2 w-80 p-2">
-                                <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted">{bell.title}</p>
+                            <div className="kv-menu pg-alert absolute right-0 mt-2 w-80 max-w-[calc(100vw-1.5rem)] p-2">
+                                <div className="flex items-center justify-between gap-2 px-3 py-2">
+                                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
+                                        {bell.title}
+                                        {bell.items.length > 0 && ` · ${bell.count} new${bell.total > bell.count ? ` of ${bell.total}` : ""}`}
+                                    </p>
+                                    {bell.count > 0 && bell.onMarkAll && (
+                                        <button type="button" onClick={bell.onMarkAll} className="shrink-0 rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-brand-ink hover:bg-subtle focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                                            Mark all read
+                                        </button>
+                                    )}
+                                </div>
                                 {bell.items.length === 0 && (
                                     <p className="flex items-center gap-2 px-3 py-3 text-sm text-ink-3">
                                         <Icon name="check" className="h-4 w-4 text-ok-ink" />
                                         {bell.emptyText || "Nothing new."}
                                     </p>
                                 )}
-                                <div className="max-h-80 overflow-y-auto">
+                                <div className="pg-scroll max-h-80 overflow-y-auto" aria-live="polite">
                                     {bell.items.map((n, ki) => {
+                                        const unseen = n.unseen !== false;
                                         const inner = (
                                             <>
-                                                <p className="truncate text-sm font-semibold text-ink">{n.title}</p>
-                                                <p className="mt-0.5 text-xs text-muted">{n.meta}</p>
+                                                <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${unseen ? "bg-brand" : "bg-transparent"}`} aria-hidden="true" />
+                                                <span className="min-w-0 flex-1">
+                                                    <span className={`block truncate text-sm text-ink ${unseen ? "font-semibold" : "font-medium"}`}>{n.title}</span>
+                                                    <span className="mt-0.5 block text-xs text-muted">{n.meta}</span>
+                                                </span>
+                                                {!unseen && <span className="sr-only">Seen</span>}
                                             </>
                                         );
+                                        const cls = `flex items-start gap-2 rounded-lg px-3 py-2 transition-opacity ${unseen ? "" : "opacity-55 hover:opacity-100"}`;
+                                        const key = `${n.key || n.title}-${ki}`;
                                         return n.to ? (
-                                            <Link key={`${n.key || n.title}-${ki}`} to={n.to} onClick={() => setBellOpen(false)} className="block rounded-lg px-3 py-2 hover:bg-subtle">
+                                            <Link
+                                                key={key}
+                                                to={n.to}
+                                                onClick={() => {
+                                                    bell.onOpen?.(n);
+                                                    setBellOpen(false);
+                                                }}
+                                                className={`${cls} hover:bg-subtle`}
+                                            >
                                                 {inner}
                                             </Link>
                                         ) : (
-                                            <div key={`${n.key || n.title}-${ki}`} className="rounded-lg px-3 py-2">
+                                            <div key={key} className={cls}>
                                                 {inner}
                                             </div>
                                         );
