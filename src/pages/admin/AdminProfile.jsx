@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import { ADMIN_REGISTER_ENABLED, logout, roleInfo } from "../../auth/authStore.js";
+import { useNavigate, useOutletContext } from "react-router-dom";
+import { getProfile, logout, roleInfo } from "../../auth/authStore.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
+import { ghostBtn, panel } from "../../components/shared/ui.js";
 
-// Profile page: Admin, DPO aur User teeno ke liye ek hi page. Title aur label login ke role se aate hain.
 const fmt = (d) => (d ? d.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "-");
 
 function Row({ icon, label, value, mono, copy = true }) {
@@ -40,7 +39,8 @@ const show = (v) => (v !== null && typeof v === "object" ? JSON.stringify(v) : S
 const shortKey = (k) => k.split("/").pop();
 
 export default function AdminProfile() {
-    const { profile } = useOutletContext();
+    const { profile: shellProfile } = useOutletContext() || {};
+    const profile = shellProfile || getProfile();
     const navigate = useNavigate();
     const [nowMs] = useState(() => Date.now());
     if (!profile) return null;
@@ -81,12 +81,6 @@ export default function AdminProfile() {
                         </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {ADMIN_REGISTER_ENABLED && info.key === "admin" && (
-                            <Link to="/admin/register" className={primaryBtn}>
-                                <Icon name="plus" className="h-4 w-4" />
-                                Register new admin
-                            </Link>
-                        )}
                         <button type="button" onClick={onLogout} className={`${ghostBtn} hover:border-bad/50 hover:text-bad-ink`}>
                             <Icon name="logout" className="h-4 w-4" />
                             Logout

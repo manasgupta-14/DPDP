@@ -3,13 +3,18 @@ const pick = (o, ...keys) => {
     return null;
 };
 
+const MIN_REAL_YEAR = 1971;
 export function toDate(value) {
-    if (!value) return null;
-    const text = String(value);
+    if (value === null || value === undefined || value === "") return null;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) || value.getFullYear() < MIN_REAL_YEAR ? null : value;
+    const text = String(value).trim();
+    if (!text || /^0{1,4}1-01-01/.test(text)) return null;
     const zoned = /(Z|[+-]\d{2}:?\d{2})$/i.test(text);
     const d = new Date(text.includes("T") && !zoned ? `${text}Z` : text);
-    return Number.isNaN(d.getTime()) ? null : d;
+    if (Number.isNaN(d.getTime()) || d.getUTCFullYear() < MIN_REAL_YEAR) return null;
+    return d;
 }
+export const toTime = (value) => toDate(value)?.getTime() ?? 0;
 
 function splitEntity(entity) {
     const text = String(entity ?? "").trim();
@@ -37,8 +42,6 @@ export function humanizeEntity(name) {
     return String(name ?? "").replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2").trim();
 }
 
-// Backend action "campaignaudiencegroupmembers.added" jaise lowercase jude hue shabd bhejta hai.
-// In shabdon ki list se hum unhe "Campaign audience group members · added" bana dete hain.
 const WORDS = (
     "campaign audience group groups member members mapping mappings response responses data principal principals identifier identifiers " +
     "consent consents record records detail details purpose purposes category categories processor processors notice notices template templates " +
@@ -63,7 +66,6 @@ function segment(word) {
     return best[w.length] ? best[w.length].join(" ") : word;
 }
 
-/** "campaignaudiencegroupmembers.added" -> "Campaign audience group members · added" */
 export function humanizeAction(action) {
     const raw = String(action ?? "").trim();
     if (!raw) return "";
@@ -104,8 +106,16 @@ export function normalizeLog(r, index = 0) {
     };
 }
 
+export function actionVerb(action) {
+    const raw = String(action ?? "").trim();
+    if (!raw) return "";
+    const last = raw.split(".").pop() || raw;
+    const text = /[A-Z]/.test(last) ? humanizeEntity(last).toLowerCase() : last.replace(/[_-]+/g, " ");
+    return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 export function actionKind(action) {
-    const a = String(action).toLowerCase();
+    const a = (String(action ?? "").split(".").pop() || "").toLowerCase();
     if (/creat|add|insert/.test(a)) return "create";
     if (/updat|modif|edit|chang/.test(a)) return "update";
     if (/delet|remov/.test(a)) return "delete";
@@ -117,6 +127,13 @@ export const ACTION_TONE = {
     update: "bg-warn/10 text-warn-ink ring-warn/25",
     delete: "bg-bad/10 text-bad-ink ring-bad/25",
     other: "bg-subtle text-ink-2 ring-line-strong",
+};
+
+export const ACTION_DOT = {
+    create: "bg-ok",
+    update: "bg-warn",
+    delete: "bg-bad",
+    other: "bg-faint",
 };
 
 export const isSuccess = (outcome) => /^success/i.test(String(outcome ?? "").trim());

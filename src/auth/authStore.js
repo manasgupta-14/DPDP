@@ -106,10 +106,6 @@ const pretty = (r) =>
         .trim()
         .replace(/\b\w/g, (c) => c.toUpperCase());
 
-/**
- * Login karne wale ka asli role (header, menu, profile, breadcrumb sab jagah yahi dikhta hai).
- * DPO login kare to "DPO", admin kare to "Admin", customer ya employee kare to wahi.
- */
 export function roleInfo(session = getSession()) {
     const roles = [].concat(session?.role ?? []).map((r) => String(r).trim()).filter(Boolean);
     if (isDataPrincipal(session)) return { key: "customer", label: "Customer", long: "Customer", profileLabel: "My profile" };

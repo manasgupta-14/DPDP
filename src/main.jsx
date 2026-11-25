@@ -7,12 +7,18 @@ import App from "./App.jsx";
 import { installModernSelect } from "./utils/modernSelect.js";
 import { installReveal } from "./utils/reveal.js";
 import { installScrollBorder } from "./utils/scrollBorder.js";
-import { installSpotlight } from "./utils/spotlight.js";
+import { installRipple } from "./utils/ripple.js";
+import "./styles/pro.css";
+import { preloadRoute } from "./utils/preloadRoute.js";
 
-installModernSelect();
+preloadRoute();
 installReveal();
-installScrollBorder();
-installSpotlight();
+const later = (fn) => (typeof requestIdleCallback === "function" ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 600));
+later(() => {
+    installModernSelect();
+    installScrollBorder();
+    installRipple();
+});
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

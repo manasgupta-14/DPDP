@@ -3,7 +3,7 @@ import { Link, useOutletContext } from "react-router-dom";
 import { getMyReports } from "../../api/breach.js";
 import { getMyPendingCampaigns } from "../../api/campaign.js";
 import { getUserSummary } from "../../api/dashboard.js";
-import { isDataPrincipal, roleInfo } from "../../auth/authStore.js";
+import { getProfile, isDataPrincipal, roleInfo } from "../../auth/authStore.js";
 import { C, CountUp, Ring } from "../../components/charts/kit.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import WelcomeHero from "../../components/shared/WelcomeHero.jsx";
@@ -11,8 +11,8 @@ import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { formatDay, typeLabel } from "../../utils/campaign.js";
 import { band } from "../../utils/executive.js";
 import { dateText, typeLabel as requestTypeLabel } from "../../utils/privacyRequest.js";
+import { toDate } from "../../utils/audit.js";
 
-// User (customer ya employee) ka overview: pehle "aapka kaam", phir privacy health, phir haal ki gatividhi.
 const rise = (i) => ({ animation: `pg-rise .55s cubic-bezier(.22,1,.36,1) ${i * 60}ms both` });
 const TONE_BG = { info: "bg-brand-soft text-brand-ink", ok: "bg-ok-soft text-ok-ink", warn: "bg-warn-soft text-warn-ink", violet: "bg-violet/12 text-violet-ink" };
 
@@ -31,10 +31,10 @@ function Stat({ icon, tone, label, value, to, hint, i }) {
     );
 }
 
-const toDate = (v) => new Date(/(Z|[+-]\d{2}:?\d{2})$/i.test(String(v)) ? v : `${v}Z`);
 
 export default function UserDashboard() {
-    const { profile } = useOutletContext();
+    const { profile: shellProfile } = useOutletContext() || {};
+    const profile = shellProfile || getProfile();
     const [tasks, setTasks] = useState({ loading: true, items: [], error: "" });
     const [reports, setReports] = useState({ loading: true, items: [] });
     const [summary, setSummary] = useState({ loading: true, data: null, error: "" });
@@ -212,7 +212,7 @@ export default function UserDashboard() {
                                     <li key={i} className="relative text-sm text-ink-2">
                                         <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full" style={{ background: C.brand }} />
                                         {a.action}
-                                        {a.date && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
+                                        {toDate(a.date) && <span className="ml-1 text-xs text-muted">· {dateText(toDate(a.date))}</span>}
                                     </li>
                                 ))}
                             </ol>

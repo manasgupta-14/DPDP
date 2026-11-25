@@ -1,6 +1,5 @@
 import Icon from "../shared/Icon.jsx";
 
-// Roadmap-style stepper: "01 · 02 · 03" chips, glowing active step, dotted connectors.
 export default function Stepper({ steps, current, maxReached, onSelect }) {
     return (
         <ol className="flex items-center gap-2 overflow-x-auto pb-1" aria-label="DPIA steps">

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
-import GlassOrbs from "../components/shared/GlassOrbs.jsx";
-import MeshBackground from "../components/shared/MeshBackground.jsx";
+import TechBackdrop from "../components/shared/TechBackdrop.jsx";
 import PageLoader from "../components/shared/PageLoader.jsx";
 import { ADMIN_REGISTER_ENABLED } from "../auth/authStore.js";
 import adminRoutes from "./AdminRoutes.jsx";
@@ -11,14 +10,11 @@ import { Home, Login, PublicLayout, Register } from "./lazyPages.js";
 
 export default function AppRoutes() {
     const { pathname } = useLocation();
-    // Website (silk zyada) ya app (silk bahut halka, text saaf): CSS isi se background chunti hai
     const area = /^\/(dashboard|dpo|user)(\/|$)/.test(pathname) ? "app" : "site";
     if (typeof document !== "undefined") document.documentElement.dataset.area = area;
     return (
         <>
-        {/* Halka "silk" mesh background poore app ke peeche (ek hi canvas). Dashboard par dheemi chaal. */}
-        <MeshBackground calm={pathname !== "/"} />
-        <GlassOrbs />
+        <TechBackdrop />
         <Suspense fallback={<PageLoader />}>
         <Routes>
             <Route element={<PublicLayout />}>

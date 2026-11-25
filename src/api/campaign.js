@@ -50,7 +50,6 @@ export async function linkAudience({ campaignId, selectedIds, isInternalUserMapp
     });
 }
 
-/* ---------- Campaign audience groups (/api/campaign-audience-groups) ---------- */
 
 const GROUPS = "/api/campaign-audience-groups";
 const pickVal = (o, ...keys) => {
@@ -119,7 +118,6 @@ export async function applyAudienceGroup(groupId, campaignId) {
     return groupPermission(await apiFetch(`${GROUPS}/${seg(groupId)}/apply`, { method: "POST", body: { campaignId } }));
 }
 
-/** Staff + customers dono list ek saath, id -> {name,email} lookup ke liye. */
 export async function getAllAudienceMembers() {
     const [staff, customers] = await Promise.all([getAudienceList("internal"), getAudienceList("customer")]);
     const items = [

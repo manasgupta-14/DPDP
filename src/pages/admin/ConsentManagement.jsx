@@ -2,11 +2,14 @@ import StatTile from "../../components/shared/StatTile.jsx";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getConsentRecord, getConsentRecords, getPurposes } from "../../api/consent.js";
+import { getConsentNotices } from "../../api/consentNotice.js";
 import ConsentDetailModal from "../../components/admin/consent/ConsentDetailModal.jsx";
 import ConsentTable from "../../components/admin/consent/ConsentTable.jsx";
 import { dkAlert, dkBtn, dkCard, dkInput, dkPage } from "../../components/admin/consent/styles.js";
 import Icon from "../../components/shared/Icon.jsx";
-import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, STATUS_LABEL, withVersions } from "../../utils/consent.js";
+import { CHANNEL_OPTIONS, consentsToCsv, downloadCsv, RECORD_STATUS_OPTIONS, REMOVED_PURPOSE, STATUS_LABEL, withVersions } from "../../utils/consent.js";
+
+const usablePurposes = (list) => Array.isArray(list) && list.length > 0 && !list.every((p) => p.name === REMOVED_PURPOSE);
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS = { reference: "", status: "", purpose: "", channel: "", from: "", to: "" };
@@ -19,6 +22,7 @@ export default function ConsentManagement() {
     const { query } = useOutletContext() || { query: "" };
     const [records, setRecords] = useState([]);
     const [purposes, setPurposes] = useState([]);
+    const [notices, setNotices] = useState({ loading: true, list: [] });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState("");
@@ -63,6 +67,16 @@ export default function ConsentManagement() {
     }, [reloadKey]);
 
     useEffect(() => {
+        let active = true;
+        getConsentNotices().then((res) => {
+            if (active) setNotices({ loading: false, list: res.ok ? res.data : [] });
+        });
+        return () => {
+            active = false;
+        };
+    }, [reloadKey]);
+
+    useEffect(() => {
         if (!openId) return undefined;
         let active = true;
         getConsentRecord(openId).then((res) => {
@@ -91,7 +105,7 @@ export default function ConsentManagement() {
     const listed = records.find((r) => r.id === openId) || null;
     const fetched = detail.id === openId ? detail : null;
     const selected = listed && fetched?.record
-        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: fetched.record.purposes.length ? fetched.record.purposes : listed.purposes }
+        ? { ...listed, ...Object.fromEntries(Object.entries(fetched.record).filter(([, v]) => v !== null && v !== undefined && v !== "")), id: listed.id, versions: listed.versions, purposes: usablePurposes(fetched.record.purposes) ? fetched.record.purposes : listed.purposes }
         : listed;
     const hasFilters = Object.values(draft).some(Boolean);
 
@@ -183,7 +197,7 @@ export default function ConsentManagement() {
                     <p className="mt-1 text-xs text-ink-3">{hasFilters || query ? "Try changing or clearing the filters." : "Consent records appear here once users answer the consent popup or their My Consents page."}</p>
                 </div>
             ) : (
-                <ConsentTable rows={slice} onOpen={(r) => setOpenId(r.id)} />
+                <ConsentTable rows={slice} notices={notices.list} noticesLoading={notices.loading} onOpen={(r) => setOpenId(r.id)} />
             )}
 
             {!loading && filtered.length > 0 && (
@@ -198,7 +212,7 @@ export default function ConsentManagement() {
                 </div>
             )}
 
-            {selected && <ConsentDetailModal record={selected} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
+            {selected && <ConsentDetailModal record={selected} notices={notices.list} noticesLoading={notices.loading} loading={!fetched} error={fetched?.error || ""} onClose={() => setOpenId(null)} />}
         </div>
     );
 }

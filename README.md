@@ -29,7 +29,7 @@ npm run build     # production build in dist/
 npm run lint
 ```
 
-The Kavach backend (API) must be running (by default at `https://localhost:7139`).
+The Kavach backend (API) must be running (by default at `https://bprmnnz1-7139.inc1.devtunnels.ms`).
 
 ## Configuration
 
@@ -145,6 +145,20 @@ Each data point also records:
 - **Shared with processors** (`sharedWithProcessors`): vendors who receive the data, entered as tags and sent as one comma-separated text, e.g. `"Mailchimp, AWS"` (Section 8).
 
 Records created before these fields existed show "Not set". They must be filled in when the record is next edited. The dashboard counts a data point as documented only when these two fields are set as well.
+
+## Rules & Acts
+
+Library of laws, rules and internal policies, at `/dashboard/rules` (admin) and `/dpo/rules` (DPO).
+Backend: `RulesAndActsController`, route `api/v1/RulesAndActs` (note the `v1`).
+
+| Method | Path | Used for |
+|---|---|---|
+| GET | `/api/v1/RulesAndActs/organization/{orgId}` | List (org ID comes from the signed-in token) |
+| GET | `/api/v1/RulesAndActs/{id}` | Detail popup |
+| POST | `/api/v1/RulesAndActs` | Add (`organizationId, title, category, description, documentUrl`) |
+| DELETE | `/api/v1/RulesAndActs/{id}` | Remove (backend does a soft delete) |
+
+Categories sent: `DPDP_Act`, `DPDP_Rules`, `Internal_Policy`, `Sector_Regulation`, `Other`. There is no edit API yet, so entries can only be added or removed.
 
 ## Permissions
 

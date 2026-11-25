@@ -1,10 +1,8 @@
-// Executive dashboard ka hisaab: sirf asli records se (API), koi nakli number nahi.
-// Har score ek "indicator" hai jo aapke live data se nikla hai; yeh kanooni raay nahi hai.
 import { isFinished, sameText } from "./breach.js";
 import { STATUS as DPIA_STATUS, displayStatus } from "./dpia.js";
+import { toDate } from "./audit.js";
 
 const DAY = 86400000;
-// "3 incidents" / "1 incident" ("incident(s)" jaisa robotic text nahi)
 const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const arr = (v) => (Array.isArray(v) ? v : Array.isArray(v?.$values) ? v.$values : []);
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
@@ -14,10 +12,7 @@ const avg = (xs) => {
     return v.length ? Math.round(v.reduce((s, x) => s + x, 0) / v.length) : null;
 };
 const clampScore = (v) => Math.max(0, Math.min(100, Math.round(v)));
-const toTime = (d) => {
-    const t = d ? new Date(d).getTime() : NaN;
-    return Number.isNaN(t) ? null : t;
-};
+const toTime = (d) => toDate(d)?.getTime() ?? null;
 const pick = (o, ...keys) => {
     for (const k of keys) {
         const v = o?.[k] ?? o?.[k[0].toUpperCase() + k.slice(1)];
@@ -26,10 +21,8 @@ const pick = (o, ...keys) => {
     return undefined;
 };
 
-// Backend PrivacyRequestStatus: Fulfilled, Rejected, Withdrawn, Expired = band. Baaki (Submitted, InProgress, PartiallyFulfilled...) khuli.
 export const DONE_REQUEST = /^(fulfilled|rejected|withdrawn|expired)$/i;
 
-/** DPDP Act 2023 ki dhaarayein aur Schedule me likhi adhiktam penalty (₹ crore). */
 export const DPDP_SECTIONS = [
     { key: "notice", code: "S.5", name: "Privacy notice", max: 50, module: "consent" },
     { key: "consent", code: "S.6", name: "Consent", max: 50, module: "consent" },
@@ -41,7 +34,6 @@ export const DPDP_SECTIONS = [
     { key: "dpia", code: "S.10", name: "Risk reviews (DPIA) and audits", max: 150, module: "governance" },
 ];
 
-// DPDP Rules 2025 (MeitY notification, 13 Nov 2025)
 export const PHASES = [
     { label: "Phase 1", date: "2025-11-13", text: "DPDP Rules notified and the Data Protection Board set up" },
     { label: "Phase 2", date: "2026-11-13", text: "Rules for registering Consent Managers apply" },
@@ -55,7 +47,6 @@ export function band(score) {
     return { tone: "bad", label: "At risk", color: "var(--k-bad)" };
 }
 
-// AdminDashboardDto (camelCase ya PascalCase dono)
 function readSummary(raw) {
     const r = raw?.data && typeof raw.data === "object" && !Array.isArray(raw.data) ? raw.data : raw;
     if (!r || (pick(r, "complianceHealthScore") === undefined && pick(r, "totalUsers") === undefined)) return null;
@@ -110,14 +101,12 @@ export function buildExecutive(data, now = new Date()) {
     const notices = data.notices?.ok ? data.notices.data : null;
     const retention = data.retention?.ok ? data.retention.data : null;
 
-    /* ---------- incidents */
     const openInc = incidents ? incidents.filter((i) => !isFinished(i.status)) : [];
     const sev = (name) => openInc.filter((i) => sameText(i.severity, name)).length;
     const severity = incidents
         ? { critical: sev("critical"), high: sev("high"), medium: sev("medium"), low: sev("low"), unset: openInc.filter((i) => !i.severity).length, open: openInc.length, total: incidents.length }
         : null;
 
-    /* ---------- requests */
     let reqStats = null;
     if (requests) {
         const open = requests.filter((r) => !DONE_REQUEST.test(r.status));
@@ -133,7 +122,6 @@ export function buildExecutive(data, now = new Date()) {
         reqStats = { open: s.pending, overdue: s.slaRisk, onTrack: Math.max(0, s.pending - s.slaRisk), done: 0, total: s.pending, byType: {}, list: [] };
     }
 
-    /* ---------- consents */
     let consent = null;
     if (consents) {
         const active = consents.filter((c) => ACTIVE_CONSENT.test(String(c.status)) && !/withdraw|expire|declin|denied|reject/i.test(String(c.status)));
@@ -172,7 +160,6 @@ export function buildExecutive(data, now = new Date()) {
         };
     }
 
-    /* ---------- inventory (RoPA style) */
     let inv = null;
     if (inventory) {
         const documented = inventory.filter((i) => i.purpose && num(i.retentionDays) > 0 && i.storage && i.lawfulBasis && i.principalCategory);
@@ -180,12 +167,10 @@ export function buildExecutive(data, now = new Date()) {
         inv = { total: inventory.length, documented: documented.length, coverage: inventory.length ? pct(documented.length, inventory.length) : 0, missing };
     }
 
-    /* ---------- campaign totals */
     const camp = s
         ? s.campaigns.reduce((acc, c) => ({ accepted: acc.accepted + c.accepted, rejected: acc.rejected + c.rejected, completed: acc.completed + c.completed, total: acc.total + c.total }), { accepted: 0, rejected: 0, completed: 0, total: 0 })
         : null;
 
-    /* ---------- section scores */
     const sec = {};
     if (notices) {
         const published = notices.filter((n) => /publish|active|live/i.test(n.status)).length;
@@ -236,7 +221,6 @@ export function buildExecutive(data, now = new Date()) {
     const derived = avg(known.map((x) => x.score));
     const score = s?.score ?? (generic?.score?.value ?? derived);
 
-    /* ---------- module health */
     const bySec = Object.fromEntries(sections.map((x) => [x.key, x]));
     const mod = (key, title, icon, keys, codes, max, to, recs, extra = []) => {
         const scores = keys.map((k) => bySec[k].score).concat(extra);
@@ -251,7 +235,6 @@ export function buildExecutive(data, now = new Date()) {
         mod("governance", "Policy & governance", "scale", ["grievance", "dpia"], "S.8(10) + S.10", 150, "/dashboard/dpia", ["Close grievances with a reply the person can read.", "Send risky processing for DPIA review before it starts.", "Keep the audit trail and reports ready for inspection."]),
     ];
 
-    /* ---------- deadlines */
     const deadlines = [];
     if (reqStats?.list?.length) {
         reqStats.list.forEach((r) => {
@@ -284,13 +267,11 @@ export function buildExecutive(data, now = new Date()) {
     });
     deadlines.sort((a, b) => a.at - b.at);
 
-    /* ---------- attention banner (sabse zaroori ek baat) */
     let attention = null;
     if (severity?.critical) attention = { tone: "bad", text: `${severity.critical} critical breach${severity.critical === 1 ? " is" : "es are"} still open. Under the DPDP Rules, the Board must be informed within 72 hours.`, to: "/dashboard/breach", action: "Open breaches" };
     else if (reqStats?.overdue) attention = { tone: "warn", text: `${reqStats.overdue} rights request${reqStats.overdue === 1 ? " is" : "s are"} past the 30-day deadline.`, to: "/dashboard/rights-requests", action: "Review requests" };
     else if (retention?.overdue) attention = { tone: "warn", text: `${plural(retention.overdue, "record")} ${retention.overdue === 1 ? "has" : "have"} passed their retention period and should be erased.`, to: "/dashboard/retention", action: "Open erasure queue" };
 
-    /* ---------- extra charts */
     const months6 = monthBuckets(6, now);
     const incidentTrend = incidents
         ? {
@@ -362,7 +343,6 @@ export function buildExecutive(data, now = new Date()) {
         watch,
         deadlines: deadlines.slice(0, 7),
         attention,
-        // GET /api/ComplianceChecklist (permission na ho to null; card nahi dikhta)
         checklist: data.checklist?.ok ? data.checklist.data : null,
         incidentTrend,
         requestTypes,

@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { getGrievance, replyGrievance } from "../../api/grievance.js";
+import { replyGrievance } from "../../api/grievance.js";
+import ChatThread, { LiveBadge } from "../../components/grievance/ChatThread.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
+import useLiveGrievance from "../../hooks/useLiveGrievance.js";
 import { formatDate } from "../../utils/breach.js";
 import { grievanceStatusToneLight as grievanceStatusTone } from "../../utils/grievance.js";
 
@@ -19,55 +21,39 @@ function Meta({ label, children }) {
 
 export default function MyGrievanceDetail() {
     const { id } = useParams();
-    const [ticket, setTicket] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const { ticket, loading, loadError, offline, reload } = useLiveGrievance(id);
     const [error, setError] = useState("");
     const [flash, setFlash] = useState("");
     const [reply, setReply] = useState("");
     const [busy, setBusy] = useState(false);
-
-    const load = useCallback(async () => {
-        const res = await getGrievance(id);
-        if (res.ok) {
-            setTicket(res.data);
-            setError("");
-        } else {
-            setError(res.error);
-        }
-        setLoading(false);
-    }, [id]);
-
-    useEffect(() => {
-        let active = true;
-        getGrievance(id).then((res) => {
-            if (!active) return;
-            if (res.ok) setTicket(res.data);
-            else setError(res.error);
-            setLoading(false);
-        });
-        return () => {
-            active = false;
-        };
-    }, [id]);
+    const [pending, setPending] = useState([]);
 
     const send = async (e) => {
         e.preventDefault();
-        if (!reply.trim()) return setError("Write a message first.");
+        const text = reply.trim();
+        if (!text || busy) return;
         setBusy(true);
         setError("");
-        const res = await replyGrievance(id, { messageText: reply, isInternal: false });
-        setBusy(false);
-        if (!res.ok) return setError(res.error);
-        setFlash("Your reply was sent.");
+        setFlash("");
+        setPending([{ tempId: `tmp-${Date.now()}`, text, senderType: "User", isInternal: false, createdAt: new Date().toISOString() }]);
         setReply("");
-        load();
+        const res = await replyGrievance(id, { messageText: text, isInternal: false });
+        if (!res.ok) {
+            setPending([]);
+            setReply(text);
+            setBusy(false);
+            return setError(res.error);
+        }
+        await reload();
+        setPending([]);
+        setBusy(false);
     };
 
     if (loading) return <p className="text-sm text-ink-3">Loading grievance...</p>;
     if (!ticket) {
         return (
             <div className="mx-auto max-w-3xl space-y-4">
-                <Alert>{error || "Grievance not found."}</Alert>
+                <Alert>{loadError || "Grievance not found."}</Alert>
                 <Link to="/user/grievance" className={ghostBtn}>Back to grievances</Link>
             </div>
         );
@@ -90,26 +76,20 @@ export default function MyGrievanceDetail() {
             <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
                 <div className="space-y-6">
                     <section className={`${panel} p-5`}>
-                        <h2 className="text-base font-semibold">Conversation</h2>
-                        {ticket.messages.length === 0 ? (
-                            <p className="mt-3 text-sm text-muted">No replies yet. The Data Protection team will respond here.</p>
-                        ) : (
-                            <ul className="mt-3 space-y-3">
-                                {ticket.messages.filter((m) => !m.isInternal).map((m, i) => (
-                                    <li key={i} className={`rounded-xl border p-3 text-sm ${m.senderType === "User" ? "border-line bg-soft" : "border-brand/30 bg-brand-soft/40"}`}>
-                                        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                                            <span className="font-semibold text-ink-2">{m.senderType === "User" ? "You" : "Support team"}</span>
-                                            <span>{formatDate(m.createdAt)}</span>
-                                        </div>
-                                        <p className="mt-1.5 whitespace-pre-wrap break-words text-ink">{m.text}</p>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
+                        <div className="flex items-center justify-between gap-2">
+                            <h2 className="text-base font-semibold">Conversation</h2>
+                            <LiveBadge offline={offline} />
+                        </div>
+                        <ChatThread
+                            perspective="user"
+                            messages={ticket.messages.filter((m) => !m.isInternal)}
+                            pending={pending}
+                            emptyText="No replies yet. The Data Protection team will respond here."
+                        />
 
                         <form onSubmit={send} className="mt-5 space-y-3 border-t border-line pt-4">
                             <label className="block text-sm font-medium">Your reply
-                                <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} placeholder="Write your message..." />
+                                <textarea className={field} rows={3} value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) send(e); }} placeholder="Write your message... (Ctrl+Enter to send)" />
                             </label>
                             <div className="flex justify-end">
                                 <button type="submit" className={primaryBtn} disabled={busy || !reply.trim()}>{busy ? "Sending..." : "Send reply"}</button>

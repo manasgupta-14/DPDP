@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { inputClass } from "./authStyles.js";
 import { Logo } from "../shared/Brand.jsx";
+import ThemeToggle from "../shared/ThemeToggle.jsx";
 
 const ICONS = {
     shield: "M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3z M9 12l2 2 4-4",
@@ -69,7 +70,7 @@ export function SubmitButton({ loading, children }) {
         <button
             type="submit"
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-brand px-5 py-3 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-strong focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40 disabled:cursor-not-allowed disabled:opacity-70"
+            className="kx-btn-primary flex w-full items-center justify-center gap-2 rounded-[10px] bg-brand px-5 py-3 text-sm font-semibold text-white shadow-[0_1px_2px_rgba(16,24,40,0.08)] hover:bg-brand-strong focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40 disabled:cursor-not-allowed disabled:opacity-70"
         >
             {loading && (
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -88,64 +89,96 @@ const POINTS = [
     "Breach handling and a reviewable audit trail",
 ];
 
-// Login / register ka frame: bayen Kavach ki pehchaan (gehra neela, bharosa), dayen saaf form.
+const PREVIEW = [
+    { label: "Consent register", tone: "var(--k-c1)", w: "86%", d: "120ms", icon: "M7 3h7l4 4v14H7zM9.5 13l2 2 3.5-4" },
+    { label: "Rights requests", tone: "var(--k-c2)", w: "64%", d: "260ms", icon: "M4 5h16v11H9l-5 4z" },
+    { label: "Audit trail", tone: "var(--k-c5)", w: "78%", d: "400ms", icon: "M5 6h14M5 12h14M5 18h9" },
+];
+
+function Preview() {
+    return (
+        <div className="kx-prev" aria-hidden="true">
+            {PREVIEW.map((r) => (
+                <div key={r.label} className="kx-prev-row" style={{ "--tn": r.tone, "--w": r.w, "--d": r.d }}>
+                    <span className="kx-prev-ico">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d={r.icon} />
+                        </svg>
+                    </span>
+                    <span className="kx-prev-txt">
+                        <b>{r.label}</b>
+                        <span className="kx-prev-bar">
+                            <i />
+                        </span>
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 export default function AuthLayout({ title, subtitle, children, footer }) {
     return (
-        <div className="ap-auth min-h-screen">
-            <div className="grid min-h-screen lg:grid-cols-[0.9fr_1.1fr]">
-                <aside className="relative m-3 hidden overflow-hidden kv-auth-panel rounded-[28px] border border-[#D6E4FF] lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-10 xl:px-16">
-                    <Link to="/" className="relative w-fit rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+        <div className="ap-auth kx-auth min-h-screen">
+            <div className="grid min-h-screen lg:grid-cols-[1fr_1fr]">
+                <aside className="kx-auth-panel relative m-3 hidden overflow-hidden rounded-[28px] lg:flex lg:flex-col lg:justify-between lg:px-12 lg:py-10 xl:px-14">
+                    <Link to="/" className="relative z-10 w-fit rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                         <Logo sub="DPDP compliance workspace" />
                     </Link>
 
-                    <div className="relative max-w-lg">
-                        <h2 className="text-[30px] font-bold leading-tight tracking-tight text-[#14213D]">Keep your DPDP obligations organised and easy to review</h2>
-                        <ul className="mt-8 space-y-4">
-                            {POINTS.map((p, i) => (
-                                <li key={p} className="flex items-start gap-3 text-[15px] text-[#33415C]" style={{ animation: `pg-rise .6s ease-out ${200 + i * 110}ms both` }}>
-                                    <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white text-[#3A4CC8] ring-1 ring-[#C9D8FF]">
-                                        <Icon name="check" className="h-3 w-3" />
-                                    </span>
-                                    {p}
-                                </li>
-                            ))}
-                        </ul>
+                    <div className="relative z-10 grid items-center gap-8 xl:grid-cols-[1fr_auto]">
+                        <div className="max-w-md">
+                            <h2 className="kx-auth-title">Keep your DPDP obligations organised and easy to review</h2>
+                            <ul className="mt-7 space-y-3.5">
+                                {POINTS.map((p, i) => (
+                                    <li key={p} className="flex items-start gap-3 text-[15px] text-ink-2" style={{ animation: `pg-rise .6s ease-out ${200 + i * 110}ms both` }}>
+                                        <span className="kx-tick mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full">
+                                            <Icon name="check" className="h-3 w-3" />
+                                        </span>
+                                        {p}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <Preview />
+                    </div>
 
-                        <div className="mt-10 grid grid-cols-3 gap-3">
+                    <div className="relative z-10">
+                        <div className="grid grid-cols-3 gap-3">
                             {[
                                 ["3", "panels", "Admin · User · DPO"],
                                 ["30", "days", "rights request deadline"],
                                 ["13", "reports", "PDF or CSV"],
                             ].map(([n, u, t], i) => (
-                                <div key={u} className="rounded-xl border border-[#D6E4FF] bg-white/80 p-3.5" style={{ animation: `pg-rise .6s ease-out ${500 + i * 100}ms both` }}>
-                                    <p className="text-2xl font-extrabold text-[#14213D]">
+                                <div key={u} className="kx-chip rounded-xl p-3.5" style={{ animation: `pg-rise .6s ease-out ${500 + i * 100}ms both` }}>
+                                    <p className="font-display text-2xl font-bold text-ink">
                                         {n}
-                                        <span className="ml-1 text-xs font-semibold text-[#556070]">{u}</span>
+                                        <span className="ml-1 text-xs font-semibold text-muted">{u}</span>
                                     </p>
-                                    <p className="mt-1 text-[11px] leading-snug text-[#556070]">{t}</p>
+                                    <p className="mt-1 text-[11px] leading-snug text-muted">{t}</p>
                                 </div>
                             ))}
                         </div>
+                        <p className="mt-5 max-w-md text-xs leading-relaxed text-muted">Accounts and records are stored securely on your organisation's Kavach server.</p>
                     </div>
-
-                    <p className="relative max-w-md text-xs leading-relaxed text-[#556070]">
-                        Accounts and records are stored securely on your organisation's Kavach server.
-                    </p>
                 </aside>
 
                 <main className="flex flex-col justify-center px-4 py-10 sm:px-8">
                     <div className="mx-auto w-full max-w-md">
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="mb-6 flex items-center justify-between gap-3">
                             <Link to="/" className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden">
                                 <Logo />
                             </Link>
-                            <Link to="/" className="ml-auto inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-ink-3 hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
-                                <Icon name="arrowLeft" className="h-4 w-4" />
-                                Back to home
-                            </Link>
+                            <div className="ml-auto flex items-center gap-3">
+                                <Link to="/" className="inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-ink-3 hover:text-brand-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                                    <Icon name="arrowLeft" className="h-4 w-4" />
+                                    Back to home
+                                </Link>
+                                <ThemeToggle />
+                            </div>
                         </div>
 
-                        <div className="rounded-[16px] border border-line bg-surface p-7 shadow-[var(--k-shadow)] sm:p-9" style={{ animation: "pg-rise .5s cubic-bezier(.22,1,.36,1) both" }}>
+                        <div className="kx-auth-card p-7 sm:p-9" style={{ animation: "pg-rise .5s cubic-bezier(.22,1,.36,1) both" }}>
                             <h1 className="text-[24px] font-bold tracking-tight text-ink">{title}</h1>
                             <p className="mt-1.5 text-sm text-muted">{subtitle}</p>
                             <div className="mt-7">{children}</div>

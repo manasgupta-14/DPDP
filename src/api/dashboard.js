@@ -3,7 +3,6 @@ import { getDataPrincipalCount } from "./dataPrincipal.js";
 import { normalizeSummary } from "../utils/dashboard.js";
 
 export async function getDashboardSummary() {
-    // Summary aur data principal count ek saath (parallel) aate hain, isliye dashboard dheema nahi hota.
     const [res, count] = await Promise.all([apiFetch("/api/Dashboard/summary"), getDataPrincipalCount()]);
     if (res.ok) {
         const data = normalizeSummary(res.data);
@@ -32,7 +31,6 @@ export async function getUserSummary() {
     return {
         ...res,
         data: {
-            // Field na aaye to null ("No data yet"), nakli 0% nahi
             healthScore: pick(d, "privacyHealthScore", "PrivacyHealthScore") == null ? null : Number(pick(d, "privacyHealthScore", "PrivacyHealthScore")),
             pendingActions: Number(pick(d, "pendingActionsCount", "PendingActionsCount") ?? 0),
             activeConsents: Number(pick(d, "activeConsentsCount", "ActiveConsentsCount") ?? 0),

@@ -5,12 +5,15 @@ import { PRINCIPAL_CLASSES } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { ghostBtn, panel } from "../../shared/ui.js";
 import { NotInApi } from "../purposes/NotInApi.jsx";
+import NewTag from "../../shared/NewTag.jsx";
+import StatusBadge from "../../shared/StatusBadge.jsx";
+import { useNewItems } from "../../../utils/newItems.js";
+import { toDate } from "../../../utils/audit.js";
 
 const th = "px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-wider text-ink-3";
 const classLabel = (v) => PRINCIPAL_CLASSES.find((c) => c.value === v)?.label || v || "-";
 const day = (v) => {
-    const d = v ? new Date(v) : null;
-    return d && !Number.isNaN(d.getTime()) && d.getFullYear() > 1 ? formatWhen(v) : "-";
+    return toDate(v) ? formatWhen(v) : "-";
 };
 
 function Block({ title, note, children }) {
@@ -29,6 +32,7 @@ function Empty({ children }) {
 
 export default function DataPrincipal360Modal({ id, onClose }) {
     const [state, setState] = useState({ loading: true, error: "", data: null });
+    const { isUnseen } = useNewItems();
 
     useEffect(() => {
         let active = true;
@@ -94,7 +98,7 @@ export default function DataPrincipal360Modal({ id, onClose }) {
                                         <thead><tr>{["Reference", "Right", "Status", "Raised", "Deadline"].map((h) => <th key={h} className={th}>{h}</th>)}</tr></thead>
                                         <tbody className="divide-y divide-line">
                                             {data.rightsRequests.map((q) => (
-                                                <tr key={q.id}><td className="px-3 py-2 font-mono">{q.reference}</td><td className="px-3 py-2">{q.right}</td><td className="px-3 py-2">{q.status}</td><td className="px-3 py-2">{day(q.raisedOn)}</td><td className="px-3 py-2">{day(q.deadline)}</td></tr>
+                                                <tr key={q.id}><td className="px-3 py-2 font-mono">{q.reference}</td><td className="px-3 py-2">{q.right}</td><td className="px-3 py-2">{q.status === "Submitted" && isUnseen("rights", q.id) ? <NewTag show /> : q.status ? <StatusBadge status={q.status} /> : "-"}</td><td className="px-3 py-2">{day(q.raisedOn)}</td><td className="px-3 py-2">{day(q.deadline)}</td></tr>
                                             ))}
                                         </tbody>
                                     </table>

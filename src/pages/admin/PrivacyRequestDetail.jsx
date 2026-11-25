@@ -5,6 +5,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import StatusBadge from "../../components/shared/StatusBadge.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { REPLY_TEMPLATES, STATUSES, dateText, dateTimeText, dueInfo, isClosed, shortId, statusLabel, typeLabel } from "../../utils/privacyRequest.js";
+import { canNow } from "../../auth/access.js";
 
 const allTemplates = Object.values(REPLY_TEMPLATES).flat();
 
@@ -165,6 +166,7 @@ export default function PrivacyRequestDetail() {
                         </dl>
                     </Card>
 
+                    {canNow(["PrivacyRequest.Manage"]) && (
                     <Card title="Update this request">
                         <div className="space-y-4">
                             <Alert>{formError}</Alert>
@@ -198,6 +200,7 @@ export default function PrivacyRequestDetail() {
                             </div>
                         </div>
                     </Card>
+                    )}
                 </div>
 
                 <div className="space-y-6">
@@ -221,8 +224,8 @@ export default function PrivacyRequestDetail() {
 
                     <Card title="Timeline" subtitle="Actions recorded on this request.">
                         <ol className="space-y-4">
-                            {timeline.map((e) => (
-                                <li key={e.title} className="flex gap-3">
+                            {timeline.map((e, ki) => (
+                                <li key={`${e.title}-${ki}`} className="flex gap-3">
                                     <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${e.tone}`} />
                                     <div className="min-w-0">
                                         <p className="text-sm font-semibold text-ink">{e.title}</p>

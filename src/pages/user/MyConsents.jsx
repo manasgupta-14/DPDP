@@ -5,7 +5,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate, timeOf } from "../../utils/breach.js";
-import { CONSENT_STATUS, PURPOSE_STATE, questionFor, STATUS_LABEL, allowedPurposes, notAllowedPurposes } from "../../utils/consent.js";
+import { CONSENT_STATUS, PURPOSE_STATE, questionFor, STATUS_LABEL, allowedPurposes } from "../../utils/consent.js";
 
 const PILL = {
     [PURPOSE_STATE.allowed]: "bg-ok/10 text-ok-ink ring-ok/25",
@@ -15,6 +15,8 @@ const PILL = {
     Required: "bg-brand-soft text-brand-ink ring-brand/25",
     "Not answered": "bg-subtle text-ink-3 ring-line-strong",
 };
+
+const HISTORY_PAGE = 10;
 
 function Pill({ label }) {
     return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${PILL[label] || PILL["Not answered"]}`}>{label}</span>;
@@ -59,6 +61,7 @@ export default function MyConsents() {
     const [notice, setNotice] = useState("");
     const [busyId, setBusyId] = useState("");
     const [confirmWithdraw, setConfirmWithdraw] = useState(false);
+    const [shown, setShown] = useState(HISTORY_PAGE);
 
     const apply = useCallback(([hist, list]) => {
         if (hist.ok) {
@@ -90,8 +93,30 @@ export default function MyConsents() {
     }, [apply, principalId]);
 
     const latest = history[0] || null;
-    const entryOf = useMemo(() => new Map((latest?.purposes ?? []).map((p) => [p.purposeId, p])), [latest]);
+    const entryOf = useMemo(() => {
+        const ids = new Map((latest?.purposes ?? []).map((p) => [p.purposeId, p]));
+        const names = new Map((latest?.purposes ?? []).map((p) => [p.name.trim().toLowerCase(), p]));
+        return { get: (pid) => ids.get(pid) ?? names.get(String(purposes.find((x) => x.id === pid)?.name || "").trim().toLowerCase()) };
+    }, [latest, purposes]);
     const withdrawn = latest?.status === CONSENT_STATUS.withdrawn;
+
+    const rows = useMemo(() => history.map((c, i) => {
+        const prev = history[i + 1];
+        if (c.status === CONSENT_STATUS.withdrawn && prev) return { c, change: { kind: "withdrawn" } };
+        if (!prev) return { c, change: { kind: "first" } };
+        const k = (n) => n.trim().toLowerCase();
+        const was = new Set(prev.status === CONSENT_STATUS.withdrawn ? [] : allowedPurposes(prev).map((p) => k(p.name)));
+        const now = new Set(allowedPurposes(c).map((p) => k(p.name)));
+        const names = new Map([...prev.purposes, ...c.purposes].map((p) => [k(p.name), p.name]));
+        return {
+            c,
+            change: {
+                kind: "diff",
+                on: [...now].filter((n) => !was.has(n)).map((n) => names.get(n)),
+                off: [...was].filter((n) => !now.has(n)).map((n) => names.get(n)),
+            },
+        };
+    }), [history]);
 
     const allowed = purposes.filter((p) => p.mandatory || entryOf.get(p.id)?.allowed);
     const blocked = purposes.filter((p) => !p.mandatory && latest && !entryOf.get(p.id)?.allowed);
@@ -217,30 +242,71 @@ export default function MyConsents() {
 
             {!loading && history.length > 0 && (
                 <section aria-label="Consent history" className="space-y-3">
-                    <h2 className="text-lg font-semibold">My consent history</h2>
-                    <p className="mt-0.5 text-xs text-muted">Every consent you gave or withdrew, with dates.</p>
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                        <div>
+                            <h2 className="text-lg font-semibold">My consent history</h2>
+                            <p className="mt-0.5 text-xs text-muted">Every time you allow, stop or withdraw something, a new version is saved. Each row shows what changed in that version.</p>
+                        </div>
+                        <p className="text-xs text-muted">{history.length} version{history.length === 1 ? "" : "s"}</p>
+                    </div>
                     <div className={`${panel} overflow-x-auto`}>
-                        <table className="w-full min-w-[720px] text-sm">
+                        <table className="w-full min-w-[760px] text-sm">
                             <thead className="border-b border-line bg-soft">
                                 <tr>
-                                    {["Version", "Status", "Allowed", "Not allowed", "Recorded"].map((h) => (
+                                    {["Version", "What changed", "Allowed after this change", "Recorded"].map((h) => (
                                         <th key={h} className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">{h}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-line">
-                                {history.map((c) => (
+                                {rows.slice(0, shown).map(({ c, change }) => (
                                     <tr key={c.id} className="align-top">
-                                        <td className="px-5 py-3.5 font-medium text-ink">v{c.version}</td>
-                                        <td className="px-5 py-3.5 text-ink-2">{STATUS_LABEL[c.status] || c.status}</td>
-                                        <td className="px-5 py-3.5 text-ok-ink">{allowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
-                                        <td className="px-5 py-3.5 text-bad-ink">{notAllowedPurposes(c).map((p) => p.name).join(", ") || "-"}</td>
+                                        <td className="px-5 py-3.5">
+                                            <p className="font-medium text-ink">v{c.version}</p>
+                                            <p className="mt-0.5 text-xs text-muted">{STATUS_LABEL[c.status] || c.status}</p>
+                                        </td>
+                                        <td className="px-5 py-3.5">
+                                            {change.kind === "withdrawn" ? (
+                                                <span className="font-medium text-warn-ink">Withdrew all consent</span>
+                                            ) : change.kind === "first" ? (
+                                                <span className="font-medium text-ink-2">First choices saved</span>
+                                            ) : change.on.length === 0 && change.off.length === 0 ? (
+                                                <span className="text-ink-3">No change (saved again)</span>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    {change.on.length > 0 && <p className="text-ok-ink"><span className="font-semibold">Allowed:</span> {change.on.join(", ")}</p>}
+                                                    {change.off.length > 0 && <p className="text-bad-ink"><span className="font-semibold">Stopped:</span> {change.off.join(", ")}</p>}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3.5 text-ink-2">
+                                            {c.status === CONSENT_STATUS.withdrawn ? <span className="text-muted">Nothing</span> : (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {allowedPurposes(c).length === 0 ? <span className="text-muted">Nothing</span> : allowedPurposes(c).map((p) => (
+                                                        <span key={p.id} className="rounded-md bg-ok/10 px-1.5 py-0.5 text-xs font-medium text-ok-ink ring-1 ring-ok/25">{p.name}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </td>
                                         <td className="whitespace-nowrap px-5 py-3.5 text-ink-2">{formatDate(c.submittedAt)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </div>
+                    {history.length > HISTORY_PAGE && (
+                        <div className="flex flex-wrap items-center gap-3">
+                            {shown < history.length && (
+                                <button type="button" onClick={() => setShown((n) => n + HISTORY_PAGE)} className={ghostBtn}>
+                                    Show {Math.min(HISTORY_PAGE, history.length - shown)} more
+                                </button>
+                            )}
+                            {shown > HISTORY_PAGE && (
+                                <button type="button" onClick={() => setShown(HISTORY_PAGE)} className="text-sm font-semibold text-ink-3 hover:underline">Show less</button>
+                            )}
+                            <span className="text-xs text-muted">Showing {Math.min(shown, history.length)} of {history.length}</span>
+                        </div>
+                    )}
                 </section>
             )}
         </div>

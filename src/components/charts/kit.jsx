@@ -1,24 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-// Kavach chart kit: bina library ke SVG charts.
-// - Har chart screen par aate hi chalta hai (scroll) aur page refresh / "Refresh" button par dobara.
-// - Rang CSS variables (index.css) se, isliye light aur dark dono me saaf dikhte hain.
 
 export const C = {
-    brand: "var(--k-c1)",
-    teal: "var(--k-c2)",
-    amber: "var(--k-c3)",
-    red: "var(--k-c4)",
-    violet: "var(--k-c5)",
-    sky: "var(--k-c6)",
-    pink: "var(--k-c7)",
-    lime: "var(--k-c8)",
-    indigo: "var(--k-c9)",
-    orange: "var(--k-c10)",
-    ok: "var(--k-ok)",
-    warn: "var(--k-warn)",
-    bad: "var(--k-bad)",
+    brand: "var(--kc-1)",
+    teal: "var(--kc-2)",
+    amber: "var(--kc-3)",
+    red: "var(--kc-4)",
+    violet: "var(--kc-5)",
+    sky: "var(--kc-6)",
+    pink: "var(--kc-7)",
+    lime: "var(--kc-8)",
+    indigo: "var(--kc-9)",
+    orange: "var(--kc-10)",
+    ok: "var(--kc-ok)",
+    warn: "var(--kc-warn)",
+    bad: "var(--kc-bad)",
     track: "var(--k-track)",
     muted: "var(--k-faint)",
 };
@@ -27,7 +24,6 @@ export const SERIES = [C.brand, C.teal, C.amber, C.red, C.violet, C.sky];
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, Number(v) || 0));
 export const fmtNum = (v) => Number(v || 0).toLocaleString("en-IN", { maximumFractionDigits: 1 });
 
-/** Element screen par hai ya nahi. replay=true: bahar jaa kar wapas aaye to animation fir chale. */
 export function useInView({ replay = true, threshold = 0.25 } = {}) {
     const ref = useRef(null);
     const [inView, setInView] = useState(false);
@@ -51,12 +47,12 @@ export function useInView({ replay = true, threshold = 0.25 } = {}) {
     return [ref, inView];
 }
 
-/** Number 0 se value tak gin kar badhta hai (jab active ho). */
 export function useCountUp(value, active, duration = 1100) {
     const target = Number(value) || 0;
     const [shown, setShown] = useState(0);
+    const skip = typeof window !== "undefined" && !!window.matchMedia?.("(max-width: 1023px), (pointer: coarse), (prefers-reduced-motion: reduce)").matches;
     useEffect(() => {
-        if (!active) return undefined;
+        if (!active || skip) return undefined;
         let raf = 0;
         const start = performance.now();
         const tick = (now) => {
@@ -67,7 +63,8 @@ export function useCountUp(value, active, duration = 1100) {
         };
         raf = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(raf);
-    }, [target, active, duration]);
+    }, [target, active, duration, skip]);
+    if (skip) return active ? target : 0;
     return active ? shown : 0;
 }
 
@@ -106,7 +103,6 @@ function niceScale(max, ticks = 4) {
     return { step, top: step * Math.ceil(max / step) };
 }
 
-// Smooth (monotone) curve
 function curve(pts) {
     const n = pts.length;
     if (n < 2) return n ? `M${pts[0].x},${pts[0].y}` : "";
@@ -128,15 +124,12 @@ function curve(pts) {
     return d;
 }
 
-/* ------------------------------------------------------------------ Floating tooltip (cursor ke saath)
-   Ring, Donut, Gauge, HBars, Progress aur Sparkline ke liye. Wahi kc-tip style jo Area/Column chart me hai.
-   Portal se body me banta hai, isliye card ka overflow use kaat nahi sakta. */
 function TipBody({ title, rows }) {
     return (
         <>
             {title && <p className="font-semibold text-ink">{title}</p>}
-            {rows.map((r) => (
-                <p key={r.name} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
                     <span className="inline-flex items-center gap-1.5">
                         <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
                         {r.name}
@@ -169,7 +162,6 @@ export function useFloatTip() {
     return [bind, render];
 }
 
-/* ------------------------------------------------------------------ Ring (percentage) */
 export function Ring({ value, size = 132, stroke = 12, color = C.brand, children, label, name, tip, unit = "" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -201,7 +193,6 @@ export function Ring({ value, size = 132, stroke = 12, color = C.brand, children
     );
 }
 
-/* ------------------------------------------------------------------ Donut (kai hisse) */
 export function Donut({ parts, size = 168, stroke = 22, children, label, name }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -237,19 +228,19 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
                         const len = (Number(p.value) / total) * 100;
                         const seg = (
                             <circle
-                                key={p.label}
+                                key={`${p.label}-${i}`}
                                 cx={size / 2}
                                 cy={size / 2}
                                 r={r}
                                 fill="none"
-                                strokeWidth={stroke}
+                                strokeWidth={active === i ? stroke + 4 : stroke}
                                 pathLength="100"
                                 strokeDasharray={`${inView ? Math.max(len - gap, 0) : 0} 100`}
                                 strokeDashoffset={-start}
                                 onMouseEnter={() => setActive(i)}
                                 onMouseLeave={() => setActive(null)}
                                 className="kc-seg"
-                                style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease` }}
+                                style={{ stroke: p.color, opacity: active === null || active === i ? 1 : 0.35, transition: `stroke-dasharray 1100ms cubic-bezier(.22,1,.36,1) ${i * 140}ms, opacity .2s ease, stroke-width .2s ease` }}
                             />
                         );
                         start += len;
@@ -262,7 +253,6 @@ export function Donut({ parts, size = 168, stroke = 22, children, label, name })
     );
 }
 
-/* ------------------------------------------------------------------ Semi gauge */
 export function Gauge({ value, size = 220, color = C.brand, children, label, name }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -283,14 +273,13 @@ export function Gauge({ value, size = 220, color = C.brand, children, label, nam
     );
 }
 
-/* ------------------------------------------------------------------ Tooltip */
 function Tip({ x, width, title, rows }) {
     const left = Math.min(Math.max(x - 70, 4), width - 150);
     return (
         <div className="kc-tip" style={{ left, top: 4 }}>
             <p className="font-semibold text-ink">{title}</p>
-            {rows.map((r) => (
-                <p key={r.name} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
+            {rows.map((r, ki) => (
+                <p key={`${r.name}-${ki}`} className="mt-1 flex items-center justify-between gap-3 text-ink-3">
                     <span className="inline-flex items-center gap-1.5">
                         <i className="h-2 w-2 rounded-full" style={{ background: r.color }} />
                         {r.name}
@@ -302,7 +291,6 @@ function Tip({ x, width, title, rows }) {
     );
 }
 
-/* ------------------------------------------------------------------ Area / line chart */
 export function AreaChart({ labels, series, height = 220, area = true, yFormat = fmtNum, ariaLabel }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
@@ -329,18 +317,18 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
 
     return (
         <div ref={wrapRef} className="relative w-full">
-            <div ref={ref} data-in={inView}>
+            <div ref={ref} data-in={inView} className="kc-stage">
                 <svg width={width} height={height} role="img" aria-label={ariaLabel || series.map((s) => s.name).join(", ")} onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
                     <defs>
                         {series.map((s, si) => (
-                            <linearGradient key={s.name} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient key={`${s.name}-${si}`} id={`${uid}-${si}`} x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="0" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0.28" />
                                 <stop offset="1" style={{ stopColor: s.color || SERIES[si] }} stopOpacity="0" />
                             </linearGradient>
                         ))}
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 4"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {yFormat(t)}
@@ -360,7 +348,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                         const line = curve(pts);
                         const color = s.color || SERIES[si];
                         return (
-                            <g key={s.name}>
+                            <g key={`${s.name}-${si}`}>
                                 {area && si === 0 && pts.length > 1 && <path className="kc-area" d={`${line}L${X(n - 1)},${Y(0)}L${X(0)},${Y(0)}Z`} fill={`url(#${uid}-${si})`} />}
                                 <path
                                     className="kc-line"
@@ -376,6 +364,7 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
                                 {pts.map((p, i) => (
                                     <circle key={i} className="kc-dot" cx={p.x} cy={p.y} r={hover === i ? 5 : 3} style={{ fill: "var(--k-surface)", stroke: color, "--d": `${700 + i * 40}ms` }} strokeWidth="2" />
                                 ))}
+                                {pts.length > 1 && <circle className="kc-pulse" cx={pts[pts.length - 1].x} cy={pts[pts.length - 1].y} r="5" style={{ stroke: color }} />}
                             </g>
                         );
                     })}
@@ -387,18 +376,13 @@ export function AreaChart({ labels, series, height = 220, area = true, yFormat =
     );
 }
 
-/* ------------------------------------------------------------------ Column (bar) chart */
-/** Premium 3D gradient bar palette: blue, violet, teal, amber, green (ek-series chart me har bar alag rang) */
 export const BAR3D = [C.brand, C.violet, C.teal, C.amber, C.pink, C.lime, C.orange, C.sky];
 
-// Premium 3D gradient vertical bars: gol upar ke kone, halki chamak + saaya, upar % label,
-// bahut halki grid, hover par tooltip, aur neeche se smooth animated growth.
-// barColors: ek-series chart me har bar ka apna rang. percent: "series" (us series ke total ka %) ya "group" (us column ke total ka %).
 export function ColumnChart({ labels, series, height = 230, stacked = false, ariaLabel, barColors, percent }) {
     const [wrapRef, width] = useWidth();
     const [ref, inView] = useInView();
     const [hover, setHover] = useState(null);
-    const uid = useRef(`b3${Math.random().toString(36).slice(2, 8)}`).current;
+    const uid = useRef(`bf${Math.random().toString(36).slice(2, 8)}`).current;
     const m = { t: 26, r: 8, b: 30, l: 40 };
     const w = width - m.l - m.r;
     const h = height - m.t - m.b;
@@ -425,34 +409,23 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
 
     return (
         <div ref={wrapRef} className="relative w-full">
-            <div ref={ref} data-in={inView}>
-                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)} className="kc-3d">
+            <div ref={ref} data-in={inView} className="kc-stage">
+                <svg width={width} height={height} role="img" aria-label={ariaLabel || "Bar chart"} onMouseLeave={() => setHover(null)} className="kc-flat">
                     <defs>
                         {labels.map((_, i) =>
                             series.map((s, si) => {
                                 const c = colorOf(si, i);
                                 return (
                                     <linearGradient key={`${i}-${si}`} id={`${uid}-g${i}-${si}`} x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor={`color-mix(in srgb, ${c} 55%, white)`} style={{ stopColor: `color-mix(in srgb, ${c} 55%, white)` }} />
-                                        <stop offset="55%" stopColor={c} style={{ stopColor: c }} />
-                                        <stop offset="100%" stopColor={`color-mix(in srgb, ${c} 82%, black)`} style={{ stopColor: `color-mix(in srgb, ${c} 82%, black)` }} />
+                                        <stop offset="0%" style={{ stopColor: c }} />
+                                        <stop offset="100%" style={{ stopColor: `color-mix(in srgb, ${c} 68%, var(--k-surface))` }} />
                                     </linearGradient>
                                 );
                             })
                         )}
-                        <linearGradient id={`${uid}-side`} x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#fff" stopOpacity=".45" />
-                            <stop offset="30%" stopColor="#fff" stopOpacity=".1" />
-                            <stop offset="58%" stopColor="#fff" stopOpacity="0" />
-                            <stop offset="100%" stopColor="#000" stopOpacity=".2" />
-                        </linearGradient>
-                        <linearGradient id={`${uid}-shine`} x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#fff" stopOpacity=".75" />
-                            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
-                        </linearGradient>
                     </defs>
-                    {ticks.map((t) => (
-                        <g key={t}>
+                    {ticks.map((t, ki) => (
+                        <g key={`${t}-${ki}`}>
                             <line className="kc-grid kc-grid-soft" x1={m.l} x2={m.l + w} y1={Y(t)} y2={Y(t)} strokeDasharray={t === 0 ? "" : "3 5"} />
                             <text className="kc-axis" x={m.l - 8} y={Y(t) + 4} textAnchor="end">
                                 {fmtNum(t)}
@@ -478,10 +451,11 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
                                     const delay = `${i * 80 + si * 60}ms`;
                                     return (
                                         <g key={s.name + si}>
-                                            <g className="kc-bar" style={{ "--d": delay, transformBox: "fill-box", filter: hover === i ? "brightness(1.06) saturate(1.08)" : "none" }}>
-                                                <path d={d} fill={`url(#${uid}-g${i}-${si})`} />
-                                                <path d={d} fill={`url(#${uid}-side)`} />
-                                                {bh > 14 && bw > 10 && <rect x={x + bw * 0.16} y={y + 3} width={bw * 0.68} height={Math.min(10, bh / 3)} rx={Math.min(5, bw / 4)} fill={`url(#${uid}-shine)`} />}
+                                            {!stacked && <rect className="kc-ghost" x={x} y={m.t} width={bw} height={h} rx={Math.min(12, bw / 2)} />}
+                                            <g className="kc-barwrap" style={{ opacity: hover === null || hover === i ? 1 : 0.45 }}>
+                                                <g className="kc-bar" style={{ "--d": delay, transformBox: "fill-box" }}>
+                                                    <path d={d} fill={`url(#${uid}-g${i}-${si})`} />
+                                                </g>
                                             </g>
                                             {showPct && v > 0 && (
                                                 <text className="kc-pct" x={x + bw / 2} y={y - 7} textAnchor="middle" style={{ fill: `color-mix(in srgb, ${c} 75%, var(--k-ink))`, fontSize: pctSize, "--d": `${500 + i * 80 + si * 60}ms` }}>
@@ -519,7 +493,6 @@ export function ColumnChart({ labels, series, height = 230, stacked = false, ari
     );
 }
 
-/* ------------------------------------------------------------------ Horizontal bars (list) */
 export function HBars({ rows, suffix = "", max, showValue = true }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -548,7 +521,7 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
             {rows.map((r, i) => {
                 const pct = top > 0 ? (Number(r.value) / top) * 100 : 0;
                 return (
-                    <li key={r.label} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
+                    <li key={`${r.label}-${i}`} className="kc-hrow" data-active={active === i || undefined} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)}>
                         <div className="flex items-baseline justify-between gap-3 text-sm">
                             <span className="truncate font-medium text-ink-2" title={r.label}>
                                 {r.label}
@@ -571,7 +544,6 @@ export function HBars({ rows, suffix = "", max, showValue = true }) {
     );
 }
 
-/* ------------------------------------------------------------------ Single progress bar */
 export function Progress({ value, color = C.brand, height = 10, delay = 0, name, valueName = "Done" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -584,7 +556,6 @@ export function Progress({ value, color = C.brand, height = 10, delay = 0, name,
     );
 }
 
-/* ------------------------------------------------------------------ Sparkline */
 export function Sparkline({ values, color = C.brand, width = 96, height = 32, labels, name = "Value" }) {
     const [ref, inView] = useInView();
     const [bind, renderTip] = useFloatTip();
@@ -619,12 +590,11 @@ export function Sparkline({ values, color = C.brand, width = 96, height = 32, la
     );
 }
 
-/* ------------------------------------------------------------------ Legend */
 export function Legend({ items }) {
     return (
         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-ink-3">
-            {items.map((it) => (
-                <span key={it.label} className="inline-flex items-center gap-1.5">
+            {items.map((it, ki) => (
+                <span key={`${it.label}-${ki}`} className="inline-flex items-center gap-1.5">
                     <i className="h-2.5 w-2.5 rounded-[3px]" style={{ background: it.color }} />
                     {it.label}
                     {it.value !== undefined && <b className="tabular-nums text-ink">{fmtNum(it.value)}</b>}
@@ -634,7 +604,6 @@ export function Legend({ items }) {
     );
 }
 
-/* ------------------------------------------------------------------ Data table (screen readers / exact numbers) */
 export function ChartTable({ head, rows, summary = "Show data as table" }) {
     return (
         <details className="mt-3 text-sm">

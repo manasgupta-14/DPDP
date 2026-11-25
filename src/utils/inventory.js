@@ -6,13 +6,10 @@ const pick = (obj, keys) => {
     return null;
 };
 
-// DPDP Act 2023: backend ki nayi fields. Value wahi bhejni hai jo backend expect karta hai.
-// Sec 7: data rakhne ka kanooni aadhar.
 export const LAWFUL_BASIS = [
     { value: "Consent", label: "Consent", hint: "The person agreed to this use." },
     { value: "Certain Legitimate Uses", label: "Certain legitimate uses", hint: "Allowed without consent, e.g. employment, medical emergency, legal duty." },
 ];
-// Sec 9: bachchon (18 se kam) ke data par extra niyam.
 export const PRINCIPAL_CATEGORIES = [
     { value: "Customer", label: "Customers", short: "Customer" },
     { value: "Employee", label: "Employees", short: "Employee" },
@@ -23,7 +20,6 @@ export const principalLabel = (v) => PRINCIPAL_CATEGORIES.find((o) => o.value.to
 export const principalShort = (v) => PRINCIPAL_CATEGORIES.find((o) => o.value.toLowerCase() === String(v || "").toLowerCase())?.short || v || "";
 export const isMinor = (v) => String(v || "").toLowerCase() === "minor";
 
-// "AWS, Razorpay , aws" -> ["AWS", "Razorpay"]
 export function splitProcessors(text) {
     const seen = new Set();
     return String(text || "")
@@ -59,7 +55,6 @@ export function normalizeInventory(i) {
 
 export const EMPTY_FORM = { name: "", dataCategory: "", purpose: "", dataSource: "", storageLocation: "", retentionPeriodDays: "", lawfulBasis: "Consent", dataPrincipalCategory: "Customer", sharedWithProcessors: "" };
 
-// Purane records (naye columns se pehle wale) me value khaali hoti hai: dropdown khaali dikhao taaki user khud chune.
 const optionValue = (list, v) => list.find((o) => o.value.toLowerCase() === String(v || "").toLowerCase())?.value || "";
 
 export const toFormValues = (item) => ({

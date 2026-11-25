@@ -5,7 +5,6 @@ import { Logo } from "../shared/Brand.jsx";
 import ThemeToggle from "../shared/ThemeToggle.jsx";
 import { SECTION_LINKS } from "./home/data.js";
 
-// Website ka upar wala bar: logo, section links, theme, login / dashboard.
 export default function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();

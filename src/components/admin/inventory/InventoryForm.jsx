@@ -3,7 +3,6 @@ import Alert from "../../shared/Alert.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../shared/ui.js";
 import { EMPTY_FORM, LAWFUL_BASIS, PRINCIPAL_CATEGORIES, joinProcessors, splitProcessors, toFormValues, toPayload, validateInventory } from "../../../utils/inventory.js";
 
-// Vendors ko tag ki tarah jodo: Enter ya comma dabao. Backend ko comma se juda text jaata hai.
 function ProcessorTags({ value, onChange, invalid }) {
     const [draft, setDraft] = useState("");
     const inputRef = useRef(null);

@@ -14,10 +14,18 @@ export const PERM = {
     escalate: "Breaches.Manage",
 };
 
-export const CATEGORIES = ["Data Access", "Data Correction", "Data Erasure", "Consent", "Data Breach", "Other"];
+export const CATEGORIES = ["Consent", "Data Breach", "Other"];
 export const STATUSES = ["Open", "In Progress", "Resolved", "Escalated to Breach"];
 export const SEVERITIES = ["Low", "Medium", "High", "Critical"];
 export const ESC_SEVERITIES = SEVERITIES;
+
+function tidyStatus(v) {
+    const t = String(v ?? "").trim();
+    if (!t) return "";
+    const flat = t.replace(/[\s_-]+/g, "").toLowerCase();
+    const known = STATUSES.find((s) => s.replace(/\s+/g, "").toLowerCase() === flat);
+    return known || t;
+}
 
 export function normalizeGrievance(r) {
     return {
@@ -26,7 +34,7 @@ export function normalizeGrievance(r) {
         subject: pick(r, ["subject"]) || "Untitled grievance",
         category: pick(r, ["category"]) || "Other",
         severity: pick(r, ["severity"]) || "",
-        status: pick(r, ["status"]) || "",
+        status: tidyStatus(pick(r, ["status"])),
         raisedBy: pick(r, ["raisedByReferenceId"]) || "",
         createdAt: pick(r, ["createdAt"]),
         messages: asArray(r?.messages ?? r?.Messages).map((m) => ({

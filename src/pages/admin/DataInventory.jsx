@@ -9,6 +9,7 @@ import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.j
 import { formatDate } from "../../utils/breach.js";
 import { PRINCIPAL_CATEGORIES, basisLabel, isMinor, principalShort, retentionText } from "../../utils/inventory.js";
 import StatTile from "../../components/shared/StatTile.jsx";
+import { canNow } from "../../auth/access.js";
 
 
 export default function DataInventory() {
@@ -77,7 +78,7 @@ export default function DataInventory() {
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Data inventory</h1>
                     <p className="mt-1 text-sm text-ink-3">Where personal data lives and why it is processed. Open a data point to view or edit it.</p>
                 </div>
-                <button type="button" onClick={() => { setNotice(""); setAdding(true); }} className={primaryBtn}>+ Add data point</button>
+                {canNow(["DataInventory.Manage"]) && <button type="button" onClick={() => { setNotice(""); setAdding(true); }} className={primaryBtn}>+ Add data point</button>}
             </div>
 
             {!loading && items.length > 0 && (
@@ -153,7 +154,7 @@ export default function DataInventory() {
                                         <td className="whitespace-nowrap px-3 py-3 text-ink-2">{formatDate(i.createdAt)}</td>
                                         <td className="whitespace-nowrap px-5 py-3 text-right">
                                             <button type="button" onClick={() => setSelected({ item: i, edit: false })} className="mr-3 text-sm font-semibold text-ink-3 hover:text-brand-ink hover:underline">View</button>
-                                            <button type="button" onClick={() => { setNotice(""); setSelected({ item: i, edit: true }); }} className="text-sm font-semibold text-brand-ink hover:underline">Edit</button>
+                                            {canNow(["DataInventory.Manage"]) && <button type="button" onClick={() => { setNotice(""); setSelected({ item: i, edit: true }); }} className="text-sm font-semibold text-brand-ink hover:underline">Edit</button>}
                                         </td>
                                     </tr>
                                 ))}

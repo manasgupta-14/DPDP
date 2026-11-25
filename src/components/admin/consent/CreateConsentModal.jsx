@@ -24,7 +24,6 @@ export default function CreateConsentModal({ existing, onClose, onCreated }) {
         const base = PRESETS.filter((p) => picked[p.key] && !isTaken(p.name, p.code)).map((p) => ({ id: p.key, name: p.name, code: p.code, question: p.question }));
         const extra = customs.filter((c) => c.name.trim()).map((c) => ({ id: c.id, name: c.name.trim(), code: toCode(c.name), question: `Can we use: ${c.name.trim()}?` }));
         return [...base, ...extra];
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [picked, customs, existing]);
 
     const submit = async () => {

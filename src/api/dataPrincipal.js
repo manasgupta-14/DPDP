@@ -99,7 +99,6 @@ export async function addDataPrincipal(form) {
     return { ...res, data: { referenceId: str(res.data, "referenceId", "ReferenceId"), id: str(res.data, "dataPrincipalId", "DataPrincipalId") } };
 }
 
-/** PUT /api/dataprincipal/{id}: sirf wahi fields bhejte hain jo bhari gayi hain, baaki backend me purani rahengi. */
 export async function updateDataPrincipal(id, form) {
     const clean = (v) => (v && String(v).trim() ? String(v).trim() : null);
     const body = {
@@ -113,8 +112,6 @@ export async function updateDataPrincipal(id, form) {
         roleId: form.roleId || null,
         password: form.password || null,
     };
-    // Note: abhi backend ka UpdateDataPrincipalAsync dateOfBirth, roleId aur password save nahi karta
-    // (backend team add karegi); frontend inhe bhejta rehta hai.
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "PUT", body });
     if (res.ok) return res;
     if (res.status === 404 && !res.data) return { ...res, error: "Editing customer details is not available yet. Please contact your administrator." };
@@ -122,7 +119,6 @@ export async function updateDataPrincipal(id, form) {
     return res;
 }
 
-/** DELETE /api/dataprincipal/{id}: backend record ko anonymise karke list se hata deta hai. */
 export async function deleteDataPrincipal(id) {
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "DELETE" });
     if (res.ok) return res;
@@ -130,7 +126,6 @@ export async function deleteDataPrincipal(id) {
     return res;
 }
 
-/** GET /api/dataprincipal/count: kul data principals (orgUnitId do to sirf us unit ke). */
 export async function getDataPrincipalCount(orgUnitId = "") {
     const q = orgUnitId ? `?orgUnitId=${encodeURIComponent(orgUnitId)}` : "";
     const res = await apiFetch(`/api/dataprincipal/count${q}`);
@@ -138,10 +133,6 @@ export async function getDataPrincipalCount(orgUnitId = "") {
     return { ...res, data: Number(pick(res.data, "totalCount", "TotalCount") ?? 0) };
 }
 
-/**
- * POST /api/dataprincipal/bulk-import: rows ko seedha data principal bana deta hai (staging nahi).
- * Bade data ko 500-500 ke hisson me bhejte hain taaki request hang na ho.
- */
 export async function bulkImportDataPrincipals(rows, { roleId = "", onProgress } = {}) {
     const CHUNK = 500;
     const clean = (v) => (v && String(v).trim() ? String(v).trim() : null);

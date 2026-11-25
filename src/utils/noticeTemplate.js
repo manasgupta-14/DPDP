@@ -1,3 +1,4 @@
+import { toDate } from "./audit.js";
 const pick = (obj, keys) => {
     for (const k of keys) {
         const v = obj?.[k] ?? obj?.[k.charAt(0).toUpperCase() + k.slice(1)];
@@ -36,6 +37,6 @@ export function normalizePurposeOption(p) {
 }
 
 export const formatDate = (value) => {
-    const d = value ? new Date(value) : null;
-    return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Not recorded";
+    const d = toDate(value);
+    return d ? d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "Not recorded";
 };

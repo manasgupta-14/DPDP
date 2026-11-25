@@ -1,4 +1,3 @@
-// Ek line ka sandesh: laal = galti, hara = ho gaya, peela = dhyan do, neela = jaankari.
 const TONES = {
     error: { box: "border-bad/25 bg-bad-soft text-ink", dot: "bg-bad", icon: "M12 8v5M12 16.5h.01M12 21a9 9 0 100-18 9 9 0 000 18z", ink: "text-bad-ink" },
     success: { box: "border-ok/25 bg-ok-soft text-ink", dot: "bg-ok", icon: "M5 13l4 4L19 7", ink: "text-ok-ink" },

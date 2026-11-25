@@ -23,11 +23,11 @@ export default function NoticePreviewPane({ form, purposes }) {
 
             <div className="px-5 pt-3">
                 <div role="tablist" className="flex gap-5 border-b border-line">
-                    {LANGS.map((l) => {
+                    {LANGS.map((l, ki) => {
                         const on = lang === l.code;
                         const done = l.code === "en" ? !!(form.title || form.translations?.en?.title) : translationState(form.translations?.[l.code]) === "Translated";
                         return (
-                            <button key={l.code} type="button" role="tab" aria-selected={on} onClick={() => setLang(l.code)} className={`-mb-px flex items-center gap-1.5 border-b-2 px-0.5 pb-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${on ? "border-brand text-brand-ink" : "border-transparent text-ink-3 hover:text-ink"}`}>
+                            <button key={`${l.code}-${ki}`} type="button" role="tab" aria-selected={on} onClick={() => setLang(l.code)} className={`-mb-px flex items-center gap-1.5 border-b-2 px-0.5 pb-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-focus ${on ? "border-brand text-brand-ink" : "border-transparent text-ink-3 hover:text-ink"}`}>
                                 {l.native}
                                 {done && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-ok" />}
                             </button>
@@ -49,8 +49,8 @@ export default function NoticePreviewPane({ form, purposes }) {
                     <p className="rounded-lg border border-dashed border-line-strong px-3 py-4 text-center text-xs text-muted">No purposes selected yet.</p>
                 ) : (
                     <ul className="space-y-3">
-                        {picked.map((p) => (
-                            <li key={p.code} className="rounded-xl border border-line bg-soft p-3.5">
+                        {picked.map((p, ki) => (
+                            <li key={`${p.code}-${ki}`} className="rounded-xl border border-line bg-soft p-3.5">
                                 <p className="text-[13px] font-semibold text-ink">{p.name}</p>
                                 {p.description && <p className="mt-1 text-xs leading-relaxed text-ink-3">{p.description}</p>}
                                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted">

@@ -6,6 +6,8 @@ import Icon from "../../components/shared/Icon.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
 import { sha256Hex } from "../../utils/notices.js";
+import { toDate } from "../../utils/audit.js";
+import { canNow } from "../../auth/access.js";
 
 const th = "px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted";
 const td = "px-3 py-3 text-sm text-ink-2";
@@ -19,21 +21,18 @@ function readLabels() {
         return {};
     }
 }
-function saveLabel(jobId, label) {
+const labelTitle = (v) => (typeof v === "string" ? v : v?.title || "");
+const labelCampaign = (v) => (typeof v === "string" ? "" : v?.campaignId || "");
+function saveLabel(jobId, title, campaignId) {
     try {
         const all = readLabels();
-        all[jobId] = label;
+        all[jobId] = { title, campaignId };
         localStorage.setItem(LABEL_KEY, JSON.stringify(all));
     } catch {
     }
 }
 
-const toTime = (v) => {
-    if (!v) return 0;
-    const s = String(v);
-    const d = new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : `${s}Z`);
-    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
-};
+const toTime = (v) => toDate(v)?.getTime() ?? 0;
 
 function StatusPill({ status }) {
     const s = String(status).toLowerCase();
@@ -44,23 +43,12 @@ function StatusPill({ status }) {
     return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ${tone}`}>{status || "-"}</span>;
 }
 
-function GenerateCard({ onGenerated }) {
-    const [campaigns, setCampaigns] = useState({ loading: true, items: [], error: "" });
+function GenerateCard({ onGenerated, campaigns }) {
     const [campaignId, setCampaignId] = useState("");
     const [kind, setKind] = useState("campaign");
     const [format, setFormat] = useState("PDF");
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-
-    useEffect(() => {
-        let active = true;
-        getAllCampaigns().then((res) => {
-            if (active) setCampaigns(res.ok ? { loading: false, items: res.data.filter((c) => c.id), error: "" } : { loading: false, items: [], error: res.error });
-        });
-        return () => {
-            active = false;
-        };
-    }, []);
 
     const option = REPORT_OPTIONS.find((o) => o.key === kind) ?? REPORT_OPTIONS[0];
 
@@ -80,7 +68,7 @@ function GenerateCard({ onGenerated }) {
         setBusy(false);
         if (!res.ok) return setError(res.error);
         const title = campaigns.items.find((c) => c.id === campaignId)?.title ?? "";
-        if (res.data.jobId && title) saveLabel(res.data.jobId, title);
+        if (res.data.jobId) saveLabel(res.data.jobId, title, campaignId);
         onGenerated(`Report for "${title || "campaign"}" is ready. Download it from the list below within 24 hours.`);
     };
 
@@ -133,6 +121,10 @@ export default function Reports() {
     const [downloadError, setDownloadError] = useState("");
     const [hashes, setHashes] = useState({});
     const [now, setNow] = useState(() => Date.now());
+    const [campaigns, setCampaigns] = useState({ loading: true, items: [], error: "" });
+    const [regenerating, setRegenerating] = useState(null);
+    const [pickFor, setPickFor] = useState(null);
+    const [pickId, setPickId] = useState("");
 
     const apply = useCallback((res) => {
         setNow(Date.now());
@@ -155,10 +147,52 @@ export default function Reports() {
         };
     }, [apply]);
 
+    useEffect(() => {
+        let active = true;
+        getAllCampaigns().then((res) => {
+            if (active) setCampaigns(res.ok ? { loading: false, items: res.data.filter((c) => c.id), error: "" } : { loading: false, items: [], error: res.error });
+        });
+        return () => {
+            active = false;
+        };
+    }, []);
+
+    const runRegenerate = async (job, campaignId = "") => {
+        const option = REPORT_OPTIONS.find((o) => o.type === job.type);
+        if (!option) return setDownloadError(`"${reportTypeLabel(job.type)}" cannot be generated again from here. Use the form above.`);
+        const format = REPORT_FORMATS.includes(job.format.toUpperCase()) ? job.format.toUpperCase() : "PDF";
+        setDownloadError("");
+        setRegenerating(job.id);
+        const res = option.needsCampaign ? await generateCampaignReport(campaignId, format) : await generateReport(option.key, format);
+        setRegenerating(null);
+        if (!res.ok) return setDownloadError(res.error || "The report could not be generated again.");
+        let title = "";
+        if (option.needsCampaign) {
+            title = campaigns.items.find((c) => c.id === campaignId)?.title ?? "";
+            if (res.data.jobId) saveLabel(res.data.jobId, title, campaignId);
+        }
+        setPickFor(null);
+        setPickId("");
+        setFlash(`${option.label}${title ? ` for "${title}"` : ""} (${format}) was generated again. Download it from the list below within 24 hours.`);
+        load();
+    };
+
+    const regenerate = (job) => {
+        const option = REPORT_OPTIONS.find((o) => o.type === job.type);
+        if (!option?.needsCampaign) return runRegenerate(job);
+        const saved = labels[job.id];
+        const byTitle = campaigns.items.find((c) => c.title && c.title === labelTitle(saved));
+        const known = job.campaignId || labelCampaign(saved) || byTitle?.id || (campaigns.items.length === 1 ? campaigns.items[0].id : "");
+        if (known && campaigns.items.some((c) => c.id === known)) return runRegenerate(job, known);
+        setDownloadError("");
+        setPickId("");
+        setPickFor(job.id);
+    };
+
     const download = async (job) => {
         setDownloadError("");
         setDownloading(job.id);
-        const res = await downloadReport(job.id);
+        const res = await downloadReport(job.id, { ...job, label: labelTitle(labels[job.id]) });
         setDownloading(null);
         if (!res.ok) return setDownloadError(res.error);
         setHashes((h) => ({ ...h, [job.id]: { fileName: res.fileName, hash: res.hash || sha256Hex(res.text) } }));
@@ -179,7 +213,7 @@ export default function Reports() {
 
             {flash && <Alert tone="success" action={<button type="button" aria-label="Dismiss" onClick={() => setFlash("")} className="text-lg leading-none text-muted hover:text-ink">&times;</button>}>{flash}</Alert>}
 
-            <GenerateCard onGenerated={(msg) => { setFlash(msg); load(); }} />
+            {canNow(["Audit.Manage"]) && <GenerateCard campaigns={campaigns} onGenerated={(msg) => { setFlash(msg); load(); }} />}
 
             <section className={`${panel} overflow-hidden`} aria-label="Report history">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-4">
@@ -212,7 +246,7 @@ export default function Reports() {
                                     return (
                                         <tr key={job.id} className="align-top hover:bg-soft">
                                             <td className={`${td} pl-5`}>
-                                                <p className="font-medium text-ink">{reportTypeLabel(job.type)}{labels[job.id] ? ` · ${labels[job.id]}` : ""}</p>
+                                                <p className="font-medium text-ink">{reportTypeLabel(job.type)}{labelTitle(labels[job.id]) ? ` · ${labelTitle(labels[job.id])}` : ""}</p>
                                                 <p className="mt-0.5 font-mono text-[11px] text-muted">{job.format} · {job.id.slice(0, 8)}</p>
                                                 {job.error && <p className="mt-1 text-xs text-bad-ink">{job.error}</p>}
                                                 {h && (
@@ -224,16 +258,47 @@ export default function Reports() {
                                             <td className={td}><StatusPill status={job.status} /></td>
                                             <td className={td}>{formatDate(job.createdAt)}</td>
                                             <td className={`${td} ${expired ? "text-bad-ink" : ""}`}>
-                                                {done ? (expired ? "Expired" : new Date(expiry).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })) : "-"}
+                                                {done && expiry ? (expired ? "Expired" : new Date(expiry).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })) : "-"}
                                             </td>
                                             <td className={`${td} pr-5 text-right`}>
                                                 {done && !expired ? (
                                                     <button type="button" onClick={() => download(job)} disabled={downloading === job.id} className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                         <Icon name="download" className="h-4 w-4" />
-                                                        {downloading === job.id ? "Downloading..." : "Download CSV"}
+                                                        {downloading === job.id ? "Downloading..." : `Download ${job.format.toUpperCase() === "PDF" ? "PDF" : "CSV"}`}
                                                     </button>
-                                                ) : expired ? (
-                                                    <span className="text-xs text-muted">Generate again</span>
+                                                ) : (expired || job.status.toLowerCase() === "failed") && canNow(["Audit.Manage"]) ? (
+                                                    pickFor === job.id ? (
+                                                        <div className="ml-auto flex max-w-[280px] flex-col items-end gap-2">
+                                                            <select
+                                                                value={pickId}
+                                                                onChange={(e) => setPickId(e.target.value)}
+                                                                disabled={regenerating === job.id || campaigns.loading}
+                                                                aria-label="Campaign for this report"
+                                                                className={`${field} mt-0 py-1.5 text-sm`}
+                                                            >
+                                                                <option value="">{campaigns.loading ? "Loading campaigns..." : campaigns.items.length ? "Select a campaign" : "No campaigns yet"}</option>
+                                                                {campaigns.items.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
+                                                            </select>
+                                                            <div className="flex items-center gap-3">
+                                                                <button type="button" onClick={() => setPickFor(null)} disabled={regenerating === job.id} className="text-xs font-semibold text-ink-3 hover:underline">Cancel</button>
+                                                                <button type="button" onClick={() => runRegenerate(job, pickId)} disabled={!pickId || regenerating === job.id} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
+                                                                    <Icon name="refresh" className={`h-4 w-4 ${regenerating === job.id ? "animate-spin" : ""}`} />
+                                                                    {regenerating === job.id ? "Generating..." : "Generate"}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => regenerate(job)}
+                                                            disabled={!!regenerating}
+                                                            title={`Make a fresh ${job.format.toUpperCase()} copy of this report`}
+                                                            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-semibold text-brand-ink ring-1 ring-brand/25 hover:bg-brand-soft disabled:opacity-50"
+                                                        >
+                                                            <Icon name="refresh" className={`h-4 w-4 ${regenerating === job.id ? "animate-spin" : ""}`} />
+                                                            {regenerating === job.id ? "Generating..." : "Generate again"}
+                                                        </button>
+                                                    )
                                                 ) : (
                                                     <span className="text-xs text-muted">Not available</span>
                                                 )}

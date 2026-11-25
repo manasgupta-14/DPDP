@@ -22,7 +22,13 @@ export const STATUS_LABEL = {
     Declined: "Declined",
     Withdrawn: "Withdrawn",
     Expired: "Expired",
-    Unknown: "Unknown",
+    Unknown: "Not recorded",
+};
+
+export const REMOVED_PURPOSE = "Removed purpose";
+const purposeName = (v) => {
+    const t = String(v ?? "").trim();
+    return !t || /^unknown$/i.test(t) ? REMOVED_PURPOSE : t;
 };
 
 export const PURPOSE_STATE = { allowed: "Allowed", denied: "Not allowed", withdrawn: "Withdrawn", expired: "Expired" };
@@ -31,8 +37,6 @@ export const MISSING = "Not recorded";
 
 export const NOT_IN_API = "-";
 
-// Backend abhi har consent par ek hi fixed naam ("general_service_notice_v1") bhejta hai, asli notice nahi.
-// Use asli notice ki tarah nahi dikhate; jab backend asli notice code bhejega, wo apne aap dikhega.
 const PLACEHOLDER_NOTICES = new Set(["general_service_notice_v1"]);
 const realNotice = (v) => (v && !PLACEHOLDER_NOTICES.has(String(v).trim().toLowerCase()) ? v : "");
 export const NOT_IN_API_HINT = "";
@@ -119,41 +123,74 @@ function purposeState(decision, status, expiresAt, recordStatus) {
 }
 
 export function normalizeConsentArtifact(record, index = 0, purposes = [], principalId = "") {
-    const nameQueues = new Map();
-    const lastByName = new Map();
+    const key = (n) => String(n || "").trim().toLowerCase();
+    const byName = new Map();
     purposes.forEach((p) => {
-        const key = p.name.trim().toLowerCase();
-        if (!nameQueues.has(key)) nameQueues.set(key, []);
-        nameQueues.get(key).push(p);
-        lastByName.set(key, p);
+        const k = key(p.name);
+        const cur = byName.get(k);
+        if (!cur || (p.active && !cur.active) || (p.active === cur.active && (p.version || 1) > (cur.version || 1))) byName.set(k, p);
     });
-    const takeByName = (key) => {
-        const queue = nameQueues.get(key);
-        return queue && queue.length ? queue.shift() : lastByName.get(key);
-    };
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
     const backendVersion = Number(pick(record, ["version"]) ?? 1);
     const rawStatus = pick(record, ["status"]) ?? "Unknown";
     const recordStatus = rawStatus === CONSENT_STATUS.withdrawn && backendVersion <= 1 ? CONSENT_STATUS.declined : rawStatus;
     const rawList = record?.purposes ?? record?.Purposes ?? record?.decisions ?? record?.Decisions;
     const list = Array.isArray(rawList) ? rawList : [];
-    const mapped = list.map((d, i) => {
-        const name = String(pick(d, ["shortName", "name", "purpose"]) ?? "Purpose");
-        const known = pick(d, ["consentPurposeId"]) ? purposes.find((p) => p.id === String(pick(d, ["consentPurposeId"]))) : takeByName(name.trim().toLowerCase());
-        const purposeId = String(pick(d, ["consentPurposeId"]) ?? known?.id ?? `${name}-${i}`);
-        const decision = String(pick(d, ["decision"]) ?? "No");
-        const expiresAt = pick(d, ["expiryDate", "expiresAt"]);
-        const state = purposeState(decision, pick(d, ["status"]), expiresAt, recordStatus);
+
+    const versionsByName = new Map();
+    purposes.forEach((p) => {
+        const k = key(p.name);
+        if (!versionsByName.has(k)) versionsByName.set(k, []);
+        versionsByName.get(k).push(p);
+    });
+    versionsByName.forEach((arr) => arr.sort((a, b) => (a.version || 1) - (b.version || 1)));
+
+    const groups = new Map();
+    list.forEach((d, i) => {
+        const name = purposeName(pick(d, ["shortName", "name", "purpose"]));
+        const rawId = pick(d, ["consentPurposeId"]);
+        const known = rawId ? purposes.find((p) => p.id === String(rawId)) : byName.get(key(name));
+        const purposeId = String(rawId ?? known?.id ?? `${name}-${i}`);
+        const gk = rawId ? `id:${rawId}` : `name:${key(name)}`;
+        const decision = String(pick(d, ["decision"]) ?? "No").toLowerCase() === "yes" ? "Yes" : "No";
+        const item = { name, known, purposeId, decision, status: pick(d, ["status"]), expiresAt: pick(d, ["expiryDate", "expiresAt"]), code: pick(d, ["code"]), mandatory: pick(d, ["isMandatory"]) };
+        const prev = groups.get(gk);
+        if (!prev) {
+            groups.set(gk, { ...item, yes: decision === "Yes" ? 1 : 0, count: 1 });
+            return;
+        }
+        prev.count += 1;
+        if (decision === "Yes") prev.yes += 1;
+        if (!prev.expiresAt && item.expiresAt) prev.expiresAt = item.expiresAt;
+    });
+
+    groups.forEach((g, gk) => {
+        if (g.count > 1 && gk.startsWith("name:")) {
+            const versions = versionsByName.get(key(g.name)) || [];
+            if (versions.length >= g.count) {
+                const older = versions.slice(0, g.count - 1);
+                const forcedYes = older.filter((p) => p.mandatory).length;
+                g.decision = g.yes - forcedYes > 0 ? "Yes" : "No";
+                const canonical = byName.get(key(g.name))?.id;
+                if (canonical) g.purposeId = canonical;
+            } else {
+                g.decision = g.yes > 0 ? "Yes" : "No";
+            }
+        }
+    });
+
+    const mapped = [...groups.values()].map((g) => {
+        const state = purposeState(g.decision, g.status, g.expiresAt, recordStatus);
         return {
-            id: `${id}:${purposeId}`,
-            purposeId,
-            code: String(pick(d, ["code"]) ?? known?.code ?? ""),
-            name,
-            mandatory: !!(pick(d, ["isMandatory"]) ?? known?.mandatory),
-            decision: decision.toLowerCase() === "yes" ? "Yes" : "No",
+            id: `${id}:${g.purposeId}`,
+            purposeId: g.purposeId,
+            code: String(g.code ?? g.known?.code ?? ""),
+            name: g.name,
+            mandatory: !!(g.mandatory ?? g.known?.mandatory),
+            decision: g.decision,
             state,
             allowed: state === PURPOSE_STATE.allowed,
-            expiresAt,
+            expiresAt: g.expiresAt,
         };
     });
 
@@ -198,22 +235,24 @@ export function normalizeProcessor(p) {
     };
 }
 
-export function normalizeConsentRecord(record, index = 0) {
+export function normalizeConsentRecord(record, index = 0, knownPurposes = []) {
     const rawStatus = rawKey(record, "overallStatus") ?? rawKey(record, "status");
     const status = typeof rawStatus === "number" ? RECORD_STATUS_NAMES[rawStatus] ?? "Unknown" : rawStatus ?? "Unknown";
     const id = String(pick(record, ["consentRecordId", "id", "receiptId"]) ?? `record-${index}`);
     const details = listOf(rawKey(record, "consentDetails") ?? rawKey(record, "purposes") ?? rawKey(record, "decisions"));
-    const purposes = details.map((d, i) => {
+    const all = details.map((d, i) => {
         const purpose = rawKey(d, "consentPurpose") ?? d;
-        const purposeId = String(pick(d, ["consentPurposeId"]) ?? pick(purpose, ["shortName", "name", "purpose"]) ?? `${id}-${i}`);
+        const purposeId = String(pick(d, ["consentPurposeId"]) ?? pick(purpose, ["consentPurposeId"]) ?? purposeName(pick(purpose, ["shortName", "name", "purpose"])) ?? `${id}-${i}`);
         const decision = String(pick(d, ["decision"]) ?? "No").toLowerCase() === "yes" ? "Yes" : "No";
         const expiresAt = pick(d, ["expiryDate"]);
-        const state = purposeState(decision, pick(d, ["status"]), expiresAt, status);
+        const detailStatus = pick(d, ["status"]);
+        const state = purposeState(decision, detailStatus, expiresAt, status);
         return {
             id: `${id}:${purposeId}`,
+            detailStatus,
             purposeId,
             code: String(pick(purpose, ["code"]) ?? ""),
-            name: String(pick(purpose, ["shortName", "name", "purpose"]) ?? "Purpose"),
+            name: purposeName(pick(purpose, ["shortName", "name", "purpose"])),
             mandatory: !!pick(purpose, ["isMandatory"]),
             lapses: !!pick(purpose, ["doesConsentLapse"]),
             decision,
@@ -221,6 +260,26 @@ export function normalizeConsentRecord(record, index = 0) {
             allowed: state === PURPOSE_STATE.allowed,
             expiresAt,
         };
+    });
+    const seen = new Map();
+    all.forEach((p) => {
+        const k = p.purposeId.trim().toLowerCase();
+        const prev = seen.get(k);
+        if (!prev) seen.set(k, { ...p, yes: p.decision === "Yes" ? 1 : 0, count: 1 });
+        else {
+            prev.count += 1;
+            if (p.decision === "Yes") prev.yes += 1;
+        }
+    });
+    const nameKey = (n) => String(n || "").trim().toLowerCase();
+    const purposes = [...seen.values()].map(({ yes, count, ...p }) => {
+        if (count <= 1 || !Array.isArray(knownPurposes)) return p;
+        const versions = knownPurposes.filter((x) => nameKey(x.name) === nameKey(p.name)).sort((a, b) => (a.version || 1) - (b.version || 1));
+        const decision = versions.length >= count
+            ? (yes - versions.slice(0, count - 1).filter((x) => x.mandatory).length > 0 ? "Yes" : "No")
+            : (yes > 0 ? "Yes" : "No");
+        const state = purposeState(decision, p.detailStatus, p.expiresAt, status);
+        return { ...p, decision, state, allowed: state === PURPOSE_STATE.allowed };
     });
     const lapsing = purposes.filter((p) => p.lapses && p.expiresAt).map((p) => toDate(p.expiresAt)?.getTime()).filter(Boolean);
     const apiExpires = pick(record, ["expiresAt", "expires"]);

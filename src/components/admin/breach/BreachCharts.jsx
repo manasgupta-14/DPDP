@@ -2,12 +2,13 @@ import { useMemo } from "react";
 import { BarChart, ChartTable, LineChart } from "../dashboard/Charts.jsx";
 import { SEVERITIES, sameText, severityColor, timeOf } from "../../../utils/breach.js";
 import { panel } from "../../shared/ui.js";
+import { toTime } from "../../../utils/audit.js";
 
 const DAY = 86400000;
 const MAX_DAYS = 45;
 
 const startOfDay = (t) => {
-    const d = new Date(t);
+    const d = new Date(toTime(t) || t);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
 };
@@ -27,7 +28,7 @@ function trendOf(incidents) {
         return { labels, values };
     }
 
-    const key = (t) => { const d = new Date(t); return d.getFullYear() * 12 + d.getMonth(); };
+    const key = (t) => { const d = new Date(toTime(t) || t); return d.getFullYear() * 12 + d.getMonth(); };
     const from = key(first);
     const to = key(last);
     const values = Array(to - from + 1).fill(0);

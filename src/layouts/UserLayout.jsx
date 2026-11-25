@@ -6,8 +6,6 @@ import ConsentGate from "../components/user/ConsentGate.jsx";
 import { TASKS_CHANGED, formatDay } from "../utils/campaign.js";
 import DashboardShell from "./DashboardShell.jsx";
 
-// Customer (Data Principal) login: "My Security Reports" staff ka feature hai
-// (backend breach report Users table se judta hai), isliye customer ko nahi dikhate.
 const CUSTOMER_HIDDEN = new Set(["/user/reports"]);
 const CUSTOMER_SECTIONS = USER_SECTIONS.map((s) => ({ ...s, items: s.items.filter((i) => !CUSTOMER_HIDDEN.has(i.to)) })).filter((s) => s.items.length);
 

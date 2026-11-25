@@ -70,8 +70,13 @@ export default function TasksBoard() {
             else setError(res.error);
             setLoading(false);
         });
-        return () => { active = false; };
-    }, []);
+        const onVisible = () => { if (document.visibilityState === "visible") load(); };
+        document.addEventListener("visibilitychange", onVisible);
+        return () => {
+            active = false;
+            document.removeEventListener("visibilitychange", onVisible);
+        };
+    }, [load]);
 
     const onAct = async (campaign, action) => {
         setNotice("");
@@ -101,6 +106,7 @@ export default function TasksBoard() {
                     <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand-ink"><Icon name="check" className="h-7 w-7" /></span>
                     <p className="mt-4 text-base font-semibold">You are all caught up</p>
                     <p className="mt-1 text-sm text-ink-3">No pending approvals right now.</p>
+                    <p className="mx-auto mt-2 max-w-md text-xs text-muted">New campaigns show up here only while they are running (between their start and end dates) and only if they were sent to you: to everyone, to your role, or to you by name. Ones you already answered are removed.</p>
                 </div>
             ) : (
                 <ul className="space-y-4">

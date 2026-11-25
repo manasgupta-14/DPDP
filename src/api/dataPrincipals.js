@@ -5,7 +5,6 @@ const val = (o, k) => o?.[k] ?? o?.[k.charAt(0).toUpperCase() + k.slice(1)];
 
 export async function addDataPrincipal({ mobile, email, consumerNo, fullName, dateOfBirth, cls, preferredLocale, roleId, password }) {
     const body = { class: cls, preferredLocale };
-    // Naya: role + password do to ye customer /login se login kar sakta hai
     if (roleId) body.roleId = roleId;
     if (password) body.password = password;
     if (mobile) body.mobile = mobile;

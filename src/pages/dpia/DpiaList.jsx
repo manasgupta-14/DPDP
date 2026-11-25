@@ -7,9 +7,11 @@ import { usePermissions } from "../../auth/usePermissions.js";
 import { PERM, REJECT_SUPPORTED } from "../../config/dpia.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
+import NewTag from "../../components/shared/NewTag.jsx";
 import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { DpiaStatusBadge, RiskBadge } from "../../components/dpia/Badges.jsx";
 import { formatDate } from "../../utils/breach.js";
+import { useNewItems } from "../../utils/newItems.js";
 import { STATUS, STATUS_LIST, deleteDraft, displayStatus, draftToRow, listDrafts } from "../../utils/dpia.js";
 import { useDpiaBase } from "./useDpiaBase.js";
 
@@ -17,6 +19,7 @@ const PAGE_SIZE = 10;
 const linkBtn = "rounded-lg px-2.5 py-1.5 text-sm font-semibold text-brand-ink transition hover:bg-brand-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-focus";
 
 export default function DpiaList() {
+    const { isNew } = useNewItems();
     const base = useDpiaBase();
     const navigate = useNavigate();
     const location = useLocation();
@@ -98,7 +101,6 @@ export default function DpiaList() {
         setFlash("Draft deleted.");
     };
 
-    // Backend me "Rejected" status nahi hai (sirf In Review / Approved / Needs Changes), isliye wo filter nahi dikhate
     const filters = ["All", ...STATUS_LIST].filter((s) => (s !== STATUS.DRAFT || canCreate) && (s !== STATUS.REJECTED || REJECT_SUPPORTED));
 
     return (
@@ -175,7 +177,7 @@ export default function DpiaList() {
                                     return (
                                         <tr key={r.id} className="hover:bg-soft">
                                             <td className="whitespace-nowrap px-5 py-3 font-mono text-xs text-ink-2">{r.referenceId || "-"}</td>
-                                            <td className="max-w-[280px] px-3 py-3 font-medium">{r.title}</td>
+                                            <td className="max-w-[280px] px-3 py-3 font-medium"><NewTag show={!r.isDraft && isNew("dpia", r.id)} className="mr-2 align-middle" />{r.title}</td>
                                             {showDepartment && <td className="px-3 py-3 text-ink-2">{r.department || "-"}</td>}
                                             <td className="px-3 py-3 text-ink-2">{r.purposesCount}</td>
                                             <td className="px-3 py-3"><RiskBadge risk={r.residualRisk} /></td>

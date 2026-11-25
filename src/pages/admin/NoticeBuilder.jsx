@@ -6,6 +6,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { formatDate } from "../../utils/breach.js";
+import { canNow } from "../../auth/access.js";
 
 const LAYOUTS = ["Standard", "Compact", "Detailed"];
 const EMPTY = { code: "", name: "", description: "", purposes: [], logoUrl: "", primaryColor: "#2B59C3", layout: "Standard" };
@@ -25,8 +26,8 @@ function Preview({ form, purposeName }) {
                     <p className="text-xs text-muted">Select purposes to show them here.</p>
                 ) : (
                     <ul className="space-y-1.5">
-                        {form.purposes.map((code) => (
-                            <li key={code} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-xs">
+                        {form.purposes.map((code, ki) => (
+                            <li key={`${code}-${ki}`} className="flex items-center justify-between gap-2 rounded-lg border border-line px-3 py-2 text-xs">
                                 <span>
                                     {purposeName(code)}
                                     {form.layout === "Detailed" && <span className="ml-1 font-mono text-[10px] text-muted">({code})</span>}
@@ -95,8 +96,8 @@ function TemplateForm({ template, purposes, onClose, onSaved }) {
                         <p className="mt-1 text-[11px] text-muted">No purposes yet. Create consent purposes in Consent management first.</p>
                     ) : (
                         <div className="mt-1.5 grid max-h-44 gap-1.5 overflow-y-auto rounded-xl border border-line p-2.5 sm:grid-cols-2">
-                            {options.map((p) => (
-                                <label key={p.code} className="flex items-center gap-2 text-xs text-ink-2">
+                            {options.map((p, ki) => (
+                                <label key={`${p.code}-${ki}`} className="flex items-center gap-2 text-xs text-ink-2">
                                     <input type="checkbox" checked={form.purposes.includes(p.code)} disabled={busy} onChange={() => toggle(p.code)} />
                                     {p.name}
                                 </label>
@@ -208,9 +209,9 @@ export default function NoticeBuilder() {
                     <button type="button" onClick={load} disabled={loading || refreshing} aria-label="Refresh" className={`${dkBtn} w-9 px-0`}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                     </button>
-                    <button type="button" onClick={() => setModal({ kind: "form", item: null })} className={primary}>
-                        <span aria-hidden className="text-base leading-none">+</span> New notice
-                    </button>
+                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "form", item: null })} className={primary}>
+                        <span aria-hidden className="text-base leading-none">+</span> New notice template
+                    </button>}
                 </div>
             </div>
 
@@ -222,7 +223,7 @@ export default function NoticeBuilder() {
             ) : rows.length === 0 ? (
                 <div className={`${dkCard} px-5 py-12 text-center`}>
                     <p className="text-sm font-semibold">{templates.length ? "No notices match your search" : "No notices yet"}</p>
-                    <p className="mt-1 text-xs text-ink-3">{templates.length ? "Try a different search." : 'Use "New notice" to create your first privacy notice.'}</p>
+                    <p className="mt-1 text-xs text-ink-3">{templates.length ? "Try a different search." : 'Use "New notice template" to create your first privacy notice.'}</p>
                 </div>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -237,13 +238,13 @@ export default function NoticeBuilder() {
                             </div>
                             {t.description && <p className="mt-2 line-clamp-3 text-xs text-ink-3">{t.description}</p>}
                             <ul className="mt-3 flex flex-wrap gap-1.5">
-                                {t.purposes.length === 0 ? <li className="text-[11px] text-muted">No purposes</li> : t.purposes.map((c) => <li key={c} className="rounded-md bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-ink">{nameOf(c)}</li>)}
+                                {t.purposes.length === 0 ? <li className="text-[11px] text-muted">No purposes</li> : t.purposes.map((c, ki) => <li key={`${c}-${ki}`} className="rounded-md bg-brand-soft px-2 py-0.5 text-[11px] font-medium text-brand-ink">{nameOf(c)}</li>)}
                             </ul>
                             <div className="mt-auto flex items-center justify-between gap-2 pt-4 text-xs">
                                 <span className="text-muted">Created {formatDate(t.createdAt)}</span>
                                 <span className="flex gap-3">
-                                    <button type="button" onClick={() => setModal({ kind: "form", item: t })} className="font-semibold text-brand-ink hover:underline">Edit</button>
-                                    <button type="button" onClick={() => setModal({ kind: "delete", item: t })} className="font-semibold text-bad-ink hover:underline">Delete</button>
+                                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "form", item: t })} className="font-semibold text-brand-ink hover:underline">Edit</button>}
+                                    {canNow(["NoticeTemplates.Manage"]) && <button type="button" onClick={() => setModal({ kind: "delete", item: t })} className="font-semibold text-bad-ink hover:underline">Delete</button>}
                                 </span>
                             </div>
                         </article>

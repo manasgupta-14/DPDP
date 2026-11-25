@@ -22,12 +22,12 @@ export function Switch({ checked, onChange, label, onDark = false, disabled = fa
 export default function PermissionPicker({ modules, selected, onToggle, onToggleModule, readOnly = false }) {
     return (
         <div className="space-y-4">
-            {modules.map((m) => {
+            {modules.map((m, ki) => {
                 const ids = m.actions.map((a) => a.id);
                 const count = ids.filter((id) => selected.has(id)).length;
                 const all = count === ids.length;
                 return (
-                    <section key={m.name} className={`${panel} overflow-hidden`} aria-label={m.name}>
+                    <section key={`${m.name}-${ki}`} className={`${panel} overflow-hidden`} aria-label={m.name}>
                         <div className="flex items-center justify-between gap-3 bg-brand px-4 py-3 text-white">
                             <div className="flex min-w-0 items-center gap-2.5">
                                 <Icon name="shield" className="h-4 w-4 shrink-0" />

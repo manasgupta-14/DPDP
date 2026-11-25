@@ -11,7 +11,6 @@ const MAX_BYTES = 5 * 1024 * 1024;
 const TEMPLATE = "full_name,mobile,email,consumer_no,class,preferred_locale,date_of_birth\nRavi Kumar,9876543210,ravi@example.com,CN1001,adult,hi-IN,1990-05-14\n";
 const PLACEHOLDER = "full_name,mobile,email,consumer_no,class,preferred_locale\nRavi Kumar,9876543210,ravi@example.com,CN1001,adult,hi-IN";
 
-// CSV ke column naam alag-alag ho sakte hain, sabko ek naam par le aate hain.
 const HEADERS = {
     fullName: ["full_name", "fullname", "name", "display_name", "displayname"],
     mobile: ["mobile", "phone", "mobile_number", "phone_number"],

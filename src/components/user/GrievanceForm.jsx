@@ -34,6 +34,7 @@ export default function GrievanceForm({ onClose, onSubmitted }) {
                 <select className={field} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                     {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
+                <span className="mt-1 block text-xs font-normal text-muted">To see, correct or delete your data, use Privacy settings instead.</span>
             </label>
             <label className="block text-sm font-medium">Subject
                 <input className={field} value={form.subject} maxLength={255} onChange={(e) => setForm({ ...form, subject: e.target.value })} placeholder="Short summary of the problem" />

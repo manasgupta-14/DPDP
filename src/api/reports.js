@@ -1,9 +1,8 @@
-import { apiFetch } from "./client.js";
+import { BASE_URL, apiFetch } from "./client.js";
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { asArray } from "../utils/breach.js";
 
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 const pick = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
     return null;
@@ -28,6 +27,16 @@ export const REPORT_OPTIONS = [
 export const REPORT_TYPES = Object.fromEntries(REPORT_OPTIONS.map((o) => [o.type, o.label]));
 export const reportTypeLabel = (t) => REPORT_TYPES[t] ?? (t ? String(t).replace(/([a-z])([A-Z])/g, "$1 $2") : "-");
 
+function campaignIdOf(json) {
+    if (!json) return "";
+    try {
+        const o = typeof json === "string" ? JSON.parse(json) : json;
+        return String(o?.campaignId ?? o?.CampaignId ?? "");
+    } catch {
+        return "";
+    }
+}
+
 function normalizeJob(j) {
     return {
         id: String(pick(j, "jobId", "JobId") ?? ""),
@@ -38,6 +47,7 @@ function normalizeJob(j) {
         completedAt: pick(j, "completedAt", "CompletedAt"),
         error: String(pick(j, "errorMessage", "ErrorMessage") ?? ""),
         requestedBy: String(pick(j, "requestedBy", "RequestedBy") ?? ""),
+        campaignId: campaignIdOf(pick(j, "parametersJson", "ParametersJson")),
     };
 }
 
@@ -46,7 +56,6 @@ export async function getReportHistory() {
     return res.ok ? { ...res, data: asArray(res.data).map(normalizeJob) } : res;
 }
 
-// Backend har report PDF ya CSV me bana sakta hai (?format=PDF|CSV, default PDF)
 export const REPORT_FORMATS = ["PDF", "CSV"];
 const fmtQuery = (format) => `?format=${encodeURIComponent(REPORT_FORMATS.includes(format) ? format : "PDF")}`;
 
@@ -64,7 +73,18 @@ export async function generateCampaignReport(campaignId, format = "PDF") {
     return { ...res, data: { jobId: String(pick(res.data, "jobId", "JobId") ?? "") } };
 }
 
-export async function downloadReport(jobId) {
+const slug = (t) => String(t || "Report").replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "Report";
+
+export function kavachFileName(job, serverName, isPdf) {
+    const ext = (/\.([a-z0-9]+)$/i.exec(serverName || "")?.[1] || (isPdf ? "pdf" : "csv")).toLowerCase();
+    const d = job?.createdAt ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(String(job.createdAt)) ? job.createdAt : `${job.createdAt}Z`) : new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const stamp = Number.isNaN(d.getTime()) ? "" : `_${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+    const extra = job?.label ? `_${slug(job.label)}` : "";
+    return `Kavach_${slug(reportTypeLabel(job?.type))}${extra}${stamp}.${ext}`;
+}
+
+export async function downloadReport(jobId, job = null) {
     const token = getToken();
     let res;
     try {
@@ -72,7 +92,7 @@ export async function downloadReport(jobId) {
             headers: { Authorization: token ? `Bearer ${token}` : "", Accept: "application/pdf, text/csv, application/json" },
         });
     } catch {
-        return { ok: false, error: "Cannot reach the server. Make sure the backend is running on https://localhost:7139." };
+        return { ok: false, error: "Cannot reach the server. Make sure the backend is running and VITE_API_BASE_URL points to it." };
     }
 
     if (!res.ok) {
@@ -95,7 +115,8 @@ export async function downloadReport(jobId) {
     const disposition = res.headers.get("Content-Disposition") || "";
     const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
     const isPdf = /pdf/i.test(res.headers.get("Content-Type") || "") || /\.pdf$/i.test(match?.[1] || "");
-    const fileName = match ? decodeURIComponent(match[1]) : `report-${jobId}.${isPdf ? "pdf" : "csv"}`;
+    const serverName = match ? decodeURIComponent(match[1]) : `report-${jobId}.${isPdf ? "pdf" : "csv"}`;
+    const fileName = kavachFileName(job ?? { id: jobId }, serverName, isPdf);
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -106,13 +127,11 @@ export async function downloadReport(jobId) {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-    // SHA-256 file ke asli bytes se (PDF binary hai, text se hash galat aata)
     let hash = "";
     try {
         const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
         hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
     } catch {
-        // crypto.subtle sirf https/localhost par: tab text wala hash (CSV ke liye) page khud nikaal leta hai
     }
     return { ok: true, fileName, hash, text: isPdf ? "" : await blob.text() };
 }

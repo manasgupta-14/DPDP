@@ -7,6 +7,7 @@ import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { flatten } from "../../utils/orgUnit.js";
+import { canNow } from "../../auth/access.js";
 
 const EMPTY = { name: "", email: "", password: "", roleId: "", orgUnitId: "" };
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -144,7 +145,7 @@ export default function Staff() {
                     </div>
                     <div className="flex gap-2">
                         <button type="button" onClick={load} className={ghostBtn}>Refresh</button>
-                        <button type="button" onClick={() => setOpen(true)} className={primaryBtn}>Add staff</button>
+                        {canNow(["Users.Create"]) && <button type="button" onClick={() => setOpen(true)} className={primaryBtn}>Add staff</button>}
                     </div>
                 </div>
 

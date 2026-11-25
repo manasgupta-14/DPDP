@@ -1,12 +1,8 @@
-// Modern dropdown popup — har native <select> ke liye custom glass popup.
-// Page ka code / structure nahi badalta: select wahi rehta hai, sirf uska popup
-// hamara hota hai. Value set karke "change" event bhejte hain, isliye React ka
-// onChange pehle jaisa chalta hai. Touch devices pe native picker hi rehta hai.
 
-const SEARCH_AFTER = 8; // itne se zyada options hon to search box dikhao
-const HOVER_OPEN_MS = 160; // mouse rakhte hi itni der baad popup khule (hover-intent)
-const HOVER_CLOSE_MS = 280; // mouse hatne ke baad itni der me band ho
-let state = null; // { select, pop, items, active, cleanup, viaHover }
+const SEARCH_AFTER = 8;
+const HOVER_OPEN_MS = 160;
+const HOVER_CLOSE_MS = 280;
+let state = null;
 let hoverTimer = 0;
 let leaveTimer = 0;
 
@@ -165,7 +161,6 @@ function open(select, viaHover = false) {
     window.addEventListener("scroll", onScroll, true);
     window.addEventListener("resize", onResize);
 
-    // Hover se khula popup: mouse popup/select dono se bahar jaaye to band
     pop.addEventListener("mouseenter", () => clearTimeout(leaveTimer));
     pop.addEventListener("mouseleave", () => scheduleHoverClose());
 
@@ -238,7 +233,7 @@ function onMouseDown(e) {
         e.preventDefault();
         clearTimeout(hoverTimer);
         if (state?.select === target) {
-            if (state.viaHover) { state.viaHover = false; return; } // hover se khula tha: click = pin
+            if (state.viaHover) { state.viaHover = false; return; }
             return close(true);
         }
         target.focus({ preventScroll: true });
@@ -250,13 +245,12 @@ function onMouseDown(e) {
 
 function onKeyDown(e) {
     if (state) {
-        // Hover se khula popup keyboard tabhi pakde jab focus select/popup pe ho
         const focusInside = state.select === document.activeElement || state.pop.contains(document.activeElement);
         if (state.viaHover && !focusInside && e.key !== "Escape") return;
         const enabled = state.items.filter((it) => !it.disabled && !it.el.hidden);
         if (e.key === "Escape") {
             e.preventDefault();
-            e.stopPropagation(); // modal band na ho, sirf popup
+            e.stopPropagation();
             close(true);
         } else if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -290,7 +284,7 @@ function onKeyDown(e) {
 export function installModernSelect() {
     if (typeof window === "undefined" || window.__pgModernSelect) return;
     window.__pgModernSelect = true;
-    if (window.matchMedia?.("(hover: none), (pointer: coarse)").matches) return; // mobile: native picker
+    if (window.matchMedia?.("(hover: none), (pointer: coarse)").matches) return;
     document.addEventListener("mousedown", onMouseDown, true);
     document.addEventListener("mouseover", onMouseOver, true);
     document.addEventListener("mouseout", onMouseOut, true);
