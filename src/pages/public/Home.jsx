@@ -416,7 +416,7 @@ function Milestones() {
     return (
         <section aria-labelledby="ms-title" className="py-20 sm:py-24">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
-                <SectionHead id="ms-title" eyebrow="DPDP timeline" title="Commencement dates" text="The DPDP Rules, 2025 apply in three phases. Confirm dates against official MeitY notifications." />
+                <SectionHead id="ms-title" eyebrow="DPDP timeline" title="Start dates" text="The DPDP Rules, 2025 apply in three phases. Confirm dates against official MeitY notifications." />
                 <ol className="mt-12 grid gap-4 md:grid-cols-3">
                     {MILESTONES.map((m, i) => {
                         const done = new Date(m.date) <= today;
@@ -519,7 +519,7 @@ function Footer() {
         <footer className="border-t border-line bg-surface/70">
             <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <Logo sub="DPDP compliance workspace" />
-                <p className="max-w-md text-xs leading-relaxed">Consent, notices, rights requests, breaches and DPIA reviews for the DPDP Act, 2023, in one workspace.</p>
+                <p className="max-w-md text-xs leading-relaxed"><strong className="font-semibold text-ink-2">About Kavach.</strong> One workspace for consent, privacy notices, rights requests, grievances, breaches and DPIA reviews under India's DPDP Act, 2023.</p>
                 <p className="text-xs">© {new Date().getFullYear()} Kavach</p>
             </div>
         </footer>

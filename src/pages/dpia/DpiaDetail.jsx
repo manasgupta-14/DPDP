@@ -102,6 +102,7 @@ export default function DpiaDetail() {
     const isMaker = !!me?.userId && String(record.createdByUserId) === String(me.userId);
     const canReview = isPending && can(PERM.approve);
     const canRevise = status === STATUS.CHANGES && can(PERM.create);
+    const compact = !decoded.structured && String(decoded.text || "").length < 700;
 
     const choose = (action) => {
         setActionError("");
@@ -146,10 +147,10 @@ export default function DpiaDetail() {
 
             <Alert tone="success">{done}</Alert>
 
-            <div className="grid items-start gap-6 lg:grid-cols-[1fr_340px]">
+            <div className={compact ? "space-y-6" : "grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]"}>
                 <AssessmentView title={record.title} details={decoded.structured ? decoded.details : null} legacyText={decoded.text} />
 
-                <aside className="space-y-5 lg:sticky lg:top-24">
+                <aside className={compact ? "grid items-start gap-5 md:grid-cols-2" : "min-w-0 space-y-5 lg:sticky lg:top-24"}>
                     <section className={`${panel} px-5 py-4`}>
                         <h2 className="text-base font-semibold">Record</h2>
                         <p className="mt-0.5 text-xs text-muted">Reference, owner and review dates for this DPIA.</p>
@@ -212,7 +213,7 @@ export default function DpiaDetail() {
                     )}
 
                     {!canReview && !canRevise && (
-                        <p className="px-1 text-xs text-muted">
+                        <p className="px-1 text-xs text-muted md:col-span-2">
                             {isPending ? "This DPIA is waiting for the Data Protection Officer's review." : "This DPIA is read-only."}
                         </p>
                     )}

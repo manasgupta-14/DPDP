@@ -1,3 +1,5 @@
+import RowDetail, { RowLink } from "../../shared/RowDetail.jsx";
+import { useRowDetail } from "../../shared/useRowDetail.js";
 import { dkCard, dkTh } from "../consent/styles.js";
 import { Shown } from "./NotInApi.jsx";
 
@@ -21,7 +23,10 @@ function Linked({ items, links, warm }) {
 }
 
 export default function PurposeTable({ rows, onEdit, onHistory }) {
+    const [detail, rowProps, closeDetail] = useRowDetail();
+    const names = (items, links) => (items.length ? items.map((i) => i.name).join(", ") : links > 0 ? `${links} linked` : "None linked");
     return (
+        <>
         <div className={`${dkCard} overflow-hidden`}>
             <div className="overflow-x-auto">
                 <table className="w-full min-w-[980px] text-xs text-ink-2">
@@ -30,9 +35,9 @@ export default function PurposeTable({ rows, onEdit, onHistory }) {
                     </thead>
                     <tbody className="divide-y divide-line">
                         {rows.map((p) => (
-                            <tr key={p.id} className={`align-top hover:bg-soft ${p.active ? "" : "bg-soft/70"}`}>
+                            <tr key={p.id} {...rowProps(() => ({ title: p.name, subtitle: p.code, items: [{ label: "Purpose", value: `${p.name} v${p.version}` }, { label: "Code", value: p.code }, { label: "Description", value: p.description }, { label: "Legal basis", value: p.legalBasis }, { label: "Data categories", value: names(p.categories, p.categoryLinks) }, { label: "Processors", value: names(p.processors, p.processorLinks) }, { label: "Retention", value: p.retention }, { label: "Consent", value: p.lapses === undefined ? "" : p.lapses ? "Consent lapses" : "Consent does not lapse" }, { label: "Risk", value: p.risk }, { label: "Mandatory", value: p.mandatory ? "Yes" : "No" }, { label: "Not for children", value: p.prohibitedForChildren ? "Yes" : "No" }, { label: "Status", value: p.active ? "Active" : "Archived" }] }))} className={`cursor-pointer align-top hover:bg-soft ${p.active ? "" : "bg-soft/70"}`}>
                                 <td className="max-w-[280px] px-4 py-3">
-                                    <p className="font-semibold text-ink">{p.name} <span className="ml-1 text-[10px] font-medium text-ink-3">v{p.version}</span></p>
+                                    <p className="font-semibold text-ink"><RowLink>{p.name}</RowLink> <span className="ml-1 text-[10px] font-medium text-ink-3">v{p.version}</span></p>
                                     <p className="font-mono text-[10px] text-ink-3">{p.code || "-"}</p>
                                     <p className="mt-1 text-[11px] leading-relaxed text-ink-3"><Shown value={p.description} /></p>
                                 </td>
@@ -67,5 +72,7 @@ export default function PurposeTable({ rows, onEdit, onHistory }) {
                 </table>
             </div>
         </div>
+        <RowDetail row={detail} onClose={closeDetail} />
+        </>
     );
 }
