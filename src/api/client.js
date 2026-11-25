@@ -1,7 +1,12 @@
 import { clearToken, getToken } from "../auth/tokenStorage.js";
 import { permissionMessage } from "./permissionMap.js";
 
-export const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+const RAW_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").trim().replace(/\/+$/, "");
+// Dev Tunnel URL ko browser se seedha call karne par CORS / tunnel-auth 400 aata hai.
+// Isliye production me tunnel URL ignore karke same-origin "/api/..." use karte hain;
+// Vercel ka rewrite (vercel.json) use tunnel tak server-side forward kar deta hai.
+const IS_DEV_TUNNEL = /\.devtunnels\.ms/i.test(RAW_BASE_URL);
+export const BASE_URL = import.meta.env.PROD && IS_DEV_TUNNEL ? "" : RAW_BASE_URL;
 const TIMEOUT_MS = 15000;
 
 const ENVELOPE_KEYS = new Set(["success", "message", "data", "errors", "statuscode", "timestamp", "traceid"]);
