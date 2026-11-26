@@ -78,7 +78,7 @@ export default function ChatThread({ messages, pending = [], perspective, raised
                                     </span>
                                     <span>{m.pending ? "Sending..." : formatDate(m.createdAt)}</span>
                                 </div>
-                                <p className="mt-1.5 whitespace-pre-wrap break-words text-ink">{m.text}</p>
+                                <p translate="no" className="mt-1.5 whitespace-pre-wrap break-words text-ink">{m.text}</p>
                             </div>
                         </li>
                     );

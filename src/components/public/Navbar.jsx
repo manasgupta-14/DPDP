@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getSession, homePath, logout, roleInfo } from "../../auth/authStore.js";
 import { Logo } from "../shared/Brand.jsx";
 import ThemeToggle from "../shared/ThemeToggle.jsx";
+import LanguageSwitcher from "../../i18n/LanguageSwitcher.jsx";
 import { SECTION_LINKS } from "./home/data.js";
 
 export default function Navbar() {
@@ -47,6 +48,7 @@ export default function Navbar() {
                 </nav>
 
                 <div className="ml-auto flex items-center gap-2">
+                    <LanguageSwitcher />
                     <ThemeToggle />
                     {session ? (
                         <>

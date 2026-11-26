@@ -6,6 +6,7 @@ import Icon from "../components/shared/Icon.jsx";
 import PageLoader from "../components/shared/PageLoader.jsx";
 import CommandPalette from "../components/shared/CommandPalette.jsx";
 import ThemeToggle from "../components/shared/ThemeToggle.jsx";
+import LanguageSwitcher from "../i18n/LanguageSwitcher.jsx";
 
 const SIDE_KEY = "pg_side";
 
@@ -240,6 +241,8 @@ export default function DashboardShell({
                         <span className="hidden md:inline">Jump to</span>
                         <kbd className="kx-kbd hidden md:inline-block">Ctrl K</kbd>
                     </button>
+
+                    <LanguageSwitcher />
 
                     <ThemeToggle />
 

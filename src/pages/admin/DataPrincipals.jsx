@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addDataPrincipal, deleteDataPrincipal, get360View, getDataPrincipalCount, getDataPrincipals, updateDataPrincipal } from "../../api/dataPrincipal.js";
 import { getRoleOptions } from "../../api/roles.js";
+import { principalRoles } from "../../utils/roles.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
@@ -231,10 +232,9 @@ function AddForm({ onClose, onAdded, editing = null }) {
         let active = true;
         getRoleOptions().then((res) => {
             if (!active) return;
-            const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
-            const def = items.find((r) => /^data\s*principal$/i.test(r.name));
+            const items = res.ok ? principalRoles(res.data) : [];
             setRoles({ loading: false, items });
-            if (def && !isEdit) setForm((f) => (f.roleId ? f : { ...f, roleId: def.id }));
+            if (items[0] && !isEdit) setForm((f) => ({ ...f, roleId: items[0].id }));
         });
         return () => {
             active = false;
@@ -253,8 +253,8 @@ function AddForm({ onClose, onAdded, editing = null }) {
             if (!isEdit && !f.email.trim()) found.email = "Email is required so this person can sign in.";
             if (f.password.length < 8) found.password = "Use at least 8 characters.";
             else if (f.password !== f.confirm) found.confirm = "Passwords do not match.";
-            if (!isEdit && !f.roleId) found.roleId = "Select a role so this person gets the customer permissions.";
         }
+        if (!isEdit && !f.roleId) found.roleId = "Data Principal role is required.";
         setErrors(found);
         if (Object.keys(found).length) return;
         setBusy(true);
@@ -301,8 +301,8 @@ function AddForm({ onClose, onAdded, editing = null }) {
                     </label>
                     <label className="block text-sm font-medium text-ink-2">
                         Role
-                        <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading} className={field} aria-invalid={!!errors.roleId}>
-                            <option value="">{roles.loading ? "Loading roles..." : isEdit ? "Keep current role" : "No role"}</option>
+                        <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading || (!isEdit && roles.items.length <= 1)} className={field} aria-invalid={!!errors.roleId}>
+                            {(roles.loading || isEdit || roles.items.length === 0) && <option value="">{roles.loading ? "Loading roles..." : isEdit ? "Keep current role" : "No Data Principal role"}</option>}
                             {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                         </select>
                         <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>

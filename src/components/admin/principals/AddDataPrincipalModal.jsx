@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { addDataPrincipal } from "../../../api/dataPrincipals.js";
 import { getRoleOptions } from "../../../api/roles.js";
+import { principalRoles } from "../../../utils/roles.js";
 import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, validatePrincipal } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
@@ -39,10 +40,9 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
         let active = true;
         getRoleOptions().then((res) => {
             if (!active) return;
-            const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
-            const def = items.find((r) => /^data\s*principal$/i.test(r.name));
+            const items = res.ok ? principalRoles(res.data) : [];
             setRoles({ loading: false, items });
-            if (def) setForm((f) => (f.roleId ? f : { ...f, roleId: def.id }));
+            if (items[0]) setForm((f) => ({ ...f, roleId: items[0].id }));
         });
         return () => { active = false; };
     }, []);
@@ -51,6 +51,7 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
         e.preventDefault();
         setApiError("");
         const found = { ...validatePrincipal(form), ...validateLogin(form) };
+        if (!form.roleId) found.roleId = "Data Principal role is required.";
         setErrors(found);
         if (Object.keys(found).length > 0) return;
         setBusy(true);
@@ -62,7 +63,7 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
             dateOfBirth: form.dateOfBirth,
             cls: form.cls,
             preferredLocale: form.preferredLocale,
-            roleId: form.roleId || undefined,
+            roleId: form.roleId,
             password: form.password || undefined,
         });
         setBusy(false);
@@ -99,9 +100,10 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     <legend className="px-1.5 text-sm font-semibold text-ink">Customer login <span className="font-normal text-muted">(optional)</span></legend>
                     <p className="text-xs text-muted">Set a password so this customer can sign in at the login page with their email and use the customer portal (consents, notices, privacy requests).</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <Row title="Role" hint={roles.loading ? "Loading roles..." : "Pick a customer role, e.g. DataPrincipal. Without a role the customer has no permissions."}>
-                            <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading} className={field}>
-                                <option value="">No role</option>
+                        <Row title="Role" error={errors.roleId} hint={roles.loading ? "Loading roles..." : roles.items.length ? "Customers are always created with the Data Principal role." : "Data Principal role was not found. Create it in Roles & permissions first."}>
+                            <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading || roles.items.length <= 1} className={field}>
+                                {roles.loading && <option value="">Loading roles...</option>}
+                                {!roles.loading && roles.items.length === 0 && <option value="">No Data Principal role</option>}
                                 {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                             </select>
                         </Row>

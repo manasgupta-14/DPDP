@@ -2,11 +2,36 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { loadEnv } from "vite";
+
+// Local dev only: serves the SAME serverless function (api/translate.js) at /api/translate,
+// so "npm run dev" works without the Vercel CLI. Secrets come from .env.local (never VITE_ prefixed).
+function translateDevApi() {
+  return {
+    name: "pg-translate-dev-api",
+    apply: "serve",
+    configResolved(config) {
+      const env = loadEnv(config.mode, config.root, "");
+      for (const [k, v] of Object.entries(env)) if (process.env[k] === undefined) process.env[k] = v;
+    },
+    configureServer(server) {
+      server.middlewares.use("/api/translate", async (req, res, next) => {
+        try {
+          const mod = await server.ssrLoadModule("/api/translate.js");
+          await mod.default(req, res);
+        } catch (err) {
+          next(err);
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    translateDevApi(),
   ],
 
   build: {

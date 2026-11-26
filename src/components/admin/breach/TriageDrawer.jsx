@@ -148,7 +148,7 @@ export default function TriageDrawer({ incident, statuses, assigneeName, onClose
                 <form onSubmit={onSubmit} noValidate className="flex min-h-0 flex-1 flex-col">
                     <div className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-5">
                         <section className="rounded-xl bg-soft p-4" aria-label="Incident details">
-                            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-ink-2">{incident.description || "No description provided."}</p>
+                            <p translate="no" className="whitespace-pre-wrap break-words text-sm leading-6 text-ink-2">{incident.description || "No description provided."}</p>
                             <dl className="mt-4 grid grid-cols-2 gap-3 text-xs text-ink-3">
                                 <div><dt className="font-semibold">Reported by</dt><dd className="mt-0.5 text-ink">{incident.reporterLabel}</dd></div>
                                 <div><dt className="font-semibold">Assigned to</dt><dd className="mt-0.5 text-ink">{assigneeName}</dd></div>

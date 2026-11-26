@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getOrgHierarchy } from "../../api/orgUnit.js";
 import { getRoleOptions } from "../../api/roles.js";
+import { staffRoles } from "../../utils/roles.js";
 import { createStaff, getStaffList } from "../../api/staff.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
@@ -119,7 +120,7 @@ export default function Staff() {
             if (!active) return;
             if (list.ok) setStaff(list.data);
             else setError(list.error);
-            if (roleRes.ok) setRoles(roleRes.data);
+            if (roleRes.ok) setRoles(staffRoles(roleRes.data));
             if (hier.ok) setUnits(flatten(hier.data).filter((u) => u.active));
             setLoading(false);
         });
