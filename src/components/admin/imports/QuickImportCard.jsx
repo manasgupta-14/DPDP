@@ -5,6 +5,7 @@ import { principalRoles } from "../../../utils/roles.js";
 import { downloadText } from "../../../utils/bulkImport.js";
 import Alert from "../../shared/Alert.jsx";
 import { panel, primaryBtn } from "../../shared/ui.js";
+import { classDobError } from "../../../utils/dataPrincipals.js";
 
 const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40 disabled:bg-soft";
 const label = "block text-sm font-medium text-ink-2";
@@ -73,6 +74,10 @@ function parsePrincipals(text) {
         if (r.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(r.email)) problems.push("email is not valid");
         if (!CLASSES.has(r.class)) problems.push("class must be adult, child or person_with_disability");
         if (r.dateOfBirth && Number.isNaN(new Date(r.dateOfBirth).getTime())) problems.push("date of birth is not a date (use yyyy-mm-dd)");
+        else if (CLASSES.has(r.class) && (r.dateOfBirth || r.class === "child")) {
+            const mismatch = classDobError(r.dateOfBirth, r.class);
+            if (mismatch) problems.push(mismatch.charAt(0).toLowerCase() + mismatch.slice(1).replace(/\.$/, ""));
+        }
         if (r.password && r.password.length < 8) problems.push("password needs at least 8 characters");
         const keys = [r.mobile && `m:${r.mobile}`, r.email && `e:${r.email.toLowerCase()}`].filter(Boolean);
         if (!problems.length && keys.some((k) => seen.has(k))) problems.push("same mobile or email as an earlier row");

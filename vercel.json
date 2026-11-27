@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path((?!translate$).*)",
-      "destination": "https://ferry-gently-estimates-mayor.trycloudflare.com/api/:path"
+      "destination": "https://bprmnnz1-7139.inc1.devtunnels.ms/"
     },
     {
       "source": "/(.*)",
