@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path((?!translate$).*)",
-      "destination": "https://bprmnnz1-7139.inc1.devtunnels.ms/"
+      "destination": "https://bprmnnz1-7139.inc1.devtunnels.ms/api/:path"
     },
     {
       "source": "/(.*)",
