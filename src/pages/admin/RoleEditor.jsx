@@ -56,7 +56,7 @@ export default function RoleEditor({ mode }) {
                     setForm({ roleName: role.data.name, description: role.data.description });
                     setSelected(new Set(role.data.permissionIds));
                     setUserCount(role.data.userCount ?? null);
-                    setPermissionsKnown(role.data.permissionsKnown ?? true);
+                    setPermissionsKnown(role.data.permissionIdsKnown ?? role.data.permissionsKnown ?? true);
                 }
                 setLoadError("");
             }

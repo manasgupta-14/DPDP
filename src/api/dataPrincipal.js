@@ -122,7 +122,7 @@ export async function updateDataPrincipal(id, form) {
 export async function deleteDataPrincipal(id) {
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "DELETE" });
     if (res.ok) return res;
-    if ((res.status === 404 && !res.data) || res.status === 405) return { ...res, error: "Deleting customers is not available yet. Please contact your administrator." };
+    if ((res.status === 404 && !res.data) || res.status === 405) return { ...res, error: "Anonymising customers is not available yet. Please contact your administrator." };
     return res;
 }
 

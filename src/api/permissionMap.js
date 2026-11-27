@@ -99,6 +99,8 @@ const RULES = [
     ["POST", "/api/RetentionPolicy/run", "RetentionPolicy.Manage"],
     ["GET", "/api/RetentionPolicy/erased", "RetentionPolicy.View"],
     ["PATCH", "/api/RetentionPolicy/legal-hold/{id}", "RetentionPolicy.Manage"],
+    ["POST", "/api/Roles/create", "Roles.Manage"],
+    ["GET", "/api/Roles/user-permissions/grouped/{userId}", "Users.View"],
     ["GET", "/api/Roles/{id}/edit", "Roles.Manage"],
     ["PUT", "/api/Roles/{id}/edit", "Roles.Manage"],
     ["POST", "/api/Staff/create", "Users.Create"],

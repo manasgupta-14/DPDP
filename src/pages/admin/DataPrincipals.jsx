@@ -346,19 +346,19 @@ function DeleteConfirm({ principal, onClose, onDeleted }) {
         const res = await deleteDataPrincipal(principal.id);
         setBusy(false);
         if (!res.ok) return setError(res.error);
-        onDeleted(`Data principal ${principal.referenceId} erased and removed from the list.`);
+        onDeleted(String(res.data?.message ?? res.data?.Message ?? `Data principal ${principal.referenceId} has been anonymised.`));
     };
     return (
-        <Modal title="Delete data principal" onClose={() => !busy && onClose()}>
+        <Modal title="Anonymise data principal" onClose={() => !busy && onClose()}>
             <div className={`${panel} space-y-3 p-5 sm:p-6`}>
-                <h2 className="pr-8 text-lg font-semibold">Delete data principal?</h2>
+                <h2 className="pr-8 text-lg font-semibold">Anonymise data principal?</h2>
                 <p className="text-sm text-ink-3">
-                    <span className="font-semibold text-ink">{principal.name || principal.referenceId}</span> ({principal.referenceId}) will be removed from this list. Their name, mobile, email and login are erased permanently and this cannot be undone. Consent and request history is kept as audit proof. A record on legal hold cannot be erased.
+                    <span className="font-semibold text-ink">{principal.name || principal.referenceId}</span> ({principal.referenceId}) will be anonymised under the Right to Erasure. Their name, mobile, email and login are scrambled permanently and this cannot be undone. The reference ID, consent and request history stay as audit proof. A record on legal hold cannot be anonymised.
                 </p>
                 <Alert>{error}</Alert>
                 <div className="flex justify-end gap-2.5 pt-1">
                     <button type="button" onClick={onClose} disabled={busy} className={ghostBtn}>Cancel</button>
-                    <button type="button" onClick={confirm} disabled={busy} className="rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink disabled:opacity-60">{busy ? "Deleting..." : "Delete"}</button>
+                    <button type="button" onClick={confirm} disabled={busy} className="rounded-xl bg-bad px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-bad-ink disabled:opacity-60">{busy ? "Anonymising..." : "Anonymise"}</button>
                 </div>
             </div>
         </Modal>
@@ -495,7 +495,7 @@ export default function DataPrincipals() {
                                                         <Icon name="eye" className="h-3.5 w-3.5" />360° view
                                                     </button>
                                                     {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setEditing(r); }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-ink-2 transition hover:bg-subtle hover:text-ink focus:outline-none focus-visible:ring-3 focus-visible:ring-focus/40">Edit</button>}
-                                                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setDeleting(r); }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-bad-ink transition hover:bg-bad-soft focus:outline-none focus-visible:ring-3 focus-visible:ring-bad/40">Delete</button>}
+                                                    {canNow(["DataPrincipal.Manage"]) && <button type="button" onClick={() => { setFlash(""); setDeleting(r); }} className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-bad-ink transition hover:bg-bad-soft focus:outline-none focus-visible:ring-3 focus-visible:ring-bad/40">Anonymise</button>}
                                                 </div>
                                             </td>
                                         </tr>
