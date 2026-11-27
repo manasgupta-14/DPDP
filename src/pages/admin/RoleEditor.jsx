@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { createRole, getAllPermissions, getRoleById, getRoleForEdit, updateRole } from "../../api/roles.js";
 import { usePermissions } from "../../auth/usePermissions.js";
+import { isSuperNow, sessionPermissions } from "../../auth/access.js";
 import PermissionPicker from "../../components/admin/roles/PermissionPicker.jsx";
 import Alert from "../../components/shared/Alert.jsx";
 import PageLoader from "../../components/shared/PageLoader.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
-import { allPermissionIds, validateRole } from "../../utils/roles.js";
+import { allPermissionIds, isDataPrincipalRole, isLockedRole, lockedPermissionIds, reservedNameError, validateRole } from "../../utils/roles.js";
 
 const EMPTY = { roleName: "", description: "" };
 
@@ -22,8 +23,8 @@ export default function RoleEditor({ mode }) {
     const { loading: permsLoading, can } = usePermissions();
     const canManage = can("Roles.Manage");
     const canView = canManage || can("Roles.View");
-    const readOnly = mode === "view";
     const isEdit = mode === "edit";
+    const isSuper = isSuperNow();
     const copy = COPY[mode];
 
     const [modules, setModules] = useState([]);
@@ -34,6 +35,7 @@ export default function RoleEditor({ mode }) {
     const [form, setForm] = useState(() =>
         mode === "new" && params.get("preset") === "dpo" ? { roleName: "Data Protection", description: "Reviews DPIAs and oversees DPDP compliance." } : EMPTY,
     );
+    const [originalName, setOriginalName] = useState("");
     const [userCount, setUserCount] = useState(null);
     const [permissionsKnown, setPermissionsKnown] = useState(true);
     const [selected, setSelected] = useState(() => new Set());
@@ -54,6 +56,7 @@ export default function RoleEditor({ mode }) {
                 setModules(permissions.data);
                 if (role) {
                     setForm({ roleName: role.data.name, description: role.data.description });
+                    setOriginalName(role.data.name);
                     setSelected(new Set(role.data.permissionIds));
                     setUserCount(role.data.userCount ?? null);
                     setPermissionsKnown(role.data.permissionIdsKnown ?? role.data.permissionsKnown ?? true);
@@ -68,6 +71,14 @@ export default function RoleEditor({ mode }) {
     }, [permsLoading, canView, id, isEdit, reloadKey]);
 
     const total = useMemo(() => allPermissionIds(modules).length, [modules]);
+
+    // Admin-level roles are read-only for anyone who is not a super admin. Admin-level and DataPrincipal roles cannot be renamed.
+    const lockedForMe = isEdit && !!originalName && isLockedRole(originalName, isSuper);
+    const readOnly = mode === "view" || lockedForMe;
+    const nameLocked = isEdit && !!originalName && (isDataPrincipalRole(originalName) || isLockedRole(originalName, true));
+    // Permissions the signed-in user does not hold themselves cannot be given to a role.
+    const lockedIds = useMemo(() => lockedPermissionIds(modules, sessionPermissions()), [modules]);
+    const grantableIds = useMemo(() => allPermissionIds(modules).filter((pid) => !lockedIds?.has(pid)), [modules, lockedIds]);
 
     const retry = () => {
         setLoading(true);
@@ -102,6 +113,8 @@ export default function RoleEditor({ mode }) {
         e.preventDefault();
         setApiError("");
         const found = validateRole(form, selected.size);
+        const reserved = nameLocked ? "" : reservedNameError(form.roleName, { isSuper, original: originalName });
+        if (reserved) found.roleName = reserved;
         setErrors(found);
         if (Object.keys(found).length) return;
 
@@ -143,7 +156,7 @@ export default function RoleEditor({ mode }) {
                             {readOnly && !loading && !loadError && userCount !== null ? `${copy.hint} ${userCount} ${userCount === 1 ? "user has" : "users have"} this role.` : copy.hint}
                         </p>
                     </div>
-                    {readOnly && canManage && !loading && !loadError && (
+                    {mode === "view" && canManage && !loading && !loadError && !isLockedRole(form.roleName, isSuper) && (
                         <Link to={`/dashboard/roles/${id}/edit`} className={primaryBtn}>Edit role</Link>
                     )}
                 </div>
@@ -154,8 +167,10 @@ export default function RoleEditor({ mode }) {
             <div className={`${panel} space-y-4 p-5 sm:p-6`}>
                 <label className="block text-sm font-medium text-ink-2">
                     Role name
-                    <input value={form.roleName} onChange={set("roleName")} disabled={readOnly || loading} maxLength={100} placeholder="e.g. Compliance Officer" className={field} aria-invalid={!!errors.roleName} />
+                    <input value={form.roleName} onChange={set("roleName")} disabled={readOnly || nameLocked || loading} maxLength={100} placeholder="e.g. Compliance Officer" className={field} aria-invalid={!!errors.roleName} />
                     {errors.roleName && <span className="mt-1 block text-xs text-bad-ink">{errors.roleName}</span>}
+                    {nameLocked && !readOnly && <span className="mt-1 block text-xs text-muted">This role cannot be renamed.</span>}
+                    {lockedForMe && <span className="mt-1 block text-xs text-muted">Admin-level roles are read-only. Only a super admin can change them.</span>}
                 </label>
                 {!readOnly && <label className="block text-sm font-medium text-ink-2">
                     Description (optional)
@@ -171,8 +186,8 @@ export default function RoleEditor({ mode }) {
                 </div>
                 {!readOnly && (
                     <div className="flex gap-2.5">
-                        <button type="button" disabled={loading || !total} onClick={() => setSelected(new Set(allPermissionIds(modules)))} className={primaryBtn}>Select all permissions</button>
-                        <button type="button" disabled={selected.size === 0} onClick={() => setSelected(new Set())} className={ghostBtn}>Reset permissions</button>
+                        <button type="button" disabled={loading || !total} onClick={() => setSelected((s) => new Set([...[...s].filter((pid) => lockedIds?.has(pid)), ...grantableIds]))} className={primaryBtn}>Select all permissions</button>
+                        <button type="button" disabled={selected.size === 0} onClick={() => setSelected((s) => new Set([...s].filter((pid) => lockedIds?.has(pid))))} className={ghostBtn}>Reset permissions</button>
                     </div>
                 )}
             </div>
@@ -184,7 +199,7 @@ export default function RoleEditor({ mode }) {
             ) : !loadError && modules.length === 0 ? (
                 <p className={`${panel} px-5 py-6 text-sm text-ink-3`}>No permissions are available yet.</p>
             ) : (
-                !loadError && <PermissionPicker modules={modules} selected={selected} onToggle={toggle} onToggleModule={toggleModule} readOnly={readOnly} />
+                !loadError && <PermissionPicker modules={modules} selected={selected} onToggle={toggle} onToggleModule={toggleModule} readOnly={readOnly} lockedIds={lockedIds} />
             )}
             {errors.permissions && <p role="alert" className="text-sm text-bad-ink">{errors.permissions}</p>}
 

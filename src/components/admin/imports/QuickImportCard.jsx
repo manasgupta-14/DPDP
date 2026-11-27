@@ -1,7 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { bulkImportDataPrincipals } from "../../../api/dataPrincipal.js";
-import { getRoleOptions } from "../../../api/roles.js";
-import { principalRoles } from "../../../utils/roles.js";
 import { downloadText } from "../../../utils/bulkImport.js";
 import Alert from "../../shared/Alert.jsx";
 import { panel, primaryBtn } from "../../shared/ui.js";
@@ -95,25 +93,9 @@ export default function QuickImportCard({ onImported }) {
     const [text, setText] = useState("");
     const [fileName, setFileName] = useState("");
     const [inputKey, setInputKey] = useState(0);
-    const [roles, setRoles] = useState({ loading: true, items: [] });
-    const [roleId, setRoleId] = useState("");
     const [busy, setBusy] = useState(false);
     const [progress, setProgress] = useState(0);
     const [error, setError] = useState("");
-
-    useEffect(() => {
-        if (!open || !roles.loading) return undefined;
-        let active = true;
-        getRoleOptions().then((res) => {
-            if (!active) return;
-            const items = res.ok ? principalRoles(res.data) : [];
-            setRoles({ loading: false, items });
-            if (items[0]) setRoleId(items[0].id);
-        });
-        return () => {
-            active = false;
-        };
-    }, [open, roles.loading]);
 
     const parsed = useMemo(() => (text.trim() ? parsePrincipals(text) : null), [text]);
 
@@ -148,7 +130,7 @@ export default function QuickImportCard({ onImported }) {
         setBusy(true);
         setError("");
         setProgress(0);
-        const res = await bulkImportDataPrincipals(parsed.rows, { roleId, onProgress: setProgress });
+        const res = await bulkImportDataPrincipals(parsed.rows, { onProgress: setProgress });
         setBusy(false);
         if (!res.ok) {
             setError(res.error);
@@ -179,13 +161,9 @@ export default function QuickImportCard({ onImported }) {
                             <input key={inputKey} type="file" accept=".csv,text/csv" onChange={onFile} disabled={busy} className={`${input} py-2 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-soft file:px-3 file:py-1 file:text-sm file:font-semibold file:text-brand-ink`} />
                             {fileName && <span className="mt-1 block truncate text-xs text-muted">{fileName}</span>}
                         </label>
-                        <label className={label}>
-                            Role for everyone in this file
-                            <select value={roleId} onChange={(e) => setRoleId(e.target.value)} disabled={busy || roles.loading || roles.items.length <= 1} className={input}>
-                                {(roles.loading || roles.items.length === 0) && <option value="">{roles.loading ? "Loading roles..." : "No Data Principal role"}</option>}
-                                {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                            </select>
-                        </label>
+                        <p className="self-end rounded-lg bg-soft px-3 py-2 text-xs text-ink-3 ring-1 ring-line">
+                            Everyone in the file gets the Data Principal role automatically and is placed in your own branch. If you are not assigned to a unit, the customers will have no branch, and a non-admin without a unit cannot import.
+                        </p>
                     </div>
 
                     <label className={label}>

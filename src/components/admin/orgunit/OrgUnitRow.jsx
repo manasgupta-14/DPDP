@@ -37,8 +37,11 @@ export default function OrgUnitRow({ unit, depth, collapsed, forceOpen, onToggle
                 <span className="break-all font-mono text-xs text-muted">{unit.code}</span>
             </div>
 
-            <span className="whitespace-nowrap text-sm text-ink-3" title="Staff (users) assigned to this unit">
-                <span className="font-semibold text-ink">{unit.principals}</span> staff
+            <span className="whitespace-nowrap text-sm text-ink-3" title="Active staff in this unit and all of its sub-units">
+                <span className="font-semibold text-ink">{unit.staff}</span> staff (incl. sub-units)
+            </span>
+            <span className="whitespace-nowrap text-sm text-ink-3" title="Customers (data principals) in this unit and all of its sub-units">
+                <span className="font-semibold text-ink">{unit.customers}</span> customers
             </span>
 
             {canNow(["OrgUnit.Manage"]) && <div className="flex min-w-[240px] flex-wrap items-center justify-end gap-2">

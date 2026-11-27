@@ -1,13 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { addDataPrincipal } from "../../../api/dataPrincipals.js";
-import { getRoleOptions } from "../../../api/roles.js";
-import { principalRoles } from "../../../utils/roles.js";
 import { GUARDIAN_CLASSES, PRINCIPAL_CLASSES, PRINCIPAL_LOCALES, allowedClassValues, classDobHint, classForDob, validatePrincipal } from "../../../utils/dataPrincipals.js";
 import Modal from "../../shared/Modal.jsx";
 import { field, ghostBtn, primaryBtn } from "../../shared/ui.js";
 
 const label = "block text-sm font-medium text-ink-2";
-const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "", roleId: "", password: "", confirm: "" };
+const EMPTY = { mobile: "", email: "", consumerNo: "", fullName: "", displayName: "", dateOfBirth: "", cls: "adult", preferredLocale: "en-IN", orgUnitId: "", password: "", confirm: "" };
 
 function validateLogin(form) {
     const e = {};
@@ -33,7 +31,6 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState("");
     const [busy, setBusy] = useState(false);
-    const [roles, setRoles] = useState({ loading: true, items: [] });
     const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
     const setDob = (e) => {
         const dateOfBirth = e.target.value;
@@ -42,22 +39,10 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
     };
     const classOptions = PRINCIPAL_CLASSES.filter((c) => allowedClassValues(form.dateOfBirth).includes(c.value));
 
-    useEffect(() => {
-        let active = true;
-        getRoleOptions().then((res) => {
-            if (!active) return;
-            const items = res.ok ? principalRoles(res.data) : [];
-            setRoles({ loading: false, items });
-            if (items[0]) setForm((f) => ({ ...f, roleId: items[0].id }));
-        });
-        return () => { active = false; };
-    }, []);
-
     const submit = async (e) => {
         e.preventDefault();
         setApiError("");
         const found = { ...validatePrincipal(form), ...validateLogin(form) };
-        if (!form.roleId) found.roleId = "Data Principal role is required.";
         setErrors(found);
         if (Object.keys(found).length > 0) return;
         setBusy(true);
@@ -69,7 +54,6 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
             dateOfBirth: form.dateOfBirth,
             cls: form.cls,
             preferredLocale: form.preferredLocale,
-            roleId: form.roleId,
             password: form.password || undefined,
         });
         setBusy(false);
@@ -85,6 +69,10 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     <h2 className="text-lg font-semibold">Add new user</h2>
                     <p className="mt-1 text-sm text-ink-3">Adds one customer, with the same checks as a bulk import. They will appear under Data principals.</p>
                 </div>
+
+                <p className="rounded-lg bg-soft px-3 py-2 text-xs text-ink-3 ring-1 ring-line">
+                    The customer is placed in your own branch (the org unit you belong to) and always gets the Data Principal role. If you are not assigned to a unit, the customer will have no branch.
+                </p>
 
                 {errors.identifier && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{errors.identifier}</p>}
 
@@ -106,14 +94,6 @@ export default function AddDataPrincipalModal({ onClose, onAdded }) {
                     <legend className="px-1.5 text-sm font-semibold text-ink">Customer login <span className="font-normal text-muted">(optional)</span></legend>
                     <p className="text-xs text-muted">Set a password so this customer can sign in at the login page with their email and use the customer portal (consents, notices, privacy requests).</p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                        <Row title="Role" error={errors.roleId} hint={roles.loading ? "Loading roles..." : roles.items.length ? "Customers are always created with the Data Principal role." : "Data Principal role was not found. Create it in Roles & permissions first."}>
-                            <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading || roles.items.length <= 1} className={field}>
-                                {roles.loading && <option value="">Loading roles...</option>}
-                                {!roles.loading && roles.items.length === 0 && <option value="">No Data Principal role</option>}
-                                {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                            </select>
-                        </Row>
-                        <div className="hidden sm:block" />
                         <Row title="Password" error={errors.password} hint="At least 8 characters"><input type="password" value={form.password} onChange={set("password")} autoComplete="new-password" disabled={busy} className={field} /></Row>
                         <Row title="Confirm password" error={errors.confirm}><input type="password" value={form.confirm} onChange={set("confirm")} autoComplete="new-password" disabled={busy} className={field} /></Row>
                     </div>

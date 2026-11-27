@@ -12,6 +12,7 @@ import { ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { flatten, summarize, visibleRows } from "../../utils/orgUnit.js";
 import { getToken, sessionFromToken } from "../../auth/tokenStorage.js";
 import { canNow } from "../../auth/access.js";
+import BranchHint from "../../components/shared/BranchHint.jsx";
 
 export default function OrgUnits() {
     const { query = "" } = useOutletContext() || {};
@@ -115,7 +116,8 @@ export default function OrgUnits() {
                         <p className="text-sm text-ink-3">
                             <span className="font-semibold text-ink">{stats.units}</span> units ·{" "}
                             <span className="font-semibold text-ink">{stats.active}</span> active ·{" "}
-                            <span className="font-semibold text-ink">{stats.principals}</span> staff assigned
+                            <span className="font-semibold text-ink">{stats.staff}</span> staff assigned ·{" "}
+                            <span className="font-semibold text-ink">{stats.customers}</span> customers
                         </p>
                         <div className="flex flex-wrap gap-2">
                             <button type="button" onClick={() => setCollapsed(new Set())} disabled={!collapsed.size} className={ghostBtn}>Expand all</button>
@@ -137,6 +139,7 @@ export default function OrgUnits() {
                     ) : rows.length === 0 ? (
                         <div className="px-5 py-6 text-sm text-ink-3">
                             <p>{query ? "No unit matches your search." : error ? "The hierarchy could not be loaded." : "No units yet. Use \"New top-level unit\" to add the first zone."}</p>
+                            {!query && !error && <BranchHint />}
                             {!query && !error && myOrgId && (
                                 <p className="mt-2 text-xs text-muted">
                                     Showing units for your organisation <span className="font-mono text-ink">{myOrgId}</span>. Units saved under a different OrganizationId will not appear here.

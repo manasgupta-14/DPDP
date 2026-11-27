@@ -1,6 +1,5 @@
 import { apiFetch } from "./client.js";
 import { asArray } from "../utils/breach.js";
-import { getOrganizationUsers } from "./users.js";
 
 const pick = (o, ...keys) => {
     for (const k of keys) if (o?.[k] !== undefined && o?.[k] !== null) return o[k];
@@ -12,7 +11,9 @@ function normalizeStaff(s, index = 0) {
         id: String(pick(s, "userId", "UserId", "id") ?? `row-${index}`),
         name: String(pick(s, "name", "Name") ?? ""),
         email: String(pick(s, "email", "Email") ?? ""),
+        phone: String(pick(s, "phoneNumber", "PhoneNumber") ?? ""),
         role: String(pick(s, "role", "Role") ?? ""),
+        roleId: String(pick(s, "roleId", "RoleId") ?? ""),
         orgUnitId: pick(s, "orgUnitId", "OrgUnitId"),
         orgUnitName: String(pick(s, "orgUnitName", "OrgUnitName") ?? ""),
         active: pick(s, "isActive", "IsActive") !== false,
@@ -22,17 +23,11 @@ function normalizeStaff(s, index = 0) {
 export async function getStaffList() {
     const res = await apiFetch("/api/Staff");
     if (!res.ok) {
-        if (res.status === 403) return { ...res, error: "Your role does not have the \"Users.View\" permission needed to see staff. Ask an admin to add it in Roles & permissions." };
         return res;
     }
-    const list = asArray(res.data).map(normalizeStaff);
-    const noRole = (s) => !s.role || /^unassigned$/i.test(s.role);
-    if (list.length && !list.some(noRole)) return { ...res, data: list };
-    const team = await getOrganizationUsers();
-    if (!team.ok) return { ...res, data: list };
-    if (!list.length) return { ...res, data: team.data.map((u) => ({ ...u, orgUnitId: null, orgUnitName: "" })) };
-    const byId = new Map(team.data.map((u) => [u.id.toLowerCase(), u]));
-    return { ...res, data: list.map((s) => (noRole(s) ? { ...s, role: byId.get(s.id.toLowerCase())?.role || s.role } : s)) };
+    // /api/Staff now returns the right role names, so there is no fallback to /api/User/my-team
+    // (that list also contains customers). An empty list is shown as an empty state.
+    return { ...res, data: asArray(res.data).map(normalizeStaff) };
 }
 
 export async function createStaff({ name, email, password, roleId, orgUnitId }) {
@@ -47,7 +42,6 @@ export async function createStaff({ name, email, password, roleId, orgUnitId }) 
         },
     });
     if (!res.ok) {
-        if (res.status === 403) return { ...res, error: "Your role does not have the \"Users.Create\" permission needed to add staff. Ask an admin to add it in Roles & permissions." };
         return { ...res, error: String(res.data?.message ?? res.data?.Message ?? res.error).replace(/^Database error:\s*/i, "") };
     }
     return { ...res, data: { message: res.data?.message ?? res.data?.Message ?? "Staff created successfully." } };

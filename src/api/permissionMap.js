@@ -109,6 +109,7 @@ const RULES = [
     ["GET", "/api/User/my-team", "Users.View"],
     ["PATCH", "/api/User/toggle-status/{userId}", "Users.Edit"],
     ["PUT", "/api/User/edit/{userId}", "Users.Edit"],
+    ["PUT", "/api/User/{userId:guid}/org-unit", "Users.Edit"],
 ];
 
 const escapeRx = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

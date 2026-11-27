@@ -1,14 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { addDataPrincipal, deleteDataPrincipal, get360View, getDataPrincipalCount, getDataPrincipals, updateDataPrincipal } from "../../api/dataPrincipal.js";
-import { getRoleOptions } from "../../api/roles.js";
-import { principalRoles } from "../../utils/roles.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { formatDate } from "../../utils/breach.js";
-import { canNow } from "../../auth/access.js";
+import { canNow, isOrgWideNow } from "../../auth/access.js";
+import BranchHint from "../../components/shared/BranchHint.jsx";
 import NewTag from "../../components/shared/NewTag.jsx";
 import { markSeen, useNewItems } from "../../utils/newItems.js";
 import { toDate, toTime } from "../../utils/audit.js";
@@ -211,7 +210,7 @@ function View360({ principal, onClose }) {
     );
 }
 
-const EMPTY = { fullName: "", mobile: "", email: "", consumerNo: "", dateOfBirth: "", class: "adult", preferredLocale: "en-IN", roleId: "", password: "", confirm: "" };
+const EMPTY = { fullName: "", mobile: "", email: "", consumerNo: "", dateOfBirth: "", class: "adult", preferredLocale: "en-IN", password: "", confirm: "" };
 
 function AddForm({ onClose, onAdded, editing = null }) {
     const isEdit = !!editing;
@@ -223,7 +222,6 @@ function AddForm({ onClose, onAdded, editing = null }) {
     const [errors, setErrors] = useState({});
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState("");
-    const [roles, setRoles] = useState({ loading: true, items: [] });
     const set = (k) => (e) => {
         setForm((f) => ({ ...f, [k]: e.target.value }));
         setErrors((er) => ({ ...er, [k]: undefined }));
@@ -234,19 +232,6 @@ function AddForm({ onClose, onAdded, editing = null }) {
         setErrors((er) => ({ ...er, dateOfBirth: undefined, class: undefined }));
     };
     const classOptions = CLASSES.filter(([v]) => v && (allowedClassValues(form.dateOfBirth).includes(v) || (isEdit && !form.dateOfBirth)));
-
-    useEffect(() => {
-        let active = true;
-        getRoleOptions().then((res) => {
-            if (!active) return;
-            const items = res.ok ? principalRoles(res.data) : [];
-            setRoles({ loading: false, items });
-            if (items[0] && !isEdit) setForm((f) => ({ ...f, roleId: items[0].id }));
-        });
-        return () => {
-            active = false;
-        };
-    }, [isEdit]);
 
     const submit = async (e) => {
         e.preventDefault();
@@ -265,7 +250,6 @@ function AddForm({ onClose, onAdded, editing = null }) {
             if (f.password.length < 8) found.password = "Use at least 8 characters.";
             else if (f.password !== f.confirm) found.confirm = "Passwords do not match.";
         }
-        if (!isEdit && !f.roleId) found.roleId = "Data Principal role is required.";
         setErrors(found);
         if (Object.keys(found).length) return;
         setBusy(true);
@@ -311,17 +295,10 @@ function AddForm({ onClose, onAdded, editing = null }) {
                         </select>
                         <span className={`mt-1 block text-xs ${errors.class ? "text-bad-ink" : "text-muted"}`}>{errors.class || (isEdit && !form.dateOfBirth ? "" : classDobHint(form.dateOfBirth))}</span>
                     </label>
-                    <label className="block text-sm font-medium text-ink-2">
-                        Role
-                        <select value={form.roleId} onChange={set("roleId")} disabled={busy || roles.loading || (!isEdit && roles.items.length <= 1)} className={field} aria-invalid={!!errors.roleId}>
-                            {(roles.loading || isEdit || roles.items.length === 0) && <option value="">{roles.loading ? "Loading roles..." : isEdit ? "Keep current role" : "No Data Principal role"}</option>}
-                            {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
-                        </select>
-                        <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>
-                    </label>
                     {input("password", isEdit ? "New password" : "Password", { type: "password", autoComplete: "new-password", placeholder: isEdit ? "Leave blank to keep current" : "At least 8 characters" })}
                     {input("confirm", "Confirm password", { type: "password", autoComplete: "new-password" })}
                 </div>
+                {!isEdit && <p className="text-xs text-muted">The customer is placed in your own branch and always gets the Data Principal role. If you are not assigned to a unit, the customer will have no branch.</p>}
                 <p className="-mt-1 text-xs text-muted">
                     {isEdit
                         ? "Only the fields you fill in are changed. Mobile, email and consumer number are masked, so type the full new value to change them."
@@ -421,7 +398,7 @@ export default function DataPrincipals() {
                 <div>
                     <h1 className="flex flex-wrap items-center gap-3 text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">
                         Data principals
-                        {orgTotal !== null && <span className="rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-brand-ink ring-1 ring-brand/20" title="Total data principals in your organisation">{orgTotal.toLocaleString()} total</span>}
+                        {orgTotal !== null && <span className="rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-brand-ink ring-1 ring-brand/20" title={isOrgWideNow() ? "Total data principals in your organisation" : "Total data principals in your branch"}>{orgTotal.toLocaleString()} total</span>}
                     </h1>
                     <p className="mt-1.5 max-w-3xl text-[15px] text-ink-3">Your customers whose personal data you hold. Open anyone to see their identifiers, rights requests and consents in one place.</p>
                 </div>
@@ -449,7 +426,10 @@ export default function DataPrincipals() {
                 {state.loading ? (
                     <div className="space-y-2 p-4" aria-busy="true">{[0, 1, 2, 3].map((i) => <div key={i} className="h-10 pg-shimmer rounded" />)}</div>
                 ) : state.rows.length === 0 ? (
-                    <p className="px-5 py-12 text-center text-sm text-ink-3">{query || classType ? "No data principals match these filters." : "No data principals yet. Add one, or import a CSV from Bulk import."}</p>
+                    <div className="px-5 py-12 text-center text-sm text-ink-3">
+                        <p>{query || classType ? "No data principals match these filters." : "No data principals yet. Add one, or import a CSV from Bulk import."}</p>
+                        {!query && !classType && <BranchHint className="mt-2 text-xs" />}
+                    </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full min-w-[860px]">

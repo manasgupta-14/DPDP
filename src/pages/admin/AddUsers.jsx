@@ -3,15 +3,18 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { getRoleOptions } from "../../api/roles.js";
+import { getOrgHierarchy } from "../../api/orgUnit.js";
 import { staffRoles } from "../../utils/roles.js";
+import { flatten } from "../../utils/orgUnit.js";
 import { usePermissions } from "../../auth/usePermissions.js";
 import EditUserModal from "../../components/admin/users/EditUserModal.jsx";
+import BranchHint from "../../components/shared/BranchHint.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import Modal from "../../components/shared/Modal.jsx";
 import { toDate } from "../../utils/audit.js";
-import { canNow } from "../../auth/access.js";
+import { assignableRoles, canNow, isAdminLevelRoleName, isOrgWideNow } from "../../auth/access.js";
 
-const EMPTY = { name: "", email: "", phone: "", password: "", roleId: "" };
+const EMPTY = { name: "", email: "", phone: "", password: "", roleId: "", orgUnitId: "" };
 const input = "mt-1.5 h-11 w-full rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus/40";
 
 export default function AddUsers() {
@@ -21,6 +24,7 @@ export default function AddUsers() {
     const [editing, setEditing] = useState(null);
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
+    const [units, setUnits] = useState([]);
     const [rolesLoading, setRolesLoading] = useState(true);
     const [rolesError, setRolesError] = useState("");
     const [loading, setLoading] = useState(true);
@@ -66,7 +70,7 @@ export default function AddUsers() {
         getRoleOptions().then((res) => {
             if (!active) return;
             if (res.ok) {
-                setRoles(staffRoles(res.data));
+                setRoles(assignableRoles(staffRoles(res.data)));
                 setRolesError("");
             } else {
                 setRoles([]);
@@ -76,6 +80,17 @@ export default function AddUsers() {
         });
         return () => { active = false; };
     }, []);
+
+    useEffect(() => {
+        let active = true;
+        getOrgHierarchy().then((res) => {
+            if (active && res.ok) setUnits(flatten(res.data).filter((u) => u.active));
+        });
+        return () => { active = false; };
+    }, []);
+
+    // Without an org-wide role a user can only add people inside their own branch, so the unit is required.
+    const unitRequired = !isOrgWideNow();
 
     const set = (k) => (e) => {
         setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -92,12 +107,13 @@ export default function AddUsers() {
         if (form.password.length < 8) next.password = "Password must be at least 8 characters.";
         if (!form.roleId) next.roleId = "Select a role for this user.";
         if (!roles.length) next.roleId = rolesError || "No roles are available yet. Create a role in Roles & permissions first.";
+        if (unitRequired && !form.orgUnitId) next.orgUnitId = "Select an org unit within your branch.";
         if (users.some((u) => u.email.toLowerCase() === form.email.trim().toLowerCase())) next.email = "This email is already registered.";
         setErrors(next);
         if (Object.keys(next).length) return;
 
         setSaving(true);
-        const res = await addEmployee({ fullName: form.name, email: form.email, phoneNumber: form.phone, password: form.password, roleId: form.roleId });
+        const res = await addEmployee({ fullName: form.name, email: form.email, phoneNumber: form.phone, password: form.password, roleId: form.roleId, orgUnitId: form.orgUnitId });
         setSaving(false);
         if (!res.ok) {
             setApiError(res.error);
@@ -204,6 +220,18 @@ export default function AddUsers() {
                         {errors.roleId && <span className="mt-1 block text-xs text-bad-ink">{errors.roleId}</span>}
                     </label>
 
+                    <label className="block text-sm font-medium text-ink-2">
+                        Org unit (branch){unitRequired && <span className="text-bad-ink"> *</span>}
+                        <select value={form.orgUnitId} onChange={set("orgUnitId")} className={input} aria-invalid={!!errors.orgUnitId}>
+                            <option value="">{unitRequired ? "Select a unit" : "None"}</option>
+                            {units.map((u) => (
+                                <option key={u.id} value={u.id}>{`${"\u00A0\u00A0".repeat(u.depth - 1)}${u.name} (${u.kind})`}</option>
+                            ))}
+                        </select>
+                        <span className="mt-1 block text-xs text-muted">{unitRequired ? "Required. Users can only be added inside your own branch." : "Optional. Only active units are listed."}</span>
+                        {errors.orgUnitId && <span className="mt-1 block text-xs text-bad-ink">{errors.orgUnitId}</span>}
+                    </label>
+
                     {apiError && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{apiError}</p>}
 
                     <button type="submit" disabled={saving || rolesLoading || roles.length === 0} className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-semibold text-white transition hover:bg-brand-strong hover:shadow-[0_0_20px_rgba(91,141,239,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-60">
@@ -218,6 +246,7 @@ export default function AddUsers() {
                         user={editing}
                         users={users}
                         roles={roles}
+                        units={units}
                         rolesLoading={rolesLoading}
                         rolesError={rolesError}
                         onClose={() => setEditing(null)}
@@ -239,7 +268,10 @@ export default function AddUsers() {
                     {loading ? (
                         <p className="py-12 text-center text-sm text-muted">Loading users...</p>
                     ) : shown.length === 0 ? (
-                        <p className="py-12 text-center text-sm text-muted">{users.length ? "No users match your search." : "No users yet. Use the form to add the first one."}</p>
+                        <div className="py-12 text-center text-sm text-muted">
+                            <p>{users.length ? "No users match your search." : "No users yet. Use the form to add the first one."}</p>
+                            {!users.length && !listError && <BranchHint className="mt-2 text-xs" />}
+                        </div>
                     ) : (
                         <div className="mt-4 overflow-x-auto">
                             <table className="w-full min-w-[560px] text-left text-sm">
@@ -270,7 +302,7 @@ export default function AddUsers() {
                                                         <button type="button" disabled={busyId === u.id} onClick={() => setEditing(u)} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                             Edit
                                                         </button>
-                                                        {u.role !== "Admin" && (
+                                                        {!isAdminLevelRoleName(u.role) && (
                                                             <button type="button" disabled={busyId === u.id} onClick={() => toggle(u)} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline disabled:opacity-50">
                                                                 {busyId === u.id ? "Saving..." : u.active ? "Deactivate" : "Activate"}
                                                             </button>

@@ -91,7 +91,6 @@ export async function addDataPrincipal(form) {
             dateOfBirth: clean(form.dateOfBirth),
             class: form.class || "adult",
             preferredLocale: form.preferredLocale || "en-IN",
-            roleId: form.roleId || null,
             password: form.password || null,
         },
     });
@@ -109,7 +108,6 @@ export async function updateDataPrincipal(id, form) {
         dateOfBirth: clean(form.dateOfBirth),
         class: form.class || null,
         preferredLocale: form.preferredLocale || null,
-        roleId: form.roleId || null,
         password: form.password || null,
     };
     const res = await apiFetch(`/api/dataprincipal/${encodeURIComponent(id)}`, { method: "PUT", body });
@@ -133,7 +131,8 @@ export async function getDataPrincipalCount(orgUnitId = "") {
     return { ...res, data: Number(pick(res.data, "totalCount", "TotalCount") ?? 0) };
 }
 
-export async function bulkImportDataPrincipals(rows, { roleId = "", onProgress } = {}) {
+// The backend gives every customer the organisation's "DataPrincipal" role itself, so no roleId is sent.
+export async function bulkImportDataPrincipals(rows, { onProgress } = {}) {
     const CHUNK = 500;
     const clean = (v) => (v && String(v).trim() ? String(v).trim() : null);
     let imported = 0;
@@ -146,7 +145,6 @@ export async function bulkImportDataPrincipals(rows, { roleId = "", onProgress }
             dateOfBirth: clean(r.dateOfBirth),
             class: r.class || "adult",
             preferredLocale: r.preferredLocale || "en-IN",
-            roleId: roleId || null,
             password: clean(r.password),
         }));
         const res = await apiFetch("/api/dataprincipal/bulk-import", { method: "POST", body });

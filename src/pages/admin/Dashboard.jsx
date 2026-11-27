@@ -2,7 +2,7 @@ import { startTransition, useCallback, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { loadExecutiveData, takeExecutive } from "../../api/executive.js";
 import { getProfile, roleInfo } from "../../auth/authStore.js";
-import { useAccess } from "../../auth/access.js";
+import { isOrgWideNow, useAccess } from "../../auth/access.js";
 import { permissionForPath } from "../../config/navigation.js";
 import { AreaChart, BAR3D, C, ColumnChart, CountUp, Donut, HBars, Legend, Progress, Ring, fmtNum } from "../../components/charts/kit.jsx";
 import Alert from "../../components/shared/Alert.jsx";
@@ -627,7 +627,7 @@ export default function Dashboard() {
 <Kpi i={1} label="Staff users" icon="users" tone="info" value={m.kpi.users} note="Accounts in your organisation" to="/dashboard/add-users" />
 )}
                             {can(["DataPrincipal.View"]) && (
-<Kpi i={2} label="Data principals" icon="adduser" tone="violet" value={m.kpi.principals} note="Customers on record" to="/dashboard/data-principals" />
+<Kpi i={2} label="Data principals" icon="adduser" tone="violet" value={m.kpi.principals} note={isOrgWideNow() ? "Customers on record" : "Customers in your branch"} to="/dashboard/data-principals" />
 )}
                             {can(["Consent.View"]) && (
 <Kpi

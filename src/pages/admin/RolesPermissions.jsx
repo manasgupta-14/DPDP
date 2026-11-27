@@ -6,7 +6,8 @@ import Alert from "../../components/shared/Alert.jsx";
 import Icon from "../../components/shared/Icon.jsx";
 import PageLoader from "../../components/shared/PageLoader.jsx";
 import { primaryBtn } from "../../components/shared/ui.js";
-import { allPermissionIds } from "../../utils/roles.js";
+import { allPermissionIds, isLockedRole } from "../../utils/roles.js";
+import { isSuperNow } from "../../auth/access.js";
 
 const VISIBLE_MODULES = 3;
 
@@ -19,6 +20,7 @@ export default function RolesPermissions() {
     const { loading: permsLoading, can } = usePermissions();
     const canManage = can("Roles.Manage");
     const canView = canManage || can("Roles.View");
+    const isSuper = isSuperNow();
 
     const [roles, setRoles] = useState([]);
     const [totalPermissions, setTotalPermissions] = useState(0);
@@ -139,6 +141,7 @@ export default function RolesPermissions() {
                                     <tr key={r.id} className="border-b border-line align-top last:border-0">
                                         <td className="py-3 pr-3">
                                             <p className="font-medium">{r.name}</p>
+                                            {isLockedRole(r.name, isSuper) && <span className="mt-1 inline-block rounded-full bg-line px-2 py-0.5 text-[11px] font-semibold text-ink-2">Read-only</span>}
                                         </td>
                                         <td className="py-3 pr-3">
                                             {!r.permissionsKnown ? (
@@ -166,7 +169,7 @@ export default function RolesPermissions() {
                                         <td className="py-3 text-right">
                                             <div className="flex justify-end gap-4">
                                                 <Link to={`/dashboard/roles/${r.id}`} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">View</Link>
-                                                {canManage && <Link to={`/dashboard/roles/${r.id}/edit`} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">Edit</Link>}
+                                                {canManage && !isLockedRole(r.name, isSuper) && <Link to={`/dashboard/roles/${r.id}/edit`} className="whitespace-nowrap text-sm font-semibold text-brand-ink hover:underline">Edit</Link>}
                                             </div>
                                         </td>
                                     </tr>

@@ -32,7 +32,14 @@ export async function loginUser({ email, password, remember }) {
     });
 
     if (!res.ok) {
-        return { ok: false, error: res.status === 401 ? "Email or password is incorrect." : res.error };
+        if (res.status === 401) {
+            // The API answers 401 with { Error } ("Invalid email or password", "Account is disabled").
+            // A 401 with no such body did not come from the API (for example a private dev tunnel), so say that.
+            const apiError = String(res.data?.error ?? res.data?.Error ?? "").trim();
+            if (apiError) return { ok: false, error: /invalid email or password/i.test(apiError) ? "Email or password is incorrect." : apiError };
+            return { ok: false, error: "The server refused the request before it reached the API (401). If this is the live site, check that the backend tunnel is running and set to Public access." };
+        }
+        return { ok: false, error: res.error };
     }
 
     const token = res.data?.token ?? res.data?.Token;

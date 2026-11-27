@@ -44,7 +44,10 @@ export function normalizeUnit(raw) {
         code: String(pick(raw, "unitCode", "UnitCode", "code", "Code") ?? ""),
         parentId: pick(raw, "parentId", "ParentId"),
         active: ![false, 0, "false", "False", "0"].includes(pick(raw, "isActive", "IsActive", "active")),
-        principals: Number(pick(raw, "principalsCount", "PrincipalsCount") ?? 0) || 0,
+        // staffCount: active staff in this unit AND its child units (the backend already adds the children up).
+        staff: Number(pick(raw, "staffCount", "StaffCount", "principalsCount", "PrincipalsCount") ?? 0) || 0,
+        // dataPrincipalCount: customers in this unit AND its child units.
+        customers: Number(pick(raw, "dataPrincipalCount", "DataPrincipalCount") ?? 0) || 0,
         children: Array.isArray(children) ? children.map(normalizeUnit) : [],
     };
 }
@@ -75,10 +78,14 @@ export function slugify(value) {
 export const CODE_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export function summarize(flat) {
+    // The backend already rolls child counts up into each parent, so adding every unit would count people many times.
+    // Only the top units (no parent) are summed.
+    const roots = flat.filter((u) => !u.parent);
     return {
         units: flat.length,
         active: flat.filter((u) => u.active).length,
-        principals: flat.reduce((sum, u) => sum + u.principals, 0),
+        staff: roots.reduce((sum, u) => sum + u.staff, 0),
+        customers: roots.reduce((sum, u) => sum + u.customers, 0),
     };
 }
 

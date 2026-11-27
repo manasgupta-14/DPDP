@@ -85,8 +85,7 @@ export function updateOrgUnit(id, { name, code }) {
 
 export async function deleteOrgUnit(id) {
     const res = await apiFetch(`/api/OrgUnit/${seg(id)}`, { method: "DELETE" });
-    if (!res.ok && res.status === 404) {
-        return { ...res, error: "This unit could not be deleted. It may not exist, or it still has child units. Remove or move the child units first." };
-    }
+    // 404 only means "not found". 409 (child units, assigned staff or customers) carries the backend's own Message.
+    if (!res.ok && res.status === 404) return { ...res, error: "This unit was not found. It may already have been deleted." };
     return res;
 }

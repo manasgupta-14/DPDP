@@ -37,3 +37,44 @@ export const isDataPrincipalRole = (role) => DATA_PRINCIPAL_ROLE.test(String(rol
 export const principalRoles = (roles) => (Array.isArray(roles) ? roles.filter(isDataPrincipalRole) : []);
 
 export const staffRoles = (roles) => (Array.isArray(roles) ? roles.filter((r) => !isDataPrincipalRole(r)) : []);
+
+// ---- Reserved role names and "who may grant what" (checked on the server too; these give early, clear messages)
+const sameName = (a, b) => String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
+
+// Returns a message when `name` is reserved for the current user, otherwise "".
+// `original` is the role's current name when editing, so an unchanged name is never flagged.
+export function reservedNameError(name, { isSuper, original = "" } = {}) {
+    const clean = String(name ?? "").trim();
+    if (!clean || sameName(clean, original)) return "";
+    if (isDataPrincipalRole(clean)) return `"${clean}" is a reserved role name. Choose another name.`;
+    if (!isSuper && /^(admin|super[\s_-]*admin|system[\s_-]*admin|dpo)$/i.test(clean)) return `"${clean}" is reserved for super roles. Choose another name.`;
+    return "";
+}
+
+// A role the user may look at but not change: admin-level roles for non-super users.
+export const isLockedRole = (name, isSuper) => !isSuper && /^(admin|super[\s_-]*admin|system[\s_-]*admin|dpo)$/i.test(String(name ?? "").trim());
+
+const part = (s) => String(s ?? "").replace(/[\s_-]/g, "").toLowerCase();
+const normKey = (key) => {
+    const [head, ...rest] = String(key).split(".");
+    return `${part(head)}.${part(rest.join("."))}`;
+};
+
+// Ids of permissions the signed-in user does NOT hold themselves. They cannot hand those to a role.
+// Returns null when the comparison cannot be made (no permissions in the token, or the names never line up),
+// so the screen is never locked by mistake.
+export function lockedPermissionIds(modules, myPermissions) {
+    const mine = (myPermissions || []).map(normKey);
+    if (!mine.length || mine.includes("*")) return null;
+    const locked = new Set();
+    let matched = false;
+    for (const m of modules) {
+        for (const a of m.actions) {
+            const want = `${part(m.name)}.${part(a.name)}`;
+            const group = `${part(m.name)}.*`;
+            if (mine.includes(want) || mine.includes(group)) matched = true;
+            else locked.add(a.id);
+        }
+    }
+    return matched ? locked : null;
+}

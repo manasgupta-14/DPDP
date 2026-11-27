@@ -23,11 +23,12 @@ export function readEnvelope(body) {
 }
 
 function extractError(data, status, method, path) {
-    // The backend sends { Message } on 400 / 403 / 409. Show that text first; fall back to the permission hint.
+    // The backend sends { Message } (or { Error }) on 400 / 403 / 404 / 409. Show that text first; fall back to the permission hint.
+    const text = (v) => (typeof v === "string" ? v.trim() : "");
     const backendMessage =
-        data && typeof data === "object" ? String(data.message ?? data.Message ?? "").trim() : "";
+        data && typeof data === "object" && !Array.isArray(data) ? text(data.message) || text(data.Message) || text(data.error) || text(data.Error) : "";
     if (status === 403) return backendMessage || permissionMessage(method, path);
-    if (backendMessage && (status === 400 || status === 409)) return backendMessage;
+    if (backendMessage && (status === 400 || status === 404 || status === 409)) return backendMessage;
     if (data && typeof data === "object") {
         const root = data.rootError || data.RootError || data.innerError || data.InnerError;
         if (typeof root === "string" && root.trim()) return root.trim();
