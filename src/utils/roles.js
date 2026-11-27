@@ -29,3 +29,11 @@ export function validateRole({ roleName, description }, selectedCount) {
     if (selectedCount === 0) e.permissions = "Turn on at least one permission for this role.";
     return e;
 }
+
+const DATA_PRINCIPAL_ROLE = /^data[\s_-]*principal$/i;
+
+export const isDataPrincipalRole = (role) => DATA_PRINCIPAL_ROLE.test(String(role?.name ?? role ?? "").trim());
+
+export const principalRoles = (roles) => (Array.isArray(roles) ? roles.filter(isDataPrincipalRole) : []);
+
+export const staffRoles = (roles) => (Array.isArray(roles) ? roles.filter((r) => !isDataPrincipalRole(r)) : []);

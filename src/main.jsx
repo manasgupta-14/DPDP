@@ -10,8 +10,10 @@ import { installScrollBorder } from "./utils/scrollBorder.js";
 import { installRipple } from "./utils/ripple.js";
 import "./styles/pro.css";
 import { preloadRoute } from "./utils/preloadRoute.js";
+import { initTranslator } from "./i18n/engine.js";
 
 preloadRoute();
+initTranslator();
 installReveal();
 const later = (fn) => (typeof requestIdleCallback === "function" ? requestIdleCallback(fn, { timeout: 2000 }) : setTimeout(fn, 600));
 later(() => {

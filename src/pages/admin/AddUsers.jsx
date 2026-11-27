@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useOutletContext } from "react-router-dom";
 import { addEmployee, getOrganizationUsers, toggleUserStatus } from "../../api/users.js";
 import { getRoleOptions } from "../../api/roles.js";
+import { staffRoles } from "../../utils/roles.js";
 import { usePermissions } from "../../auth/usePermissions.js";
 import EditUserModal from "../../components/admin/users/EditUserModal.jsx";
 import Icon from "../../components/shared/Icon.jsx";
@@ -65,7 +66,7 @@ export default function AddUsers() {
         getRoleOptions().then((res) => {
             if (!active) return;
             if (res.ok) {
-                setRoles(res.data);
+                setRoles(staffRoles(res.data));
                 setRolesError("");
             } else {
                 setRoles([]);

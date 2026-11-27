@@ -91,7 +91,7 @@ export default function MyGrievances() {
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Grievance</h1>
                     <p className="mt-1 text-sm text-ink-3">Your raised grievances and how the Data Protection team has responded. Status is set by the team, you cannot change it.</p>
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-3.5">
                     <button type="button" onClick={refresh} disabled={loading || refreshing} className={`${ghostBtn} px-3 py-2 text-xs`}>{refreshing ? "Refreshing..." : "Refresh"}</button>
                     <button type="button" onClick={() => setRaising(true)} className={`${primaryBtn} px-3 py-2 text-xs`}>Raise a grievance</button>
                 </div>

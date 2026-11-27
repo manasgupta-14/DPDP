@@ -478,3 +478,6 @@ html[data-theme] body :is(.kd-kpi, .kd-tile, .kx-tilt) { transform: none; }
   .kv-live-dot, .kv-hub-live i, .kv-clocks-live i, .kd-ico-glow, .kv-side-badge, .kv-side-badge::after,
   .kv-new-tag, .kv-hub-float, .kv-vs-arrow, .kv-welcome-art .sh-float, .kv-welcome-art .sh-orbit, .pg-shimmer { animation: none !important; }
 }
+
+html body .pg-dash table :is(thead th, tbody td):first-child:not([class*="pl-"]):not([class*="px-"]):not([class^="p-"]):not([class*=" p-"]) { padding-left: 0.875rem; }
+html body .pg-dash table tbody tr:hover > td:first-child { box-shadow: inset 3px 0 0 var(--k-brand); }

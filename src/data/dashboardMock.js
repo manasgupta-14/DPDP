@@ -29,9 +29,9 @@ export const READINESS = [
 ];
 
 export const DEADLINES = [
-    { title: "Phase 2: one year commences", date: new Date(2026, 10, 13), note: "Statutory commencement date", kind: "Legal" },
+    { title: "Phase 2: starts after one year", date: new Date(2026, 10, 13), note: "Legal start date", kind: "Legal" },
     { title: "Review data inventory: Location", date: new Date(2026, 10, 20), note: "Internal review date", kind: "Internal" },
-    { title: "Phase 3: eighteen months commences", date: new Date(2027, 4, 13), note: "Statutory commencement date", kind: "Legal" },
+    { title: "Phase 3: starts after eighteen months", date: new Date(2027, 4, 13), note: "Legal start date", kind: "Legal" },
 ];
 
 export const TASKS = [
@@ -50,13 +50,13 @@ export const ACTIVITY = [
 ];
 
 export const NOTIFICATIONS = [
-    { title: "Phase 2 commences on 13 Nov 2026", meta: "Legal milestone" },
+    { title: "Phase 2 starts on 13 Nov 2026", meta: "Legal milestone" },
     { title: "Breach response runbook due 05 Dec 2026", meta: "Task · In progress" },
     { title: "Incident logged: misconfigured storage", meta: "Breach · 18 Oct 2026" },
 ];
 
 export const MODULE_INFO = {
-    timeline: { title: "Act & Rules timeline", text: "Statutory phases and commencement dates in one view." },
+    timeline: { title: "Act & Rules timeline", text: "Legal phases and their start dates in one view." },
     consent: { title: "Consent management", text: "Purposes, consent records and withdrawals." },
     notice: { title: "Privacy notice builder", text: "Draft and version your privacy notices." },
     "rights-requests": { title: "Rights Requests", text: "Data Subject Access Requests: access, correction, erasure and grievance." },

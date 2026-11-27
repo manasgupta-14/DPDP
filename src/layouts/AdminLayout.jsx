@@ -1,23 +1,18 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useEffect, useMemo } from "react";
 import { getAdminAlerts } from "../api/adminAlerts.js";
-import { getMyPendingCampaigns } from "../api/campaign.js";
 import { getProfile, roleInfo } from "../auth/authStore.js";
 import { useAccess } from "../auth/access.js";
 import { visibleAdminSections } from "../config/navigation.js";
-import { TASKS_CHANGED, formatDay, typeLabel } from "../utils/campaign.js";
-import { initNewItems, markFromPath, setOpenItems, useNewItems } from "../utils/newItems.js";
+import useAlertFeed from "../hooks/useAlertFeed.js";
+import { TASKS_CHANGED } from "../utils/campaign.js";
+import { initNewItems, markAllSeen, markKeySeen, useNewItems } from "../utils/newItems.js";
 import DashboardShell from "./DashboardShell.jsx";
 
-const REFRESH_MS = 2 * 60 * 1000;
+const FEED_OPTIONS = { events: [TASKS_CHANGED] };
 
 export default function AdminLayout() {
     const profile = getProfile();
     const info = roleInfo(profile);
-    const { pathname } = useLocation();
-    const [alerts, setAlerts] = useState({ total: 0, items: [], all: [] });
-    const last = useRef(0);
-    const [tasks, setTasks] = useState([]);
     const newItems = useNewItems();
     const { can } = useAccess();
 
@@ -25,30 +20,7 @@ export default function AdminLayout() {
         initNewItems(profile?.email);
     }, [profile?.email]);
 
-    useEffect(() => {
-        markFromPath(pathname);
-    }, [pathname]);
-
-    const refreshTasks = useCallback(async () => {
-        const res = await getMyPendingCampaigns();
-        if (res.ok) setTasks(res.data);
-    }, []);
-
-    useEffect(() => {
-        refreshTasks();
-    }, [pathname, refreshTasks]);
-
-    useEffect(() => {
-        const timer = setInterval(refreshTasks, REFRESH_MS);
-        const onVisible = () => { if (document.visibilityState === "visible") refreshTasks(); };
-        window.addEventListener(TASKS_CHANGED, refreshTasks);
-        document.addEventListener("visibilitychange", onVisible);
-        return () => {
-            clearInterval(timer);
-            window.removeEventListener(TASKS_CHANGED, refreshTasks);
-            document.removeEventListener("visibilitychange", onVisible);
-        };
-    }, [refreshTasks]);
+    const feed = useAlertFeed(getAdminAlerts, FEED_OPTIONS);
 
     const sections = useMemo(
         () =>
@@ -56,54 +28,11 @@ export default function AdminLayout() {
                 ...s,
                 items: s.items.map((i) => {
                     const item = i.profile ? { ...i, label: info.profileLabel } : i;
-                    if (item.to === "/dashboard/my-tasks") return { ...item, badge: tasks.length };
                     return item.alert ? { ...item, badge: newItems.count(item.alert) } : item;
                 }),
             })),
-        [info.profileLabel, newItems, can, tasks.length],
+        [info.profileLabel, newItems, can],
     );
-
-    useEffect(() => {
-        let active = true;
-        const t = setTimeout(() => {
-            if (Date.now() - last.current < 30000) return;
-            last.current = Date.now();
-            getAdminAlerts().then((res) => {
-                if (!active) return;
-                setAlerts(res);
-                setOpenItems(res.all);
-            });
-        }, 900);
-        return () => {
-            active = false;
-            clearTimeout(t);
-        };
-    }, [pathname]);
-
-    useEffect(() => {
-        let active = true;
-        const timer = setInterval(() => {
-            last.current = Date.now();
-            getAdminAlerts().then((res) => {
-                if (!active) return;
-                setAlerts(res);
-                setOpenItems(res.all);
-            });
-        }, REFRESH_MS);
-        return () => {
-            active = false;
-            clearInterval(timer);
-        };
-    }, []);
-
-    const taskItems = tasks.slice(0, 5).map((c) => ({
-        key: `task-${c.id}`,
-        title: c.title,
-        meta: ["My task", typeLabel(c.type), c.endDate ? `respond by ${formatDay(c.endDate)}` : ""].filter(Boolean).join(" · "),
-        to: "/dashboard/my-tasks",
-    }));
-    const bellItems = [...taskItems, ...alerts.items];
-    const bellTotal = alerts.total + tasks.length;
 
     return (
         <DashboardShell
@@ -113,9 +42,12 @@ export default function AdminLayout() {
             profileLink="/dashboard/admin"
             profileLabel={info.profileLabel}
             bell={{
-                title: alerts.total > alerts.items.length ? `Needs attention · showing ${bellItems.length} of ${bellTotal}` : "Needs attention",
-                items: bellItems,
-                count: bellTotal,
+                title: "Needs attention",
+                items: feed.items,
+                count: feed.unseen,
+                total: feed.total,
+                onOpen: (n) => markKeySeen(n.kind, n.key),
+                onMarkAll: () => markAllSeen(feed.items),
                 emptyText: "All caught up. No open tasks, grievances, breaches, requests or DPIA reviews.",
             }}
             key={profile?.email}

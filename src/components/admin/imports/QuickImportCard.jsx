@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { bulkImportDataPrincipals } from "../../../api/dataPrincipal.js";
 import { getRoleOptions } from "../../../api/roles.js";
+import { principalRoles } from "../../../utils/roles.js";
 import { downloadText } from "../../../utils/bulkImport.js";
 import Alert from "../../shared/Alert.jsx";
 import { panel, primaryBtn } from "../../shared/ui.js";
@@ -100,10 +101,9 @@ export default function QuickImportCard({ onImported }) {
         let active = true;
         getRoleOptions().then((res) => {
             if (!active) return;
-            const items = res.ok ? res.data.filter((r) => !/admin|^dpo$/i.test(r.name)) : [];
+            const items = res.ok ? principalRoles(res.data) : [];
             setRoles({ loading: false, items });
-            const def = items.find((r) => /^data\s*principal$/i.test(r.name));
-            if (def) setRoleId((v) => v || def.id);
+            if (items[0]) setRoleId(items[0].id);
         });
         return () => {
             active = false;
@@ -176,8 +176,8 @@ export default function QuickImportCard({ onImported }) {
                         </label>
                         <label className={label}>
                             Role for everyone in this file
-                            <select value={roleId} onChange={(e) => setRoleId(e.target.value)} disabled={busy || roles.loading} className={input}>
-                                <option value="">{roles.loading ? "Loading roles..." : "No role"}</option>
+                            <select value={roleId} onChange={(e) => setRoleId(e.target.value)} disabled={busy || roles.loading || roles.items.length <= 1} className={input}>
+                                {(roles.loading || roles.items.length === 0) && <option value="">{roles.loading ? "Loading roles..." : "No Data Principal role"}</option>}
                                 {roles.items.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
                             </select>
                         </label>

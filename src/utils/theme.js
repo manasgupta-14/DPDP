@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 
-const KEY = "pg_theme";
+const KEY = "pg_theme_v2";
 const EVENT = "pg-theme";
 
 export function getTheme() {

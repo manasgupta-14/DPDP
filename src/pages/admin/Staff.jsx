@@ -2,9 +2,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { getOrgHierarchy } from "../../api/orgUnit.js";
 import { getRoleOptions } from "../../api/roles.js";
+import { staffRoles } from "../../utils/roles.js";
 import { createStaff, getStaffList } from "../../api/staff.js";
 import Alert from "../../components/shared/Alert.jsx";
 import Modal from "../../components/shared/Modal.jsx";
+import RowDetail, { RowLink } from "../../components/shared/RowDetail.jsx";
+import { useRowDetail } from "../../components/shared/useRowDetail.js";
 import { field, ghostBtn, panel, primaryBtn } from "../../components/shared/ui.js";
 import { flatten } from "../../utils/orgUnit.js";
 import { canNow } from "../../auth/access.js";
@@ -91,6 +94,7 @@ function AddStaffForm({ roles, units, onSaved, onClose }) {
 
 export default function Staff() {
     const { query = "" } = useOutletContext() || {};
+    const [detail, rowProps, closeDetail] = useRowDetail();
     const [staff, setStaff] = useState([]);
     const [roles, setRoles] = useState([]);
     const [units, setUnits] = useState([]);
@@ -116,7 +120,7 @@ export default function Staff() {
             if (!active) return;
             if (list.ok) setStaff(list.data);
             else setError(list.error);
-            if (roleRes.ok) setRoles(roleRes.data);
+            if (roleRes.ok) setRoles(staffRoles(roleRes.data));
             if (hier.ok) setUnits(flatten(hier.data).filter((u) => u.active));
             setLoading(false);
         });
@@ -143,7 +147,7 @@ export default function Staff() {
                         <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Staff</h1>
                         <p className="mt-1 text-sm text-ink-3">Branch staff of your organisation, with their role and office.</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-3.5">
                         <button type="button" onClick={load} className={ghostBtn}>Refresh</button>
                         {canNow(["Users.Create"]) && <button type="button" onClick={() => setOpen(true)} className={primaryBtn}>Add staff</button>}
                     </div>
@@ -164,8 +168,8 @@ export default function Staff() {
                             </thead>
                             <tbody className="divide-y divide-line">
                                 {rows.map((s) => (
-                                    <tr key={s.id} className="hover:bg-soft">
-                                        <td className="px-5 py-3 font-semibold text-ink">{s.name}</td>
+                                    <tr key={s.id} {...rowProps(() => ({ title: s.name, subtitle: s.email, items: [{ label: "Name", value: s.name }, { label: "Email", value: s.email }, { label: "Role", value: s.role }, { label: "Org unit", value: s.orgUnitName }, { label: "Status", value: s.active ? "Active" : "Inactive" }] }))} className="cursor-pointer hover:bg-soft">
+                                        <td className="px-5 py-3"><RowLink>{s.name}</RowLink></td>
                                         <td className="px-5 py-3 text-ink-2">{s.email}</td>
                                         <td className="px-5 py-3 text-ink-2">{s.role}</td>
                                         <td className="px-5 py-3 text-ink-2">{s.orgUnitName || <span className="text-muted">—</span>}</td>
@@ -180,6 +184,7 @@ export default function Staff() {
                 </div>
             </div>
 
+            <RowDetail row={detail} onClose={closeDetail} />
             {open && (
                 <Modal title="Add staff" onClose={() => setOpen(false)}>
                     <AddStaffForm

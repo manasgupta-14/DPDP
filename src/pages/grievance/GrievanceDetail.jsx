@@ -121,7 +121,7 @@ export default function GrievanceDetail() {
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
-                        <h1 className="break-words text-[24px] font-bold tracking-tight text-ink">{ticket.subject}</h1>
+                        <h1 translate="no" className="break-words text-[24px] font-bold tracking-tight text-ink">{ticket.subject}</h1>
                         <span className={`${pill} ${grievanceStatusToneLight(ticket.status)}`}>{ticket.status}</span>
                     </div>
                     <Link to="/dashboard/grievances" className="mt-1 inline-block text-sm font-semibold text-brand-ink hover:underline">&larr; Back to grievances &middot; <span className="font-mono text-xs">{ticket.referenceId}</span></Link>

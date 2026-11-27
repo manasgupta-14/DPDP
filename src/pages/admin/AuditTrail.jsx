@@ -139,7 +139,7 @@ export default function AuditTrail() {
                     <h1 className="text-[26px] font-bold tracking-tight text-ink sm:text-[28px]">Audit trail</h1>
                     <p className="mt-1 text-sm text-ink-3">Every change made to your organisation&rsquo;s data, newest first. Times are shown in your local time zone.</p>
                 </div>
-                <div className="flex flex-wrap gap-2.5">
+                <div className="flex flex-wrap gap-3.5">
                     <button type="button" onClick={load} disabled={loading || refreshing} className={ghostBtn}>
                         <Icon name="refresh" className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                         {refreshing ? "Refreshing..." : "Refresh"}
