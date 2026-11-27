@@ -13,6 +13,7 @@ import NewTag from "../../components/shared/NewTag.jsx";
 import { markSeen, useNewItems } from "../../utils/newItems.js";
 import { toDate, toTime } from "../../utils/audit.js";
 import { formatWhen } from "../../utils/bulkImport.js";
+import { allowedClassValues, classDobError, classDobHint, classForDob } from "../../utils/dataPrincipals.js";
 
 const PAGE_SIZE = 10;
 const CLASSES = [
@@ -227,6 +228,12 @@ function AddForm({ onClose, onAdded, editing = null }) {
         setForm((f) => ({ ...f, [k]: e.target.value }));
         setErrors((er) => ({ ...er, [k]: undefined }));
     };
+    const setDob = (e) => {
+        const dateOfBirth = e.target.value;
+        setForm((f) => ({ ...f, dateOfBirth, class: classForDob(dateOfBirth, f.class) }));
+        setErrors((er) => ({ ...er, dateOfBirth: undefined, class: undefined }));
+    };
+    const classOptions = CLASSES.filter(([v]) => v && (allowedClassValues(form.dateOfBirth).includes(v) || (isEdit && !form.dateOfBirth)));
 
     useEffect(() => {
         let active = true;
@@ -249,6 +256,10 @@ function AddForm({ onClose, onAdded, editing = null }) {
         if (f.mobile.trim() && !/^\d{10}$/.test(f.mobile.trim())) found.mobile = "Mobile number must be exactly 10 digits.";
         if (f.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) found.email = "Enter a valid email.";
         if (f.dateOfBirth && new Date(f.dateOfBirth) > new Date()) found.dateOfBirth = "Date of birth cannot be in the future.";
+        else if (f.dateOfBirth || !isEdit) {
+            const mismatch = classDobError(f.dateOfBirth, f.class);
+            if (mismatch) found.class = mismatch;
+        }
         if (f.password || f.confirm) {
             if (!isEdit && !f.email.trim()) found.email = "Email is required so this person can sign in.";
             if (f.password.length < 8) found.password = "Use at least 8 characters.";
@@ -284,7 +295,7 @@ function AddForm({ onClose, onAdded, editing = null }) {
                     {input("consumerNo", "Consumer number", { maxLength: 50, ...keep(editing?.consumerNo) })}
                     {input("mobile", "Mobile", { inputMode: "numeric", maxLength: 10, placeholder: "10 digits", ...keep(editing?.mobile) })}
                     {input("email", "Email", { type: "email", maxLength: 100, ...keep(editing?.email) })}
-                    {input("dateOfBirth", "Date of birth", { type: "date", max: new Date().toISOString().slice(0, 10) })}
+                    {input("dateOfBirth", "Date of birth", { type: "date", max: new Date().toISOString().slice(0, 10), onChange: setDob })}
                     <label className="block text-sm font-medium text-ink-2">
                         Preferred language
                         <select value={form.preferredLocale} onChange={set("preferredLocale")} disabled={busy} className={field}>
@@ -295,9 +306,10 @@ function AddForm({ onClose, onAdded, editing = null }) {
                 <div className="grid gap-x-4 sm:grid-cols-2">
                     <label className="block text-sm font-medium text-ink-2">
                         Class
-                        <select value={form.class} onChange={set("class")} disabled={busy} className={field}>
-                            {CLASSES.filter(([v]) => v).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        <select value={form.class} onChange={set("class")} disabled={busy} className={field} aria-invalid={!!errors.class}>
+                            {classOptions.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
+                        <span className={`mt-1 block text-xs ${errors.class ? "text-bad-ink" : "text-muted"}`}>{errors.class || (isEdit && !form.dateOfBirth ? "" : classDobHint(form.dateOfBirth))}</span>
                     </label>
                     <label className="block text-sm font-medium text-ink-2">
                         Role
